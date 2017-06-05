@@ -28,6 +28,10 @@
             <name>Geotools repository</name>
             <url>http://download.osgeo.org/webdav/geotools</url>
         </repository>
+        <repository>
+            <id>matsim</id>
+            <url>http://dl.bintray.com/matsim/matsim</url>
+        </repository>
     </repositories>
 
     <dependencies>
