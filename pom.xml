@@ -22,6 +22,12 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <!-- Needed for jitpack to work!!! -->
+            <id>osgeo</id>
+            <name>Geotools repository</name>
+            <url>http://download.osgeo.org/webdav/geotools</url>
+        </repository>
     </repositories>
 
     <dependencies>
