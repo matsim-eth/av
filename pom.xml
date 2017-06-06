@@ -46,11 +46,5 @@
             <artifactId>dvrp</artifactId>
             <version>0.10.0-SNAPSHOT</version>
         </dependency>
-
-        <dependency>
-            <groupId>playground</groupId>
-            <artifactId>ivtExt</artifactId>
-            <version>0.10.0-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 </project>

@@ -10,6 +10,7 @@ import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
 import ch.ethz.matsim.av.generator.AVGenerator;
 import ch.ethz.matsim.av.generator.PopulationDensityGenerator;
+import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
 import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
 import ch.ethz.matsim.av.routing.AVParallelRouterFactory;
 import ch.ethz.matsim.av.routing.AVRoute;
@@ -35,7 +36,6 @@ import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.VehicleUtils;
-import playground.sebhoerl.plcpc.ParallelLeastCostPathCalculator;
 
 import javax.inject.Named;
 import java.io.File;

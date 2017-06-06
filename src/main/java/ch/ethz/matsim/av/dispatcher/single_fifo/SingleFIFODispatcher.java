@@ -7,12 +7,12 @@ import ch.ethz.matsim.av.dispatcher.AVVehicleAssignmentEvent;
 import ch.ethz.matsim.av.dispatcher.utils.SingleRideAppender;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.passenger.AVRequest;
+import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
 import ch.ethz.matsim.av.schedule.AVTask;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.router.util.TravelTime;
-import playground.sebhoerl.plcpc.ParallelLeastCostPathCalculator;
 
 import java.util.LinkedList;
 import java.util.Queue;
