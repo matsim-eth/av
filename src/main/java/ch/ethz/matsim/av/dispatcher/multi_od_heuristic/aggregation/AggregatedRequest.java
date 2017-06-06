@@ -22,7 +22,7 @@ public class AggregatedRequest {
         this.master = master;
         this.estimator = estimator;
 
-        distanceThreshold = estimator.getThreshold();
+        distanceThreshold = estimator.getTravelTimeThreshold();
     }
 
     public AVRequest getMasterRequest() {
@@ -42,13 +42,13 @@ public class AggregatedRequest {
             return null;
         }
 
-        double distance1 = estimator.getDistance(candidate.getToLink(), master.getToLink(), master.getEarliestStartTime());
+        double distance1 = estimator.estimateTravelTime(candidate.getToLink(), master.getToLink(), master.getEarliestStartTime());
 
         if (distance1 > distanceThreshold) {
             return null;
         }
 
-        double distance2 = estimator.getDistance(candidate.getFromLink(), master.getFromLink(), master.getEarliestStartTime());
+        double distance2 = estimator.estimateTravelTime(candidate.getFromLink(), master.getFromLink(), master.getEarliestStartTime());
 
         if (distance2 > distanceThreshold) {
             return null;

@@ -1,8 +1,7 @@
 package ch.ethz.matsim.av.dispatcher.multi_od_heuristic.aggregation;
 
-import org.matsim.api.core.v01.events.Event;
 import ch.ethz.matsim.av.passenger.AVRequest;
-
+import org.matsim.api.core.v01.events.Event;
 import java.util.Map;
 
 public class AggregationEvent extends Event {

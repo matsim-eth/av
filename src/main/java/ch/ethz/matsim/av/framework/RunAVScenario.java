@@ -2,6 +2,8 @@ package ch.ethz.matsim.av.framework;
 
 import java.net.MalformedURLException;
 
+import ch.ethz.matsim.av.routing.AVRoute;
+import ch.ethz.matsim.av.routing.AVRouteFactory;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.dvrp.run.DvrpConfigGroup;
 import org.matsim.contrib.dvrp.run.DvrpModule;
@@ -21,7 +23,10 @@ public class RunAVScenario {
 		dvrpConfigGroup.setTravelTimeEstimationAlpha(0.05);
 		
 		Config config = ConfigUtils.loadConfig(configFile, new AVConfigGroup(), dvrpConfigGroup);
-		Scenario scenario = ScenarioUtils.loadScenario(config);
+
+		Scenario scenario = ScenarioUtils.createScenario(config);
+		scenario.getPopulation().getFactory().getRouteFactories().setRouteFactory(AVRoute.class, new AVRouteFactory());
+		ScenarioUtils.loadScenario(scenario);
 
 		Controler controler = new Controler(scenario);
 		controler.addOverridingModule(VrpTravelTimeModules.createTravelTimeEstimatorModule());
