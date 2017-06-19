@@ -27,6 +27,7 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.dvrp.run.DvrpModule;
 import org.matsim.contrib.dvrp.trafficmonitoring.VrpTravelTimeModules;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.population.routes.RouteFactories;
 import org.matsim.core.router.Dijkstra;
@@ -39,6 +40,7 @@ import org.matsim.vehicles.VehicleUtils;
 
 import javax.inject.Named;
 import java.io.File;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -121,13 +123,12 @@ public class AVModule extends AbstractModule {
 
     @Provides @Singleton
     AVConfig provideAVConfig(Config config, AVConfigGroup configGroup) {
-        File basePath = new File(config.getContext().getPath()).getParentFile();
-        File configPath = new File(basePath, configGroup.getConfigPath());
+        URL configPath = ConfigGroup.getInputFileURL(config.getContext(), configGroup.getConfigPath());
 
         AVConfig avConfig = new AVConfig();
         AVConfigReader reader = new AVConfigReader(avConfig);
 
-        reader.readFile(configPath.getAbsolutePath());
+        reader.readFile(configPath.getPath());
         return avConfig;
     }
 
