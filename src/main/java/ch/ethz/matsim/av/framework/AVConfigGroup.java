@@ -2,12 +2,16 @@ package ch.ethz.matsim.av.framework;
 
 import org.matsim.core.config.ReflectiveConfigGroup;
 
+import java.net.URL;
+
 public class AVConfigGroup extends ReflectiveConfigGroup {
 	final static String AV = "av";
 	final static String CONFIG = "config";
 	final static String PARALLEL_ROUTERS = "parallelRouters";
 
 	private String configPath;
+	private URL configURL;
+
 	private long parallelRouters = 4;
 	
 	public AVConfigGroup() {
@@ -32,5 +36,13 @@ public class AVConfigGroup extends ReflectiveConfigGroup {
 	@StringSetter(PARALLEL_ROUTERS)
 	public void setParallelRouters(long parallelRouters) {
 		this.parallelRouters = parallelRouters;
+	}
+
+	public URL getConfigURL() {
+		return configURL;
+	}
+
+	public void setConfigURL(URL url) {
+		this.configURL = url;
 	}
 }

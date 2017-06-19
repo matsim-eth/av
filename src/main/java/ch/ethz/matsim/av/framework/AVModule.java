@@ -123,7 +123,11 @@ public class AVModule extends AbstractModule {
 
     @Provides @Singleton
     AVConfig provideAVConfig(Config config, AVConfigGroup configGroup) {
-        URL configPath = ConfigGroup.getInputFileURL(config.getContext(), configGroup.getConfigPath());
+        URL configPath = configGroup.getConfigURL();
+
+        if (configPath == null) {
+            configPath = ConfigGroup.getInputFileURL(config.getContext(), configGroup.getConfigPath());
+        }
 
         AVConfig avConfig = new AVConfig();
         AVConfigReader reader = new AVConfigReader(avConfig);

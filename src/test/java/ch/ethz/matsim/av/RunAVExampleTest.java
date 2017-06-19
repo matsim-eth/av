@@ -19,15 +19,17 @@ public class RunAVExampleTest {
     @Test
     public void testAVExample() {
         AVConfigGroup avConfigGroup = new AVConfigGroup();
-        avConfigGroup.setConfigPath(RunAVExampleTest.class.getResource("../../../../av.xml").getPath());
+        avConfigGroup.setConfigURL(getClass().getResource("/ch/ethz/matsim/av/av.xml"));
 
-        Config config = ConfigUtils.loadConfig(SiouxFallsUtils.getResource("config.xml"), avConfigGroup, new DvrpConfigGroup());
+        Config config = ConfigUtils.loadConfig(SiouxFallsUtils.getConfigURL(), avConfigGroup, new DvrpConfigGroup());
         config.controler().setLastIteration(1);
 
         PlanCalcScoreConfigGroup.ModeParams modeParams = config.planCalcScore().getOrCreateModeParams(AVModule.AV_MODE);
         modeParams.setMonetaryDistanceRate(0.0);
         modeParams.setMarginalUtilityOfTraveling(8.86);
         modeParams.setConstant(0.0);
+
+        config.subtourModeChoice().setModes(new String[] { "av" } );
 
         Scenario scenario = ScenarioUtils.loadScenario(config);
 
