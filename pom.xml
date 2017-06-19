@@ -6,7 +6,7 @@
 
     <groupId>ch.ethz.matsim</groupId>
     <artifactId>av</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -14,37 +14,36 @@
     </properties>
 
     <repositories>
+        <!-- Needed for geotools in matsim main -->
         <repository>
-            <id>ojo-snapshots</id>
-            <name>MATSim snapshot repository</name>
-            <url>http://oss.jfrog.org/libs-snapshot</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <!-- Needed for jitpack to work!!! -->
             <id>osgeo</id>
             <name>Geotools repository</name>
             <url>http://download.osgeo.org/webdav/geotools</url>
         </repository>
         <repository>
-            <id>matsim</id>
-            <url>http://dl.bintray.com/matsim/matsim</url>
+            <id>matsim-eth</id>
+            <url>http://dl.bintray.com/matsim-eth/matsim</url>
         </repository>
     </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>matsim-eth-bintray</id>
+            <url>https://api.bintray.com/maven/matsim-eth/matsim/av/</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
             <groupId>org.matsim</groupId>
             <artifactId>matsim</artifactId>
-            <version>0.10.0-SNAPSHOT</version>
+            <version>0.10.0-eth</version>
         </dependency>
 
         <dependency>
             <groupId>org.matsim.contrib</groupId>
             <artifactId>dvrp</artifactId>
-            <version>0.10.0-SNAPSHOT</version>
+            <version>0.10.0-eth</version>
         </dependency>
     </dependencies>
 </project>
