@@ -12,6 +12,7 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.contrib.dvrp.data.Vehicle;
 import org.matsim.core.gbl.MatsimRandom;
+import org.matsim.facilities.ActivityFacilities;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -27,7 +28,8 @@ public class PopulationDensityGenerator implements AVGenerator {
     private List<Link> linkList = new LinkedList<>();
     private Map<Link, Double> cumulativeDensity = new HashMap<>();
 
-    public PopulationDensityGenerator(AVGeneratorConfig config, Network network, Population population) {
+    public PopulationDensityGenerator(AVGeneratorConfig config, Network network, Population population,
+									  ActivityFacilities facilities) {
         this.numberOfVehicles = config.getNumberOfVehicles();
 
         String prefix = config.getPrefix();
@@ -40,7 +42,10 @@ public class PopulationDensityGenerator implements AVGenerator {
         for (Person person : population.getPersons().values()) {
             for (PlanElement planElement : person.getSelectedPlan().getPlanElements()) {
                 if (planElement instanceof Activity) {
-                    Link link = network.getLinks().get(((Activity) planElement).getLinkId());
+                	Activity act = (Activity) planElement;
+                	Id<Link> linkId = act.getLinkId() != null ? act.getLinkId() :
+							facilities.getFacilities().get(act.getFacilityId()).getLinkId();
+                    Link link = network.getLinks().get(linkId);
 
                     if (density.containsKey(link)) {
                         density.put(link, density.get(link) + 1.0);
@@ -92,10 +97,11 @@ public class PopulationDensityGenerator implements AVGenerator {
     static public class Factory implements AVGenerator.AVGeneratorFactory {
         @Inject private Population population;
         @Inject private Network network;
+        @Inject private ActivityFacilities facilities;
 
         @Override
         public AVGenerator createGenerator(AVGeneratorConfig generatorConfig) {
-            return new PopulationDensityGenerator(generatorConfig, network, population);
+            return new PopulationDensityGenerator(generatorConfig, network, population, facilities);
         }
     }
 }
