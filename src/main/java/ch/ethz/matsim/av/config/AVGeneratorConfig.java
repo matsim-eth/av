@@ -6,6 +6,7 @@ public class AVGeneratorConfig extends ReflectiveConfigGroup {
     final static String GENERATOR = "generator";
     final static String NUMBER_OF_VEHICLES = "numberOfVehicles";
     final static String PREFIX = "prefix";
+    final static String PATH_TO_SHP = "pathToSHP";
 
     final private AVOperatorConfig parent;
 
@@ -13,6 +14,7 @@ public class AVGeneratorConfig extends ReflectiveConfigGroup {
 
     private long numberOfVehicles = 10;
     private String prefix = null;
+    private String pathToSHP = null;
 
     public AVGeneratorConfig(AVOperatorConfig parent, String strategyName) {
         super(GENERATOR, true);
@@ -43,6 +45,16 @@ public class AVGeneratorConfig extends ReflectiveConfigGroup {
     @StringGetter(PREFIX)
     public String getPrefix() {
         return prefix;
+    }
+
+    @StringGetter(PATH_TO_SHP)
+    public String getPathToSHP() {
+        return pathToSHP;
+    }
+
+    @StringSetter(PATH_TO_SHP)
+    public void setPathToSHP(String pathToSHP) {
+        this.pathToSHP = pathToSHP;
     }
 
     public AVOperatorConfig getParent() {
