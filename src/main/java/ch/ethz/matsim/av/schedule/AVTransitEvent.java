@@ -25,6 +25,7 @@ public class AVTransitEvent extends Event implements HasPersonId {
         return "AVTransit";
     }
 
+    @Override
     public Map<String, String> getAttributes() {
         Map<String, String> attr = super.getAttributes();
         attr.put("person", request.getPassenger().getId().toString());
