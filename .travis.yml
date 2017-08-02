@@ -3,7 +3,7 @@ jdk: oraclejdk8
 addons:
   apt:
     packages:
-      - oracle-java8-installer  # https://github.com/travis-ci/travis-ci/issues/3259
+      - oracle-java8-installer    # https://github.com/travis-ci/travis-ci/issues/3259
 script:
   - mvn test -B -Dmaven.test.redirectTestOutputToFile -Dmatsim.preferLocalDtds=true
 env:
