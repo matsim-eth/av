@@ -9,7 +9,7 @@ import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.MatsimEventsReader;
 
-public class ScenarioAnalyzer extends AbstractModule implements PersonDepartureEventHandler, PersonArrivalEventHandler {
+public class TestScenarioAnalyzer extends AbstractModule implements PersonDepartureEventHandler, PersonArrivalEventHandler {
     public long numberOfDepartures;
     public long numberOfArrivals;
 
