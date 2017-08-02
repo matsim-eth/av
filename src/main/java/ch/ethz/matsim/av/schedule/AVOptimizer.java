@@ -7,9 +7,10 @@ import ch.ethz.matsim.av.passenger.AVRequest;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.contrib.dvrp.data.Request;
 import org.matsim.contrib.dvrp.data.Vehicle;
-import org.matsim.contrib.dvrp.optimizer.VrpOptimizer;
+import org.matsim.contrib.dvrp.optimizer.VrpOptimizerWithOnlineTracking;
 import org.matsim.contrib.dvrp.schedule.Schedule;
 import org.matsim.contrib.dvrp.schedule.Task;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -22,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 @Singleton
-public class AVOptimizer implements VrpOptimizer, MobsimBeforeSimStepListener {
+public class AVOptimizer implements VrpOptimizerWithOnlineTracking, MobsimBeforeSimStepListener {
     private double now;
     final private List<AVRequest> submittedRequestsBuffer = Collections.synchronizedList(new LinkedList<>());
 
@@ -101,4 +102,7 @@ public class AVOptimizer implements VrpOptimizer, MobsimBeforeSimStepListener {
             eventsManager.processEvent(new AVTransitEvent(request, now));
         }
     }
+
+    @Override
+    public void vehicleEnteredNextLink(Vehicle vehicle, Link link) {}
 }
