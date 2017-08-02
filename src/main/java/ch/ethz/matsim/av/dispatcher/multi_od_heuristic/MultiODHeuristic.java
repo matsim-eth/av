@@ -214,8 +214,9 @@ public class MultiODHeuristic implements AVDispatcher {
     }
 
     static public class Factory implements AVDispatcherFactory {
-        @Inject
+        @Inject @Named(AVModule.AV_MODE)
         private Network network;
+
         @Inject private EventsManager eventsManager;
 
         @Inject @Named(AVModule.AV_MODE)

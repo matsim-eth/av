@@ -14,7 +14,7 @@ import org.matsim.core.router.util.TravelTime;
 @Singleton
 public class AVParallelRouterFactory implements ParallelLeastCostPathCalculatorFactory {
     @Inject @Named(AVModule.AV_MODE) TravelTime travelTime;
-    @Inject Network network;
+    @Inject @Named(AVModule.AV_MODE) Network network;
 
     @Override
     public LeastCostPathCalculator createRouter() {

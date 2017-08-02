@@ -2,7 +2,9 @@ package ch.ethz.matsim.av.generator;
 
 import ch.ethz.matsim.av.config.AVGeneratorConfig;
 import ch.ethz.matsim.av.data.AVVehicle;
+import ch.ethz.matsim.av.framework.AVModule;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -93,7 +95,7 @@ public class PopulationDensityGenerator implements AVGenerator {
 
     static public class Factory implements AVGenerator.AVGeneratorFactory {
         @Inject private Population population;
-        @Inject private Network network;
+        @Inject @Named(AVModule.AV_MODE) private Network network;
         @Inject private ActivityFacilities facilities;
 
         @Override

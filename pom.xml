@@ -6,6 +6,7 @@
 
     <groupId>ch.ethz.matsim</groupId>
     <artifactId>av</artifactId>
+    <packaging>pom</packaging>
     <version>0.1.0</version>
 
     <properties>
