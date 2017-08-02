@@ -20,6 +20,7 @@ import ch.ethz.matsim.av.scoring.AVScoringFunctionFactory;
 import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
@@ -38,7 +39,6 @@ import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.VehicleUtils;
 
-import javax.inject.Named;
 import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
@@ -76,6 +76,7 @@ public class AVModule extends AbstractModule {
         addMobsimListenerBinding().to(Key.get(ParallelLeastCostPathCalculator.class, Names.named(AVModule.AV_MODE)));
 
         bind(Network.class).annotatedWith(Names.named(DvrpModule.DVRP_ROUTING)).to(Network.class);
+        bind(Network.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(Key.get(Network.class, Names.named(DvrpModule.DVRP_ROUTING)));
 	}
 
 	@Provides @Singleton @Named(AVModule.AV_MODE)
@@ -106,7 +107,7 @@ public class AVModule extends AbstractModule {
     }
 
 	@Provides @Named(AVModule.AV_MODE)
-    LeastCostPathCalculator provideLeastCostPathCalculator(Network network, @Named(VrpTravelTimeModules.DVRP_ESTIMATED) TravelTime travelTime) {
+    LeastCostPathCalculator provideLeastCostPathCalculator(@com.google.inject.name.Named(AVModule.AV_MODE) Network network, @Named(VrpTravelTimeModules.DVRP_ESTIMATED) TravelTime travelTime) {
         return new Dijkstra(network, new OnlyTimeDependentTravelDisutility(travelTime), travelTime);
     }
 

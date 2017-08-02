@@ -159,7 +159,9 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
     }
 
     static public class Factory implements AVDispatcherFactory {
-        @Inject private Network network;
+        @Inject @Named(AVModule.AV_MODE)
+        private Network network;
+
         @Inject private EventsManager eventsManager;
 
         @Inject @Named(AVModule.AV_MODE)
