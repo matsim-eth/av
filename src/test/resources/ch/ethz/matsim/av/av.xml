@@ -12,7 +12,7 @@
 
     <operator id="op1">
         <generator strategy="PopulationDensity">
-            <param name="numberOfVehicles" value="1000" />
+            <param name="numberOfVehicles" value="100" />
         </generator>
 
         <dispatcher strategy="SingleHeuristic" />
