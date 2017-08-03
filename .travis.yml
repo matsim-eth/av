@@ -6,7 +6,7 @@ addons:
       - oracle-java8-installer    # https://github.com/travis-ci/travis-ci/issues/3259
 script:
   - mvn test -B -Dmatsim.preferLocalDtds=true
-  - if [[ -n $TRAVIS_TAG ]]; then if [[ $( cat pom.xml | grep SNAPSHOT ) ]]; then exit 1; else mvn deploy -DskipTests --settings=settings.xml; fi; fi
+  - if [[ -n $TRAVIS_TAG ]]; then if [[ $( cat pom.xml | grep SNAPSHOT ) ]]; then exit 1; else mvn deploy -DskipTests=true --settings=settings.xml; fi; fi
 env:
   global:
     - MAVEN_OPTS="-Xmx2g"
