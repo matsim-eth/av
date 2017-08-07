@@ -93,6 +93,13 @@ public class MultiODHeuristic implements AVDispatcher {
     }
 
     private void reoptimize(double now) {
+        SingleHeuristicDispatcher.HeuristicMode updatedMode = availableVehicles.size() > pendingRequests.size() ? SingleHeuristicDispatcher.HeuristicMode.OVERSUPPLY : SingleHeuristicDispatcher.HeuristicMode.UNDERSUPPLY;
+
+        if (!updatedMode.equals(mode)) {
+            mode = updatedMode;
+            eventsManager.processEvent(new ModeChangeEvent(mode, operatorId, now));
+        }
+
         while (pendingRequests.size() > 0 && availableVehicles.size() > 0) {
             AggregatedRequest request = null;
             AVVehicle vehicle = null;
@@ -117,16 +124,6 @@ public class MultiODHeuristic implements AVDispatcher {
 
             long count = request.getSlaveRequests().size() + 1;
             shareHistogram.put(count, shareHistogram.get(count) + 1);
-        }
-
-        SingleHeuristicDispatcher.HeuristicMode updatedMode =
-                availableVehicles.size() > 0 ?
-                        SingleHeuristicDispatcher.HeuristicMode.OVERSUPPLY :
-                        SingleHeuristicDispatcher.HeuristicMode.UNDERSUPPLY;
-
-        if (!updatedMode.equals(mode)) {
-            mode = updatedMode;
-            eventsManager.processEvent(new ModeChangeEvent(mode, operatorId, now));
         }
     }
 
