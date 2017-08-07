@@ -40,8 +40,11 @@ public class TestScenarioGenerator {
         config.controler().setWriteSnapshotsInterval(-1);
         config.controler().setCreateGraphs(false);
         config.controler().setDumpDataAtEnd(false);
+
         config.qsim().setEndTime(duration);
         config.planCalcScore().getOrCreateScoringParameters(null).getOrCreateActivityParams("activity").setScoringThisActivityAtAll(false);
+        config.parallelEventHandling().setOneThreadPerHandler(true);
+        config.global().setRandomSeed(0);
 
         Random random = new Random(randomSeed);
         Scenario scenario = ScenarioUtils.createScenario(config);
@@ -93,6 +96,7 @@ public class TestScenarioGenerator {
 
     static private void generateNetwork(Network network) {
         NetworkFactory networkFactory = network.getFactory();
+        network.setCapacityPeriod(3600.0);
 
         for (int i = 0; i < networkSize; i++) {
             for (int j = 0; j < networkSize; j++) {
@@ -130,6 +134,7 @@ public class TestScenarioGenerator {
         for (Link link : network.getLinks().values()) {
             link.setFreespeed(freespeed);
             link.setLength(networkScale);
+            link.setCapacity(1000.0);
         }
     }
 }

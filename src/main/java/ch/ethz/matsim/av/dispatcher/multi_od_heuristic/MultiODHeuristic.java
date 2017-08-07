@@ -198,10 +198,15 @@ public class MultiODHeuristic implements AVDispatcher {
         reoptimize = true;
     }
 
-    private void removeVehicle(AVVehicle vehicle) {
+    public void removeVehicle(AVVehicle vehicle) {
         availableVehicles.remove(vehicle);
         Coord coord = vehicleLinks.remove(vehicle).getCoord();
         availableVehiclesTree.remove(coord.getX(), coord.getY(), vehicle);
+    }
+
+    @Override
+    public boolean hasVehicle(AVVehicle vehicle) {
+        return availableVehicles.contains(vehicle);
     }
 
     private void removeRequest(AggregatedRequest request) {

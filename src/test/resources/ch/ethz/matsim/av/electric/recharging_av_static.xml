@@ -15,7 +15,10 @@
             <param name="numberOfVehicles" value="55" />
         </generator>
 
-        <dispatcher strategy="SingleHeuristic" />
+        <dispatcher strategy="Recharging">
+            <param name="delegate" value="SingleHeuristic" />
+            <param name="charge_calculator" value="static" />
+        </dispatcher>
 
         <pricing>
             <param name="pricePerKm" value="0.48" />

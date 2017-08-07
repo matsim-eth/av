@@ -51,6 +51,16 @@ public class SingleFIFODispatcher implements AVDispatcher {
         eventsManager.processEvent(new AVVehicleAssignmentEvent(vehicle, 0));
     }
 
+    @Override
+    public void removeVehicle(AVVehicle vehicle) {
+        availableVehicles.remove(vehicle);
+    }
+
+    @Override
+    public boolean hasVehicle(AVVehicle vehicle) {
+        return availableVehicles.contains(vehicle);
+    }
+
     private void reoptimize(double now) {
         while (availableVehicles.size() > 0 && pendingRequests.size() > 0) {
             AVVehicle vehicle = availableVehicles.poll();

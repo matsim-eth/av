@@ -11,6 +11,10 @@ public interface AVDispatcher {
 
     void addVehicle(AVVehicle vehicle);
 
+    // TODO: Temporary change for recharging. Eventually, even addVehicle should be replaced .
+    void removeVehicle(AVVehicle vehicle);
+    boolean hasVehicle(AVVehicle vehicle);
+
     interface AVDispatcherFactory {
         AVDispatcher createDispatcher(AVDispatcherConfig config);
     }
