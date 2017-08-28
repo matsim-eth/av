@@ -10,6 +10,7 @@ import ch.ethz.matsim.av.schedule.AVDriveTask;
 import ch.ethz.matsim.av.schedule.AVDropoffTask;
 import ch.ethz.matsim.av.schedule.AVPickupTask;
 import ch.ethz.matsim.av.schedule.AVStayTask;
+import org.apache.log4j.Logger;
 import org.matsim.contrib.dvrp.path.VrpPathWithTravelData;
 import org.matsim.contrib.dvrp.path.VrpPaths;
 import org.matsim.contrib.dvrp.schedule.Schedule;
@@ -23,6 +24,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class SingleRideAppender {
+    private static Logger log = Logger.getLogger(SingleRideAppender.class);
+
     final private ParallelLeastCostPathCalculator router;
     final private AVDispatcherConfig config;
     final private TravelTime travelTime;
@@ -56,6 +59,7 @@ public class SingleRideAppender {
     public void schedule(AVRequest request, AVVehicle vehicle, double now) {
         Schedule schedule = vehicle.getSchedule();
         AVStayTask stayTask = (AVStayTask) Schedules.getLastTask(schedule);
+        log.info(" 1 - Request: " + request.toString() + "; Vehicle: " + vehicle.toString() + "; StayTaskToNode: " + stayTask.getLink().getToNode().getId().toString());
 
         LeastCostPathFuture pickup = router.calcLeastCostPath(stayTask.getLink().getToNode(), request.getFromLink().getFromNode(), now, null, null);
         LeastCostPathFuture dropoff = router.calcLeastCostPath(request.getFromLink().getToNode(), request.getToLink().getFromNode(), now, null, null);
@@ -72,6 +76,7 @@ public class SingleRideAppender {
 
         Schedule schedule = vehicle.getSchedule();
         AVStayTask stayTask = (AVStayTask) Schedules.getLastTask(schedule);
+        log.info(" 2 - Request: " + request.toString() + "; Vehicle: " + vehicle.toString() + "; StayTaskToNode: " + stayTask.getLink().getToNode().getId().toString());
 
         double startTime = 0.0;
         double scheduleEndTime = schedule.getEndTime();
