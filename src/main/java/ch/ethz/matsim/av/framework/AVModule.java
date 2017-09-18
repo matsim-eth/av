@@ -6,9 +6,12 @@ import ch.ethz.matsim.av.config.AVGeneratorConfig;
 import ch.ethz.matsim.av.config.AVOperatorConfig;
 import ch.ethz.matsim.av.data.*;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
+import ch.ethz.matsim.av.dispatcher.on_demand.OnDemandDispatcher;
 import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
 import ch.ethz.matsim.av.generator.AVGenerator;
+import ch.ethz.matsim.av.generator.NullGenerator;
+import ch.ethz.matsim.av.generator.OnlineAVGenerator;
 import ch.ethz.matsim.av.generator.PopulationDensityGenerator;
 import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
 import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
@@ -77,6 +80,8 @@ public class AVModule extends AbstractModule {
 
         bind(Network.class).annotatedWith(Names.named(DvrpModule.DVRP_ROUTING)).to(Network.class);
         bind(Network.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(Key.get(Network.class, Names.named(DvrpModule.DVRP_ROUTING)));
+	
+        bind(OnlineAVGenerator.class);
 	}
 
 	@Provides @Singleton @Named(AVModule.AV_MODE)
@@ -92,11 +97,13 @@ public class AVModule extends AbstractModule {
         AVUtils.bindDispatcherFactory(binder(), "SingleFIFO").to(SingleFIFODispatcher.Factory.class);
         AVUtils.bindDispatcherFactory(binder(), "SingleHeuristic").to(SingleHeuristicDispatcher.Factory.class);
         AVUtils.bindDispatcherFactory(binder(), "MultiOD").to(MultiODHeuristic.Factory.class);
-    }
+        AVUtils.bindDispatcherFactory(binder(), "OnDemand").to(OnDemandDispatcher.Factory.class);
+	}
 
     private void configureGeneratorStrategies() {
         bind(PopulationDensityGenerator.Factory.class);
         AVUtils.bindGeneratorFactory(binder(), "PopulationDensity").to(PopulationDensityGenerator.Factory.class);
+        AVUtils.bindGeneratorFactory(binder(), "Null").to(NullGenerator.Factory.class);
     }
 
     @Provides
