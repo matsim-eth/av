@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE av SYSTEM "http://www.matsim.org/files/dtd/av_v1.dtd">
+<av>
+    <param name="marginalUtilityOfWaitingTime" value="-0.84" />
+
+    <timing>
+        <param name="pickupDurationPerStop" value="15.0" />
+        <param name="pickupDurationPerPassenger" value="0.0" />
+        <param name="dropoffDurationPerStop" value="10.0" />
+        <param name="dropoffDurationPerPassenger" value="0.0" />
+    </timing>
+
+    <operator id="private">
+        <generator strategy="private" />
+        <dispatcher strategy="private" />
+
+        <pricing>
+            <param name="pricePerKm" value="0.48" />
+            <param name="pricePerMin" value="0.0" />
+            <param name="pricePerTrip" value="0.0" />
+            <param name="dailySubscriptionFee" value="0.0" />
+            <param name="spatialBillingInterval" value="1000.0" />
+            <param name="temporalBillingInterval" value="1000.0" />
+        </pricing>
+    </operator>
+</av>

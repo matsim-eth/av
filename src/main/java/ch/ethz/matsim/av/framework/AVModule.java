@@ -177,15 +177,15 @@ public class AVModule extends AbstractModule {
 
         for (AVOperator operator : operators.values()) {
             LinkedList<AVVehicle> operatorList = new LinkedList<>();
-
+            
             AVGenerator generator = generators.get(operator.getId());
-
+            
             while (generator.hasNext()) {
                 AVVehicle vehicle = generator.next();
                 vehicle.setOpeartor(operator);
                 operatorList.add(vehicle);
             }
-
+            
             vehicles.put(operator.getId(), operatorList);
         }
 

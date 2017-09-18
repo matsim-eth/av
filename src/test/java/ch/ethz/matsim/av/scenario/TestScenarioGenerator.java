@@ -1,6 +1,9 @@
 package ch.ethz.matsim.av.scenario;
 
 import ch.ethz.matsim.av.framework.AVModule;
+import ch.ethz.matsim.av.routing.AVRoute;
+import ch.ethz.matsim.av.routing.AVRouteFactory;
+
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -35,8 +38,8 @@ public class TestScenarioGenerator {
     static public Scenario generate(Config config) {
         config.controler().setLastIteration(0);
         config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
-        config.controler().setWriteEventsInterval(-1);
-        config.controler().setWritePlansInterval(-1);
+        config.controler().setWriteEventsInterval(1);
+        config.controler().setWritePlansInterval(1);
         config.controler().setWriteSnapshotsInterval(-1);
         config.controler().setCreateGraphs(false);
         config.controler().setDumpDataAtEnd(false);
@@ -48,7 +51,9 @@ public class TestScenarioGenerator {
 
         generateNetwork(scenario.getNetwork());
         generatePopulation(scenario.getPopulation(), scenario.getNetwork(), random);
-
+        
+        scenario.getPopulation().getFactory().getRouteFactories().setRouteFactory(AVRoute.class, new AVRouteFactory());
+        
         return scenario;
     }
 
