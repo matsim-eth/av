@@ -7,6 +7,6 @@ import ch.ethz.matsim.av.framework.AVUtils;
 public class PrivateModule extends AbstractModule {
 	@Override
 	public void install() {
-		AVUtils.registerDispatcherFactory(binder(), "private", PrivateDispatcher.Factory.class);
+		AVUtils.registerDispatcherFactoryType(binder(), "private", PrivateDispatcher.Factory.class);
 	}
 }

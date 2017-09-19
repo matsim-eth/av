@@ -3,6 +3,7 @@ package ch.ethz.matsim.av.framework;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
@@ -16,6 +17,7 @@ import org.matsim.vehicles.VehicleType;
 
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.MapBinder;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
@@ -27,6 +29,11 @@ import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.dispatcher.AVDispatchmentListener;
+import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
+import ch.ethz.matsim.av.dispatcher.on_demand.OnDemandDispatcher;
+import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
+import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
+import ch.ethz.matsim.av.generator.AVVehicleCreator;
 import ch.ethz.matsim.av.passenger.AVRequestCreator;
 import ch.ethz.matsim.av.schedule.AVOptimizer;
 import ch.ethz.matsim.av.vrpagent.AVActionCreator;
@@ -34,10 +41,15 @@ import ch.ethz.matsim.av.vrpagent.AVActionCreator;
 public class AVQSimModule extends com.google.inject.AbstractModule {
 	final private AVConfig config;
 	final private QSim qsim;
+	final private DynActivityEngine activityEngine;
+	final private Map<String, Class<? extends AVDispatcher.AVDispatcherFactory>> factoryTypes;
 
-	public AVQSimModule(AVConfig config, QSim qsim) {
+	public AVQSimModule(AVConfig config, QSim qsim, DynActivityEngine activityEngine,
+			Map<String, Class<? extends AVDispatcher.AVDispatcherFactory>> factoryTypes) {
 		this.config = config;
 		this.qsim = qsim;
+		this.activityEngine = activityEngine;
+		this.factoryTypes = factoryTypes;
 	}
 
 	@Override
@@ -48,6 +60,14 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
 		bind(AVActionCreator.class);
 		bind(AVRequestCreator.class);
 		bind(AVDispatchmentListener.class);
+		bind(DynActivityEngine.class).toInstance(activityEngine);
+
+		MapBinder<String, AVDispatcher.AVDispatcherFactory> dispatcherFactoryBinder = MapBinder.newMapBinder(binder(),
+				String.class, AVDispatcher.AVDispatcherFactory.class);
+
+		for (Entry<String, Class<? extends AVDispatcher.AVDispatcherFactory>> entry : factoryTypes.entrySet()) {
+			dispatcherFactoryBinder.addBinding(entry.getKey()).to(entry.getValue());
+		}
 	}
 
 	@Provides
@@ -96,5 +116,11 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
 		}
 
 		return dispatchers;
+	}
+
+	@Provides
+	@Singleton
+	AVVehicleCreator provideVehicleCreator(AVOptimizer optimizer, AVActionCreator actionCreator) {
+		return new AVVehicleCreator(qsim, optimizer, actionCreator, activityEngine);
 	}
 }

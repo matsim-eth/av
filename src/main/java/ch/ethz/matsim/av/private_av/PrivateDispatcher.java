@@ -30,7 +30,7 @@ import ch.ethz.matsim.av.config.AVDispatcherConfig;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.framework.AVModule;
-import ch.ethz.matsim.av.generator.OnlineAVGenerator;
+import ch.ethz.matsim.av.generator.AVVehicleCreator;
 import ch.ethz.matsim.av.passenger.AVPassengerPickupActivity;
 import ch.ethz.matsim.av.passenger.AVRequest;
 import ch.ethz.matsim.av.passenger.OnlineRequestCreator;
@@ -44,13 +44,13 @@ public class PrivateDispatcher implements AVDispatcher {
 	final private TravelTime travelTime;
 	final private LeastCostPathCalculator forwardRouter;
 	final private PrivateScheduleRepository repository;
-	final private OnlineAVGenerator generator;
+	final private AVVehicleCreator generator;
 	final private OnlineRequestCreator requestCreator;
 
 	final private Map<Id<Person>, DynAgent> vehicles = new HashMap<>();
 
 	public PrivateDispatcher(LeastCostPathCalculator forwardRouter,
-			TravelTime travelTime, PrivateScheduleRepository repository, OnlineAVGenerator generator,
+			TravelTime travelTime, PrivateScheduleRepository repository, AVVehicleCreator generator,
 			OnlineRequestCreator requestCreator) {
 		this.forwardRouter = forwardRouter;
 		this.travelTime = travelTime;
@@ -97,7 +97,7 @@ public class PrivateDispatcher implements AVDispatcher {
 					String.format("av_private_%s", privateSchedule.getPerson().getId().toString()), Vehicle.class);
 			AVVehicle vehicle = new AVVehicle(vehicleId, privateSchedule.getStartLink(), 4.0, 0.0, 30.0 * 3600.0);
 			vehicle.setDispatcher(this);
-			vehicles.put(privateSchedule.getPerson().getId(), generator.insertVehicle(vehicle));
+			vehicles.put(privateSchedule.getPerson().getId(), generator.createVehicle(vehicle));
 			
 			Schedule schedule = vehicle.getSchedule();
 
@@ -207,7 +207,7 @@ public class PrivateDispatcher implements AVDispatcher {
 		public Population population;
 
 		@Inject
-		public OnlineAVGenerator generator;
+		public AVVehicleCreator generator;
 
 		@Inject
 		public OnlineRequestCreator requestCreator;
