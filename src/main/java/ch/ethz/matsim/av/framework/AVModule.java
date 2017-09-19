@@ -5,13 +5,14 @@ import ch.ethz.matsim.av.config.AVConfigReader;
 import ch.ethz.matsim.av.config.AVGeneratorConfig;
 import ch.ethz.matsim.av.config.AVOperatorConfig;
 import ch.ethz.matsim.av.data.*;
+import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
 import ch.ethz.matsim.av.dispatcher.on_demand.OnDemandDispatcher;
 import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
 import ch.ethz.matsim.av.generator.AVGenerator;
 import ch.ethz.matsim.av.generator.NullGenerator;
-import ch.ethz.matsim.av.generator.OnlineAVGenerator;
+import ch.ethz.matsim.av.generator.AVVehicleCreator;
 import ch.ethz.matsim.av.generator.PopulationDensityGenerator;
 import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
 import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
@@ -23,6 +24,8 @@ import ch.ethz.matsim.av.scoring.AVScoringFunctionFactory;
 import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.TypeLiteral;
+import com.google.inject.multibindings.MapBinder;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import org.apache.log4j.Logger;
@@ -52,6 +55,8 @@ import java.util.Map;
 public class AVModule extends AbstractModule {
     final static public String AV_MODE = "av";
     final static Logger log = Logger.getLogger(AVModule.class);
+    
+    final private Map<String, Class<? extends AVDispatcher.AVDispatcherFactory>> dispatcherFactoryTypes = new HashMap<>();
 
 	@Override
 	public void install() {
@@ -80,24 +85,22 @@ public class AVModule extends AbstractModule {
 
         bind(Network.class).annotatedWith(Names.named(DvrpModule.DVRP_ROUTING)).to(Network.class);
         bind(Network.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(Key.get(Network.class, Names.named(DvrpModule.DVRP_ROUTING)));
-	
-        bind(OnlineAVGenerator.class);
 	}
 
 	@Provides @Singleton @Named(AVModule.AV_MODE)
 	private ParallelLeastCostPathCalculator provideParallelLeastCostPathCalculator(AVConfigGroup config, AVParallelRouterFactory factory) {
         return new ParallelLeastCostPathCalculator((int) config.getParallelRouters(), factory);
     }
+	
+	public void addDispatcherType(String dispatcherTypeName, Class<? extends AVDispatcher.AVDispatcherFactory> dispatcherFactoryType) {
+		dispatcherFactoryTypes.put(dispatcherTypeName, dispatcherFactoryType);
+	}
 
 	private void configureDispatchmentStrategies() {
-        bind(SingleFIFODispatcher.Factory.class);
-        bind(SingleHeuristicDispatcher.Factory.class);
-        bind(MultiODHeuristic.Factory.class);
-
-        AVUtils.bindDispatcherFactory(binder(), "SingleFIFO").to(SingleFIFODispatcher.Factory.class);
-        AVUtils.bindDispatcherFactory(binder(), "SingleHeuristic").to(SingleHeuristicDispatcher.Factory.class);
-        AVUtils.bindDispatcherFactory(binder(), "MultiOD").to(MultiODHeuristic.Factory.class);
-        AVUtils.bindDispatcherFactory(binder(), "OnDemand").to(OnDemandDispatcher.Factory.class);
+		AVUtils.registerDispatcherFactoryType(binder(), "SingleFIFO", SingleFIFODispatcher.Factory.class);
+		AVUtils.registerDispatcherFactoryType(binder(), "SingleHeuristic", SingleHeuristicDispatcher.Factory.class);
+		AVUtils.registerDispatcherFactoryType(binder(), "MultiOD", MultiODHeuristic.Factory.class);
+		AVUtils.registerDispatcherFactoryType(binder(), "OnDemand", OnDemandDispatcher.Factory.class);
 	}
 
     private void configureGeneratorStrategies() {

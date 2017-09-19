@@ -17,17 +17,17 @@ import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.dispatcher.utils.SingleRideAppender;
 import ch.ethz.matsim.av.framework.AVModule;
-import ch.ethz.matsim.av.generator.OnlineAVGenerator;
+import ch.ethz.matsim.av.generator.AVVehicleCreator;
 import ch.ethz.matsim.av.passenger.AVRequest;
 import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
 
 public class OnDemandDispatcher implements AVDispatcher {
-	final private OnlineAVGenerator generator;
+	final private AVVehicleCreator generator;
 	final private SingleRideAppender appender;
 
 	final private Queue<AVRequest> pendingRequests = new LinkedList<>();
 
-	public OnDemandDispatcher(OnlineAVGenerator generator, SingleRideAppender appender) {
+	public OnDemandDispatcher(AVVehicleCreator generator, SingleRideAppender appender) {
 		this.appender = appender;
 		this.generator = generator;
 	}
@@ -58,7 +58,7 @@ public class OnDemandDispatcher implements AVDispatcher {
 			Id<Vehicle> id = Id.create(String.format("dyn_%d", index++), Vehicle.class);
 			AVVehicle vehicle = new AVVehicle(id, request.getFromLink(), 4.0, 0.0, 30.0 * 3600.0);
 			vehicle.setDispatcher(this);
-			generator.insertVehicle(vehicle);
+			generator.createVehicle(vehicle);
 
 			appender.schedule(request, vehicle, now);
 		}
@@ -72,7 +72,7 @@ public class OnDemandDispatcher implements AVDispatcher {
 	@Singleton
 	static public class Factory implements AVDispatcher.AVDispatcherFactory {
 		@Inject
-		OnlineAVGenerator generator;
+		AVVehicleCreator generator;
 
 		@Inject
 		@Named(AVModule.AV_MODE)

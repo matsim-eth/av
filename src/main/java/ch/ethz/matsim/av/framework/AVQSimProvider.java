@@ -3,6 +3,7 @@ package ch.ethz.matsim.av.framework;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.dvrp.passenger.PassengerEngine;
@@ -28,8 +29,9 @@ import com.google.inject.Module;
 import com.google.inject.Provider;
 
 import ch.ethz.matsim.av.config.AVConfig;
+import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.dispatcher.AVDispatchmentListener;
-import ch.ethz.matsim.av.generator.OnlineAVGenerator;
+import ch.ethz.matsim.av.generator.AVVehicleCreator;
 import ch.ethz.matsim.av.schedule.AVOptimizer;
 import ch.ethz.matsim.av.vrpagent.AVActionCreator;
 
@@ -47,10 +49,10 @@ public class AVQSimProvider implements Provider<Mobsim> {
 	private AVConfig config;
 	
 	@Inject
-	OnlineAVGenerator onlineGenerator;
+	Config matsimConfig;
 	
 	@Inject
-	Config matsimConfig;
+	Map<String, Class<? extends AVDispatcher.AVDispatcherFactory>> factoryTypes;
 	
 	@Override
 	public Mobsim get() {
@@ -79,7 +81,7 @@ public class AVQSimProvider implements Provider<Mobsim> {
 		// End
 		
 		QSim qSim = QSimUtils.createQSim(scenario, eventsManager, plugins);
-		Injector childInjector = injector.createChildInjector(new AVQSimModule(config, qSim));
+		Injector childInjector = injector.createChildInjector(new AVQSimModule(config, qSim, engine, factoryTypes));
 
 		qSim.addQueueSimulationListeners(childInjector.getInstance(AVOptimizer.class));
 		qSim.addQueueSimulationListeners(childInjector.getInstance(AVDispatchmentListener.class));
@@ -87,9 +89,6 @@ public class AVQSimProvider implements Provider<Mobsim> {
 		qSim.addMobsimEngine(childInjector.getInstance(PassengerEngine.class));
 		qSim.addDepartureHandler(childInjector.getInstance(PassengerEngine.class));
 		qSim.addAgentSource(childInjector.getInstance(VrpAgentSource.class));
-		
-		onlineGenerator.update(qSim, childInjector.getInstance(AVOptimizer.class),
-				childInjector.getInstance(AVActionCreator.class), engine);
 
 		return qSim;
 	}
