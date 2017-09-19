@@ -28,6 +28,16 @@ public class AVRequestCreator implements PassengerRequestCreator {
     @Inject
     Map<Id<AVOperator>, AVDispatcher> dispatchers;
 
+    public AVRequest createRequest(Id<Request> id, MobsimPassengerAgent passenger, Link pickupLink, Link dropoffLink, double departureTime, double submissionTime, AVRoute route) {
+        AVOperator operator = operators.get(route.getOperatorId());
+
+        if (operator == null) {
+            throw new IllegalStateException("Operator '" + route.getOperatorId().toString() + "' does not exist.");
+        }
+        
+        return new AVRequest(id, passenger, pickupLink, dropoffLink, departureTime, submissionTime, route, operator, dispatchers.get(route.getOperatorId()));
+    }
+    
     @Override
     public PassengerRequest createRequest(Id<Request> id, MobsimPassengerAgent passenger, Link pickupLink, Link dropoffLink, double departureTime, double submissionTime) {
         if (!(passenger instanceof PlanAgent)) {
@@ -38,14 +48,8 @@ public class AVRequestCreator implements PassengerRequestCreator {
         Leg leg = (Leg) agent.getCurrentPlanElement();
 
         AVRoute route = (AVRoute) leg.getRoute();
-        route.setDistance(Double.NaN);
-
-        AVOperator operator = operators.get(route.getOperatorId());
-
-        if (operator == null) {
-            throw new IllegalStateException("Operator '" + route.getOperatorId().toString() + "' does not exist.");
-        }
-
-        return new AVRequest(id, passenger, pickupLink, dropoffLink, departureTime, submissionTime, route, operator, dispatchers.get(route.getOperatorId()));
+        //route.setDistance(Double.NaN);   // TODO: Does this have any impact on scoring? Should not...
+        
+        return createRequest(id, passenger, pickupLink, dropoffLink, departureTime, submissionTime, route);
     }
 }

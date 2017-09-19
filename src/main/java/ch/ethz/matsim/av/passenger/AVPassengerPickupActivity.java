@@ -89,7 +89,7 @@ public class AVPassengerPickupActivity extends AbstractDynActivity implements Pa
 	@Override
 	public void notifyPassengerIsReadyForDeparture(MobsimPassengerAgent passenger, double now) {
 		PassengerRequest request = getRequestForPassenger(passenger);
-		
+
 		if (request == null) {
 			throw new IllegalArgumentException("I am waiting for different passengers!");
 		}

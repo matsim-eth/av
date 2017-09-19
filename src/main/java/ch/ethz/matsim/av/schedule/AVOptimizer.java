@@ -15,7 +15,9 @@ import org.matsim.contrib.dvrp.schedule.Schedule;
 import org.matsim.contrib.dvrp.schedule.Task;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.mobsim.framework.events.MobsimBeforeSimStepEvent;
+import org.matsim.core.mobsim.framework.events.MobsimInitializedEvent;
 import org.matsim.core.mobsim.framework.listeners.MobsimBeforeSimStepListener;
+import org.matsim.core.mobsim.framework.listeners.MobsimInitializedListener;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -23,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 @Singleton
-public class AVOptimizer implements VrpOptimizerWithOnlineTracking, MobsimBeforeSimStepListener {
+public class AVOptimizer implements VrpOptimizerWithOnlineTracking, MobsimBeforeSimStepListener, MobsimInitializedListener {
     private double now;
     final private List<AVRequest> submittedRequestsBuffer = Collections.synchronizedList(new LinkedList<>());
 
@@ -105,4 +107,11 @@ public class AVOptimizer implements VrpOptimizerWithOnlineTracking, MobsimBefore
 
     @Override
     public void vehicleEnteredNextLink(Vehicle vehicle, Link link) {}
+
+	@Override
+	public void notifyMobsimInitialized(MobsimInitializedEvent e) {
+		for (AVDispatcher dispatcher : dispatchers.values()) {
+			dispatcher.initialize();
+		}
+	}
 }

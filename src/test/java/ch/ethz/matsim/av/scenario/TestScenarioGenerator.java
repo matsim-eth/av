@@ -38,8 +38,8 @@ public class TestScenarioGenerator {
     static public Scenario generate(Config config) {
         config.controler().setLastIteration(0);
         config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
-        config.controler().setWriteEventsInterval(1);
-        config.controler().setWritePlansInterval(1);
+        config.controler().setWriteEventsInterval(-1);
+        config.controler().setWritePlansInterval(-1);
         config.controler().setWriteSnapshotsInterval(-1);
         config.controler().setCreateGraphs(false);
         config.controler().setDumpDataAtEnd(false);

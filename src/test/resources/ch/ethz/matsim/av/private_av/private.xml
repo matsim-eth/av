@@ -11,7 +11,7 @@
     </timing>
 
     <operator id="private">
-        <generator strategy="private" />
+        <generator strategy="Null" />
         <dispatcher strategy="private" />
 
         <pricing>

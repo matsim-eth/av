@@ -15,12 +15,16 @@ public class TestScenarioAnalyzer extends AbstractModule implements PersonDepart
 
     @Override
     public void handleEvent(PersonArrivalEvent event) {
-        numberOfArrivals++;
+    	if (event.getLegMode().equals("av")) {
+    		numberOfArrivals++;
+    	}
     }
 
     @Override
     public void handleEvent(PersonDepartureEvent event) {
-        numberOfDepartures++;
+    	if (event.getLegMode().equals("av")) {
+    		numberOfDepartures++;
+    	}
     }
 
     @Override

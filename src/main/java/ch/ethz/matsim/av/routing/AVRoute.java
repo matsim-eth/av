@@ -12,7 +12,7 @@ public class AVRoute extends AbstractRoute {
     private Id<AVOperator> operatorId;
 
     public AVRoute(Id<Link> startLinkId, Id<Link> endLinkId, Id<AVOperator> operatorId) {
-        super(startLinkId, endLinkId);
+        super(startLinkId, endLinkId);        
         this.operatorId = operatorId;
     }
 
@@ -47,5 +47,6 @@ public class AVRoute extends AbstractRoute {
     public Id<AVOperator> getOperatorId() {
         return operatorId;
     }
+    
     public void setOperatorId(Id<AVOperator> operatorId) { this.operatorId = operatorId; }
 }

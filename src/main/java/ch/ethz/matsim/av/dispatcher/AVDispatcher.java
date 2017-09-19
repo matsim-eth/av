@@ -10,6 +10,9 @@ public interface AVDispatcher {
     void onNextTimestep(double now);
 
     void addVehicle(AVVehicle vehicle);
+    
+    // TODO Remove default here!
+    default void initialize() {}
 
     interface AVDispatcherFactory {
         AVDispatcher createDispatcher(AVDispatcherConfig config);

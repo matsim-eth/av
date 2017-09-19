@@ -13,7 +13,9 @@ import ch.ethz.matsim.av.generator.AVGenerator;
 import ch.ethz.matsim.av.generator.NullGenerator;
 import ch.ethz.matsim.av.generator.OnlineAVGenerator;
 import ch.ethz.matsim.av.generator.PopulationDensityGenerator;
+import ch.ethz.matsim.av.passenger.OnlineRequestCreator;
 import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
+import ch.ethz.matsim.av.private_av.PrivateDispatcher;
 import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
 import ch.ethz.matsim.av.routing.AVParallelRouterFactory;
 import ch.ethz.matsim.av.routing.AVRoute;
@@ -82,6 +84,7 @@ public class AVModule extends AbstractModule {
         bind(Network.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(Key.get(Network.class, Names.named(DvrpModule.DVRP_ROUTING)));
 	
         bind(OnlineAVGenerator.class);
+        bind(OnlineRequestCreator.class);
 	}
 
 	@Provides @Singleton @Named(AVModule.AV_MODE)
@@ -98,6 +101,7 @@ public class AVModule extends AbstractModule {
         AVUtils.bindDispatcherFactory(binder(), "SingleHeuristic").to(SingleHeuristicDispatcher.Factory.class);
         AVUtils.bindDispatcherFactory(binder(), "MultiOD").to(MultiODHeuristic.Factory.class);
         AVUtils.bindDispatcherFactory(binder(), "OnDemand").to(OnDemandDispatcher.Factory.class);
+        AVUtils.bindDispatcherFactory(binder(), "private").to(PrivateDispatcher.Factory.class);
 	}
 
     private void configureGeneratorStrategies() {

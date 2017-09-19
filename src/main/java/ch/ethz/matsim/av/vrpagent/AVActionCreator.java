@@ -2,6 +2,7 @@ package ch.ethz.matsim.av.vrpagent;
 
 import ch.ethz.matsim.av.passenger.AVPassengerDropoffActivity;
 import ch.ethz.matsim.av.passenger.AVPassengerPickupActivity;
+import ch.ethz.matsim.av.passenger.AVRequest;
 import ch.ethz.matsim.av.schedule.AVDropoffTask;
 import ch.ethz.matsim.av.schedule.AVPickupTask;
 import ch.ethz.matsim.av.schedule.AVStayTask;

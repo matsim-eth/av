@@ -25,10 +25,13 @@ public class PrivateScheduleRepository {
 
 	final private Population population;
 	final private Network network;
+	
+	final private String dispatcherName;
 
-	public PrivateScheduleRepository(Population population, Network network) {
+	public PrivateScheduleRepository(Population population, Network network, String dispatcherName) {
 		this.population = population;
 		this.network = network;
+		this.dispatcherName = dispatcherName;
 	}
 
 	public Collection<PrivateSchedule> getSchedules() {
@@ -49,12 +52,13 @@ public class PrivateScheduleRepository {
 				if (leg.getMode().equals("av")) {
 					AVRoute route = (AVRoute) leg.getRoute();
 
-					if (route != null && route.getOperatorId().toString().equals("private")) {
+					if (route != null && route.getOperatorId().toString().equals(dispatcherName)) {
 						isUsingPrivateAV = true;
-
+						
 						schedule.addTrip(trip.getOriginActivity().getEndTime(),
 								network.getLinks().get(trip.getOriginActivity().getLinkId()),
-								network.getLinks().get(trip.getDestinationActivity().getLinkId()));
+								network.getLinks().get(trip.getDestinationActivity().getLinkId()),
+								route);
 
 						if (schedule.getStartLink() == null) {
 							schedule.setStartLink(network.getLinks().get(trip.getOriginActivity().getLinkId()));
@@ -74,10 +78,7 @@ public class PrivateScheduleRepository {
 				
 				schedule.setPerson(person);
 				schedules.add(schedule);
-				System.err.println("ADDING SCHEDULE FOR " + person.getId());
 			}
 		}
-		
-		System.exit(1);
 	}
 }

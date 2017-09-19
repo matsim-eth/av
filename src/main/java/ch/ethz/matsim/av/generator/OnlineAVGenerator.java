@@ -34,11 +34,11 @@ public class OnlineAVGenerator {
 		this.activityEngine = activityEngine;
 	}
 	
-	public void insertVehicle(AVVehicle vehicle) {
-		insertVehicle(vehicle, VehicleUtils.getDefaultVehicleType());
+	public DynAgent insertVehicle(AVVehicle vehicle) {
+		return insertVehicle(vehicle, VehicleUtils.getDefaultVehicleType());
 	}
 	
-	public void insertVehicle(AVVehicle vehicle, VehicleType vehicleType) {
+	public DynAgent insertVehicle(AVVehicle vehicle, VehicleType vehicleType) {
 		VehiclesFactory vehicleFactory = VehicleUtils.getFactory();
 		
 		Id<Vehicle> id = vehicle.getId();
@@ -61,5 +61,6 @@ public class OnlineAVGenerator {
         schedule.addTask(new AVStayTask(vehicle.getServiceBeginTime(), vehicle.getServiceEndTime(), vehicle.getStartLink()));
         
         activityEngine.handleActivity(vrpAgent);
+        return vrpAgent;
 	}
 }

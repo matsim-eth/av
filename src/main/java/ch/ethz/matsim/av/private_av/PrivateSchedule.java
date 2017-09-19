@@ -6,16 +6,20 @@ import java.util.List;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Person;
 
+import ch.ethz.matsim.av.routing.AVRoute;
+
 public class PrivateSchedule {
 	public class Trip {
 		final private double pickupTime;
 		final private Link pickupLink;
 		final private Link dropoffLink;
+		final private AVRoute route;
 
-		public Trip(double pickupTime, Link pickupLink, Link dropoffLink) {
+		public Trip(double pickupTime, Link pickupLink, Link dropoffLink, AVRoute route) {
 			this.pickupTime = pickupTime;
 			this.pickupLink = pickupLink;
 			this.dropoffLink = dropoffLink;
+			this.route = route;
 		}
 
 		public double getPickupTime() {
@@ -28,6 +32,10 @@ public class PrivateSchedule {
 
 		public Link getDropoffLink() {
 			return dropoffLink;
+		}
+		
+		public AVRoute getRoute() {
+			return route;
 		}
 	}
 
@@ -62,8 +70,8 @@ public class PrivateSchedule {
 		this.startLink = startLink;
 	}
 
-	public void addTrip(double pickupTime, Link pickupLink, Link dropoffLink) {
-		trips.add(new Trip(pickupTime, pickupLink, dropoffLink));
+	public void addTrip(double pickupTime, Link pickupLink, Link dropoffLink, AVRoute route) {
+		trips.add(new Trip(pickupTime, pickupLink, dropoffLink, route));
 	}
 
 	public List<Trip> getTrips() {
