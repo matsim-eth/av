@@ -48,15 +48,24 @@ public class PrivateDispatcher implements AVDispatcher {
 	final private OnlineRequestCreator requestCreator;
 
 	final private Map<Id<Person>, DynAgent> vehicles = new HashMap<>();
+	
+	private boolean initialized = false;
+	
+	public enum PrivateDispatcherMode {
+		STAY_AT_ACTIVITY, RETURN_HOME
+	}
+	
+	final private PrivateDispatcherMode mode;
 
 	public PrivateDispatcher(LeastCostPathCalculator forwardRouter,
 			TravelTime travelTime, PrivateScheduleRepository repository, AVVehicleCreator generator,
-			OnlineRequestCreator requestCreator) {
+			OnlineRequestCreator requestCreator, PrivateDispatcherMode mode) {
 		this.forwardRouter = forwardRouter;
 		this.travelTime = travelTime;
 		this.repository = repository;
 		this.generator = generator;
 		this.requestCreator = requestCreator;
+		this.mode = mode;
 	}
 
 	@Override
@@ -77,7 +86,10 @@ public class PrivateDispatcher implements AVDispatcher {
 
 	@Override
 	public void onNextTimestep(double now) {
-		// Do nothing
+		if (!initialized) {
+			initialize();
+			initialized = true;
+		}
 	}
 
 	@Override
@@ -87,8 +99,7 @@ public class PrivateDispatcher implements AVDispatcher {
 	static private double PICKUP_TIME = 15.0;
 	static private double DROPOFF_TIME = 10.0;
 
-	@Override
-	public void initialize() {
+	private void initialize() {
 		vehicles.clear();
 		repository.update();
 
@@ -168,13 +179,8 @@ public class PrivateDispatcher implements AVDispatcher {
 				schedule.addTask(dropoffTask);
 				currentTime += DROPOFF_TIME;
 
-				// What happens after?
-				// Here we send the AV home...
-				// may be there should be exceptions when it is clear that
-				// it will take to long to go home until the next time the
-				// vehicle is needed? (TODO)
-
-				if (currentLink != privateSchedule.getHomeLink()) {
+				// Either stay there or return home ... 
+				if (currentLink != privateSchedule.getHomeLink() && mode.equals(PrivateDispatcherMode.RETURN_HOME)) {
 					VrpPathWithTravelData returnPath = VrpPaths.calcAndCreatePath(currentLink,
 							privateSchedule.getHomeLink(), currentTime, forwardRouter, travelTime);
 					AVDriveTask returnDriveTask = new AVDriveTask(returnPath);
@@ -218,9 +224,11 @@ public class PrivateDispatcher implements AVDispatcher {
 					new OnlyTimeDependentTravelDisutility(travelTime), travelTime);
 			
 			PrivateScheduleRepository repository = new PrivateScheduleRepository(population, network, config.getParent().getId().toString());
+			
+			PrivateDispatcherMode mode = PrivateDispatcherMode.valueOf(config.getParams().getOrDefault("mode", "RETURN_HOME"));
 
 			return new PrivateDispatcher(forwardRouter, travelTime, repository, generator,
-					requestCreator);
+					requestCreator, mode);
 		}
 	}
 

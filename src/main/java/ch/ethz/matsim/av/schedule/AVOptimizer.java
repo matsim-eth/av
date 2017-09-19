@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 @Singleton
-public class AVOptimizer implements VrpOptimizerWithOnlineTracking, MobsimBeforeSimStepListener, MobsimInitializedListener {
+public class AVOptimizer implements VrpOptimizerWithOnlineTracking, MobsimBeforeSimStepListener {
     private double now;
     final private List<AVRequest> submittedRequestsBuffer = Collections.synchronizedList(new LinkedList<>());
 
@@ -107,11 +107,4 @@ public class AVOptimizer implements VrpOptimizerWithOnlineTracking, MobsimBefore
 
     @Override
     public void vehicleEnteredNextLink(Vehicle vehicle, Link link) {}
-
-	@Override
-	public void notifyMobsimInitialized(MobsimInitializedEvent e) {
-		for (AVDispatcher dispatcher : dispatchers.values()) {
-			dispatcher.initialize();
-		}
-	}
 }

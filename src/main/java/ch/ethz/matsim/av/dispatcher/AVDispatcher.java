@@ -9,11 +9,16 @@ public interface AVDispatcher {
     void onNextTaskStarted(AVVehicle vehicle);
     void onNextTimestep(double now);
 
+    /**
+     * Switch to online vehicle creation... 
+     * 
+     * In the future dispatchers:
+     * - should check themselves for idle vehicles through onNextTaskStarted
+     * - should create their own vehicles online and maintain them
+     */
+    @Deprecated
     void addVehicle(AVVehicle vehicle);
     
-    // TODO Remove default here!
-    default void initialize() {}
-
     interface AVDispatcherFactory {
         AVDispatcher createDispatcher(AVDispatcherConfig config);
     }
