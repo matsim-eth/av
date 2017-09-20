@@ -29,6 +29,7 @@ import com.google.inject.name.Named;
 import ch.ethz.matsim.av.config.AVDispatcherConfig;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
+import ch.ethz.matsim.av.dispatcher.trip_schedule.Trip;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.generator.AVVehicleCreator;
 import ch.ethz.matsim.av.passenger.AVPassengerPickupActivity;
@@ -116,7 +117,7 @@ public class PersonalDispatcher implements AVDispatcher {
 
 			int tripIndex = 0;
 
-			for (PersonalSchedule.Trip trip : privateSchedule.getTrips()) {
+			for (Trip trip : privateSchedule.getTrips()) {
 				AVStayTask lastTask = (AVStayTask) schedule.getTasks().get(schedule.getTaskCount() - 1);
 				
 				double tripVehicleDistance = 0.0;

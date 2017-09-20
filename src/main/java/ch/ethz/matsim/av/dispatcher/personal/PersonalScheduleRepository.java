@@ -1,19 +1,13 @@
 package ch.ethz.matsim.av.dispatcher.personal;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
-import org.matsim.core.controler.events.BeforeMobsimEvent;
-import org.matsim.core.controler.events.IterationStartsEvent;
-import org.matsim.core.controler.listener.BeforeMobsimListener;
-import org.matsim.core.controler.listener.IterationStartsListener;
 import org.matsim.core.router.StageActivityTypesImpl;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.pt.PtConstants;
@@ -23,7 +17,7 @@ import ch.ethz.matsim.av.routing.AVRoute;
 public class PersonalScheduleRepository {
 	final private Population population;
 	final private Network network;
-	
+
 	final private String dispatcherName;
 
 	public PersonalScheduleRepository(Population population, Network network, String dispatcherName) {
@@ -31,12 +25,12 @@ public class PersonalScheduleRepository {
 		this.network = network;
 		this.dispatcherName = dispatcherName;
 	}
-	
+
 	public Collection<PersonalSchedule> getSchedules() {
 		List<PersonalSchedule> schedules = new LinkedList<>();
-		
+
 		for (Person person : population.getPersons().values()) {
-			PersonalSchedule schedule = new PersonalSchedule();
+			PersonalSchedule schedule = new PersonalSchedule(person);
 			boolean isUsingPrivateAV = false;
 
 			for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(person.getSelectedPlan(),
@@ -48,11 +42,12 @@ public class PersonalScheduleRepository {
 
 					if (route != null && route.getOperatorId().toString().equals(dispatcherName)) {
 						isUsingPrivateAV = true;
-						
-						schedule.addTrip(trip.getOriginActivity().getEndTime(),
+
+						PersonalTrip scheduleTrip = new PersonalTrip(trip.getOriginActivity().getEndTime(),
 								network.getLinks().get(trip.getOriginActivity().getLinkId()),
-								network.getLinks().get(trip.getDestinationActivity().getLinkId()),
-								route);
+								network.getLinks().get(trip.getDestinationActivity().getLinkId()), route);
+
+						schedule.addTrip(scheduleTrip);
 
 						if (schedule.getStartLink() == null) {
 							schedule.setStartLink(network.getLinks().get(trip.getOriginActivity().getLinkId()));
@@ -69,12 +64,11 @@ public class PersonalScheduleRepository {
 				if (schedule.getHomeLink() == null) {
 					schedule.setHomeLink(schedule.getStartLink());
 				}
-				
-				schedule.setPerson(person);
+
 				schedules.add(schedule);
 			}
 		}
-		
+
 		return schedules;
 	}
 }
