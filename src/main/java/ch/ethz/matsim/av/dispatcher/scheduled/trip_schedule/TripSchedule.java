@@ -1,15 +1,20 @@
-package ch.ethz.matsim.av.dispatcher.trip_schedule;
+package ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import org.matsim.api.core.v01.network.Link;
 
-abstract public class TripSchedule<T extends Trip> {
-	final private List<T> trips = new LinkedList<>();
+public class TripSchedule {
+	final private List<Trip> trips = new LinkedList<>();
+	final private String name;
 	
 	private Link homeLink;
 	private Link startLink;
+	
+	public TripSchedule(String name) {
+		this.name = name;
+	}
 
 	public Link getHomeLink() {
 		return homeLink;
@@ -27,11 +32,15 @@ abstract public class TripSchedule<T extends Trip> {
 		this.startLink = startLink;
 	}
 	
-	public void addTrip(T trip) {
+	public void addTrip(Trip trip) {
 		trips.add(trip);
 	}
 
-	public List<T> getTrips() {
+	public List<Trip> getTrips() {
 		return trips;
+	}
+	
+	public String getName() {
+		return name;
 	}
 }

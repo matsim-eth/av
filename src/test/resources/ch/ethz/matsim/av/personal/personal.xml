@@ -12,7 +12,10 @@
 
     <operator id="private">
         <generator strategy="Null" />
-        <dispatcher strategy="personal" />
+        
+        <dispatcher strategy="scheduled">
+        	<param name="scheduler" value="personal" />
+        </dispatcher>
 
         <pricing>
             <param name="pricePerKm" value="0.48" />

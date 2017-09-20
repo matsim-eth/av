@@ -1,8 +1,10 @@
-package ch.ethz.matsim.av.dispatcher.personal;
+package ch.ethz.matsim.av.dispatcher.scheduled;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
@@ -27,9 +29,12 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
 import ch.ethz.matsim.av.config.AVDispatcherConfig;
+import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
-import ch.ethz.matsim.av.dispatcher.trip_schedule.Trip;
+import ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule.Trip;
+import ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule.TripSchedule;
+import ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule.TripScheduler;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.generator.AVVehicleCreator;
 import ch.ethz.matsim.av.passenger.AVPassengerPickupActivity;
@@ -41,14 +46,14 @@ import ch.ethz.matsim.av.schedule.AVDropoffTask;
 import ch.ethz.matsim.av.schedule.AVPickupTask;
 import ch.ethz.matsim.av.schedule.AVStayTask;
 
-public class PersonalDispatcher implements AVDispatcher {
+public class ScheduledDispatcher implements AVDispatcher {
 	final private TravelTime travelTime;
 	final private LeastCostPathCalculator forwardRouter;
-	final private PersonalScheduleRepository repository;
+	final private TripScheduler scheduler;
 	final private AVVehicleCreator generator;
 	final private OnlineRequestCreator requestCreator;
 
-	final private Map<Id<Person>, DynAgent> vehicles = new HashMap<>();
+	final private Map<Id<Person>, Queue<DynAgent>> vehicles = new HashMap<>();
 	
 	private boolean initialized = false;
 	
@@ -58,12 +63,12 @@ public class PersonalDispatcher implements AVDispatcher {
 	
 	final private PrivateDispatcherMode mode;
 
-	public PersonalDispatcher(LeastCostPathCalculator forwardRouter,
-			TravelTime travelTime, PersonalScheduleRepository repository, AVVehicleCreator generator,
+	public ScheduledDispatcher(LeastCostPathCalculator forwardRouter,
+			TravelTime travelTime, TripScheduler scheduler, AVVehicleCreator generator,
 			OnlineRequestCreator requestCreator, PrivateDispatcherMode mode) {
 		this.forwardRouter = forwardRouter;
 		this.travelTime = travelTime;
-		this.repository = repository;
+		this.scheduler = scheduler;
 		this.generator = generator;
 		this.requestCreator = requestCreator;
 		this.mode = mode;
@@ -71,7 +76,7 @@ public class PersonalDispatcher implements AVDispatcher {
 
 	@Override
 	public void onRequestSubmitted(AVRequest request) {
-		DynAgent avAgent = vehicles.get(request.getPassenger().getId());
+		DynAgent avAgent = vehicles.get(request.getPassenger().getId()).poll();
 		DynAction action = avAgent.getCurrentAction();
 		
 		if (action instanceof AVPassengerPickupActivity) {
@@ -103,12 +108,12 @@ public class PersonalDispatcher implements AVDispatcher {
 	private void initialize() {
 		vehicles.clear();
 
-		for (PersonalSchedule privateSchedule : repository.getSchedules()) {
+		for (TripSchedule privateSchedule : scheduler.getSchedules()) {
 			Id<Vehicle> vehicleId = Id.create(
-					String.format("av_private_%s", privateSchedule.getPerson().getId().toString()), Vehicle.class);
+					String.format("av_private_%s", privateSchedule.getName()), Vehicle.class);
 			AVVehicle vehicle = new AVVehicle(vehicleId, privateSchedule.getStartLink(), 4.0, 0.0, 30.0 * 3600.0);
 			vehicle.setDispatcher(this);
-			vehicles.put(privateSchedule.getPerson().getId(), generator.createVehicle(vehicle));
+			DynAgent dynAgentVehicle = generator.createVehicle(vehicle);
 			
 			Schedule schedule = vehicle.getSchedule();
 
@@ -116,8 +121,8 @@ public class PersonalDispatcher implements AVDispatcher {
 			double currentTime = privateSchedule.getTrips().iterator().next().getPickupTime();
 
 			int tripIndex = 0;
-
-			for (Trip trip : privateSchedule.getTrips()) {
+			
+			for (Trip trip : privateSchedule.getTrips()) {				
 				AVStayTask lastTask = (AVStayTask) schedule.getTasks().get(schedule.getTaskCount() - 1);
 				
 				double tripVehicleDistance = 0.0;
@@ -150,10 +155,15 @@ public class PersonalDispatcher implements AVDispatcher {
 				}
 
 				Id<Request> requestId = Id.create(
-						String.format("%s_%d", privateSchedule.getPerson().getId().toString(), tripIndex++),
+						String.format("%s_%d", trip.getPerson().getId().toString(), tripIndex++),
 						Request.class);
-				AVRequest request = requestCreator.createRequest(requestId, privateSchedule.getPerson().getId(),
+				AVRequest request = requestCreator.createRequest(requestId, trip.getPerson().getId(),
 						trip.getPickupLink(), trip.getDropoffLink(), trip.getPickupTime(), trip.getRoute());
+				
+				if (!vehicles.containsKey(trip.getPerson().getId())) {
+					vehicles.put(trip.getPerson().getId(), new LinkedList<>());
+				}
+				vehicles.get(trip.getPerson().getId()).offer(dynAgentVehicle);
 
 				// Pick up the owner
 				AVPickupTask pickupTask = new AVPickupTask(currentTime, currentTime + PICKUP_TIME, currentLink);
@@ -178,9 +188,10 @@ public class PersonalDispatcher implements AVDispatcher {
 				dropoffTask.addRequest(request);
 				schedule.addTask(dropoffTask);
 				currentTime += DROPOFF_TIME;
-
+				
 				// Either stay there or return home ... 
-				if (currentLink != privateSchedule.getHomeLink() && mode.equals(PrivateDispatcherMode.RETURN_HOME)) {
+				//if (currentLink != privateSchedule.getHomeLink() && mode.equals(PrivateDispatcherMode.RETURN_HOME)) {
+				if (currentLink != privateSchedule.getHomeLink() && trip.returnHome()) {
 					VrpPathWithTravelData returnPath = VrpPaths.calcAndCreatePath(currentLink,
 							privateSchedule.getHomeLink(), currentTime, forwardRouter, travelTime);
 					AVDriveTask returnDriveTask = new AVDriveTask(returnPath);
@@ -217,17 +228,18 @@ public class PersonalDispatcher implements AVDispatcher {
 
 		@Inject
 		public OnlineRequestCreator requestCreator;
+		
+		@Inject
+		public Map<Id<AVOperator>, TripScheduler> schedulers;
 
 		@Override
 		public AVDispatcher createDispatcher(AVDispatcherConfig config) {
 			LeastCostPathCalculator forwardRouter = new Dijkstra(network,
 					new OnlyTimeDependentTravelDisutility(travelTime), travelTime);
 			
-			PersonalScheduleRepository repository = new PersonalScheduleRepository(population, network, config.getParent().getId().toString());
-			
 			PrivateDispatcherMode mode = PrivateDispatcherMode.valueOf(config.getParams().getOrDefault("mode", "RETURN_HOME"));
 
-			return new PersonalDispatcher(forwardRouter, travelTime, repository, generator,
+			return new ScheduledDispatcher(forwardRouter, travelTime, schedulers.get(config.getParent().getId()), generator,
 					requestCreator, mode);
 		}
 	}

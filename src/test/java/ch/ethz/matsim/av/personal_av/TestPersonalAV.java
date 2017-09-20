@@ -1,4 +1,4 @@
-package ch.ethz.matsim.av.private_av;
+package ch.ethz.matsim.av.personal_av;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -19,14 +19,14 @@ import org.matsim.core.config.groups.PlanCalcScoreConfigGroup.ActivityParams;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy.OverwriteFileSetting;
 
-import ch.ethz.matsim.av.dispatcher.personal.PersonalDispatcherModule;
+import ch.ethz.matsim.av.dispatcher.scheduled.ScheduledDispatcherModule;
 import ch.ethz.matsim.av.framework.AVConfigGroup;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.framework.AVQSimProvider;
 import ch.ethz.matsim.av.scenario.TestScenarioAnalyzer;
 import ch.ethz.matsim.av.scenario.TestScenarioGenerator;
 
-public class TestPrivateAV {
+public class TestPersonalAV {
 	@Test
 	public void testPrivateAV() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
@@ -36,7 +36,7 @@ public class TestPrivateAV {
 
 		Scenario scenario = TestScenarioGenerator.generateWithAVLegs(config);
 		scenario.getPopulation().getPersons().clear();
-		
+		config.controler().setWriteEventsInterval(1);
 		PopulationFactory populationFactory = scenario.getPopulation().getFactory();
 		
 		Activity activity1 = populationFactory.createActivityFromLinkId("home", Id.createLinkId("1:8_2:8"));
@@ -84,7 +84,7 @@ public class TestPrivateAV {
 		controler.addOverridingModule(VrpTravelTimeModules.createTravelTimeEstimatorModule());
 		controler.addOverridingModule(new DynQSimModule<>(AVQSimProvider.class));
 		controler.addOverridingModule(new AVModule());
-		controler.addOverridingModule(new PersonalDispatcherModule());
+		controler.addOverridingModule(new ScheduledDispatcherModule());
 
 		TestScenarioAnalyzer analyzer = new TestScenarioAnalyzer();
 		controler.addOverridingModule(analyzer);

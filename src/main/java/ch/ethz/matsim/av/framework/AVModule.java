@@ -8,7 +8,7 @@ import ch.ethz.matsim.av.data.*;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
 import ch.ethz.matsim.av.dispatcher.on_demand.OnDemandDispatcher;
-import ch.ethz.matsim.av.dispatcher.personal.PersonalDispatcher;
+import ch.ethz.matsim.av.dispatcher.scheduled.ScheduledDispatcher;
 import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
 import ch.ethz.matsim.av.generator.AVGenerator;
