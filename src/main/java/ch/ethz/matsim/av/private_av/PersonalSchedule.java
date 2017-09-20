@@ -8,7 +8,7 @@ import org.matsim.api.core.v01.population.Person;
 
 import ch.ethz.matsim.av.routing.AVRoute;
 
-public class PrivateSchedule {
+public class PersonalSchedule {
 	public class Trip {
 		final private double pickupTime;
 		final private Link pickupLink;

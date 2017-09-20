@@ -40,10 +40,10 @@ import ch.ethz.matsim.av.schedule.AVDropoffTask;
 import ch.ethz.matsim.av.schedule.AVPickupTask;
 import ch.ethz.matsim.av.schedule.AVStayTask;
 
-public class PrivateDispatcher implements AVDispatcher {
+public class PersonalDispatcher implements AVDispatcher {
 	final private TravelTime travelTime;
 	final private LeastCostPathCalculator forwardRouter;
-	final private PrivateScheduleRepository repository;
+	final private PersonalScheduleRepository repository;
 	final private AVVehicleCreator generator;
 	final private OnlineRequestCreator requestCreator;
 
@@ -57,8 +57,8 @@ public class PrivateDispatcher implements AVDispatcher {
 	
 	final private PrivateDispatcherMode mode;
 
-	public PrivateDispatcher(LeastCostPathCalculator forwardRouter,
-			TravelTime travelTime, PrivateScheduleRepository repository, AVVehicleCreator generator,
+	public PersonalDispatcher(LeastCostPathCalculator forwardRouter,
+			TravelTime travelTime, PersonalScheduleRepository repository, AVVehicleCreator generator,
 			OnlineRequestCreator requestCreator, PrivateDispatcherMode mode) {
 		this.forwardRouter = forwardRouter;
 		this.travelTime = travelTime;
@@ -101,9 +101,8 @@ public class PrivateDispatcher implements AVDispatcher {
 
 	private void initialize() {
 		vehicles.clear();
-		repository.update();
 
-		for (PrivateSchedule privateSchedule : repository.getSchedules()) {
+		for (PersonalSchedule privateSchedule : repository.getSchedules()) {
 			Id<Vehicle> vehicleId = Id.create(
 					String.format("av_private_%s", privateSchedule.getPerson().getId().toString()), Vehicle.class);
 			AVVehicle vehicle = new AVVehicle(vehicleId, privateSchedule.getStartLink(), 4.0, 0.0, 30.0 * 3600.0);
@@ -117,7 +116,7 @@ public class PrivateDispatcher implements AVDispatcher {
 
 			int tripIndex = 0;
 
-			for (PrivateSchedule.Trip trip : privateSchedule.getTrips()) {
+			for (PersonalSchedule.Trip trip : privateSchedule.getTrips()) {
 				AVStayTask lastTask = (AVStayTask) schedule.getTasks().get(schedule.getTaskCount() - 1);
 				
 				double tripVehicleDistance = 0.0;
@@ -223,11 +222,11 @@ public class PrivateDispatcher implements AVDispatcher {
 			LeastCostPathCalculator forwardRouter = new Dijkstra(network,
 					new OnlyTimeDependentTravelDisutility(travelTime), travelTime);
 			
-			PrivateScheduleRepository repository = new PrivateScheduleRepository(population, network, config.getParent().getId().toString());
+			PersonalScheduleRepository repository = new PersonalScheduleRepository(population, network, config.getParent().getId().toString());
 			
 			PrivateDispatcherMode mode = PrivateDispatcherMode.valueOf(config.getParams().getOrDefault("mode", "RETURN_HOME"));
 
-			return new PrivateDispatcher(forwardRouter, travelTime, repository, generator,
+			return new PersonalDispatcher(forwardRouter, travelTime, repository, generator,
 					requestCreator, mode);
 		}
 	}

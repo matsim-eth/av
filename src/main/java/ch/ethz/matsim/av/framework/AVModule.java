@@ -16,7 +16,7 @@ import ch.ethz.matsim.av.generator.AVVehicleCreator;
 import ch.ethz.matsim.av.generator.PopulationDensityGenerator;
 import ch.ethz.matsim.av.passenger.OnlineRequestCreator;
 import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
-import ch.ethz.matsim.av.private_av.PrivateDispatcher;
+import ch.ethz.matsim.av.private_av.PersonalDispatcher;
 import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
 import ch.ethz.matsim.av.routing.AVParallelRouterFactory;
 import ch.ethz.matsim.av.routing.AVRoute;

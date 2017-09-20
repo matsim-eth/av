@@ -20,29 +20,23 @@ import org.matsim.pt.PtConstants;
 
 import ch.ethz.matsim.av.routing.AVRoute;
 
-public class PrivateScheduleRepository {
-	final private List<PrivateSchedule> schedules = new LinkedList<>();
-
+public class PersonalScheduleRepository {
 	final private Population population;
 	final private Network network;
 	
 	final private String dispatcherName;
 
-	public PrivateScheduleRepository(Population population, Network network, String dispatcherName) {
+	public PersonalScheduleRepository(Population population, Network network, String dispatcherName) {
 		this.population = population;
 		this.network = network;
 		this.dispatcherName = dispatcherName;
 	}
-
-	public Collection<PrivateSchedule> getSchedules() {
-		return Collections.unmodifiableCollection(schedules);
-	}
-
-	public void update() {
-		schedules.clear();
+	
+	public Collection<PersonalSchedule> getSchedules() {
+		List<PersonalSchedule> schedules = new LinkedList<>();
 		
 		for (Person person : population.getPersons().values()) {
-			PrivateSchedule schedule = new PrivateSchedule();
+			PersonalSchedule schedule = new PersonalSchedule();
 			boolean isUsingPrivateAV = false;
 
 			for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(person.getSelectedPlan(),
@@ -80,5 +74,7 @@ public class PrivateScheduleRepository {
 				schedules.add(schedule);
 			}
 		}
+		
+		return schedules;
 	}
 }

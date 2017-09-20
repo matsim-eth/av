@@ -2,7 +2,7 @@ package ch.ethz.matsim.av.framework;
 
 import java.net.MalformedURLException;
 
-import ch.ethz.matsim.av.private_av.PrivateModule;
+import ch.ethz.matsim.av.private_av.PersonalDispatcherModule;
 import ch.ethz.matsim.av.routing.AVRoute;
 import ch.ethz.matsim.av.routing.AVRouteFactory;
 import org.matsim.api.core.v01.Scenario;
@@ -33,7 +33,7 @@ public class RunAVScenario {
 		controler.addOverridingModule(VrpTravelTimeModules.createTravelTimeEstimatorModule());
 		controler.addOverridingModule(new DynQSimModule<>(AVQSimProvider.class));
 		controler.addOverridingModule(new AVModule());
-		controler.addOverridingModule(new PrivateModule());
+		controler.addOverridingModule(new PersonalDispatcherModule());
 
 		controler.run();
 	}

@@ -12,7 +12,7 @@
 
     <operator id="private">
         <generator strategy="Null" />
-        <dispatcher strategy="private" />
+        <dispatcher strategy="personal" />
 
         <pricing>
             <param name="pricePerKm" value="0.48" />

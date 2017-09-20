@@ -29,7 +29,7 @@ public class TestPrivateAV {
 	@Test
 	public void testPrivateAV() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
-		avConfigGroup.setConfigURL(getClass().getResource("/ch/ethz/matsim/av/private_av/private.xml"));
+		avConfigGroup.setConfigURL(getClass().getResource("/ch/ethz/matsim/av/personal/personal.xml"));
 
 		Config config = ConfigUtils.createConfig(avConfigGroup, new DvrpConfigGroup());
 
@@ -83,7 +83,7 @@ public class TestPrivateAV {
 		controler.addOverridingModule(VrpTravelTimeModules.createTravelTimeEstimatorModule());
 		controler.addOverridingModule(new DynQSimModule<>(AVQSimProvider.class));
 		controler.addOverridingModule(new AVModule());
-		controler.addOverridingModule(new PrivateModule());
+		controler.addOverridingModule(new PersonalDispatcherModule());
 
 		TestScenarioAnalyzer analyzer = new TestScenarioAnalyzer();
 		controler.addOverridingModule(analyzer);
