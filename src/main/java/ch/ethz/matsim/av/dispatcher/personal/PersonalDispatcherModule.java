@@ -1,4 +1,4 @@
-package ch.ethz.matsim.av.private_av;
+package ch.ethz.matsim.av.dispatcher.personal;
 
 import org.matsim.core.controler.AbstractModule;
 

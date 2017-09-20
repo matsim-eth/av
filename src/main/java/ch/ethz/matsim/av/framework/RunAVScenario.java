@@ -2,7 +2,7 @@ package ch.ethz.matsim.av.framework;
 
 import java.net.MalformedURLException;
 
-import ch.ethz.matsim.av.private_av.PersonalDispatcherModule;
+import ch.ethz.matsim.av.dispatcher.personal.PersonalDispatcherModule;
 import ch.ethz.matsim.av.routing.AVRoute;
 import ch.ethz.matsim.av.routing.AVRouteFactory;
 import org.matsim.api.core.v01.Scenario;

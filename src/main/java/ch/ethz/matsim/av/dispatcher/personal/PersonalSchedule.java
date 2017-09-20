@@ -1,4 +1,4 @@
-package ch.ethz.matsim.av.private_av;
+package ch.ethz.matsim.av.dispatcher.personal;
 
 import java.util.LinkedList;
 import java.util.List;
