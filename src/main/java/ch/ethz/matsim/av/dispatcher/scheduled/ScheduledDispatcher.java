@@ -35,6 +35,7 @@ import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule.Trip;
 import ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule.TripSchedule;
 import ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule.TripScheduler;
+import ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule.Trip.StopLocation;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.generator.AVVehicleCreator;
 import ch.ethz.matsim.av.passenger.AVPassengerPickupActivity;
@@ -48,7 +49,7 @@ import ch.ethz.matsim.av.schedule.AVStayTask;
 
 public class ScheduledDispatcher implements AVDispatcher {
 	final private TravelTime travelTime;
-	final private LeastCostPathCalculator forwardRouter;
+	final private LeastCostPathCalculator router;
 	final private TripScheduler scheduler;
 	final private AVVehicleCreator generator;
 	final private OnlineRequestCreator requestCreator;
@@ -63,10 +64,10 @@ public class ScheduledDispatcher implements AVDispatcher {
 	
 	final private PrivateDispatcherMode mode;
 
-	public ScheduledDispatcher(LeastCostPathCalculator forwardRouter,
+	public ScheduledDispatcher(LeastCostPathCalculator router,
 			TravelTime travelTime, TripScheduler scheduler, AVVehicleCreator generator,
 			OnlineRequestCreator requestCreator, PrivateDispatcherMode mode) {
-		this.forwardRouter = forwardRouter;
+		this.router = router;
 		this.travelTime = travelTime;
 		this.scheduler = scheduler;
 		this.generator = generator;
@@ -129,11 +130,15 @@ public class ScheduledDispatcher implements AVDispatcher {
 				double tripPersonDistance = 0.0;
 
 				// If the vehicle is not at the pickup link, drive there on time
-				// This should almost always happen (since the vehicle returns home)
+				// - this maximizes the stay time at the dropoff (or home) location
+				// 
+				// TODO: implement StopLocation == PICKUP, which means that stay time
+				// is maximized at the next pickup location (i.e. the car directly
+				// departs after dropoff)
 
-				if (!currentLink.equals(trip.getPickupLink())) {
+				if (!currentLink.equals(trip.getPickupLink())) { // %% previousStopLocation == HOME | DROPOFF
 					VrpPathWithTravelData path = VrpPaths.calcAndCreatePath(currentLink, trip.getPickupLink(),
-							lastTask.getBeginTime(), forwardRouter, travelTime);
+							lastTask.getBeginTime(), router, travelTime);
 					
 					double departureTime = Math.max(path.getDepartureTime(),
 							trip.getPickupTime() - path.getTravelTime());
@@ -148,6 +153,7 @@ public class ScheduledDispatcher implements AVDispatcher {
 					currentLink = trip.getPickupLink();
 					
 					tripVehicleDistance += VrpPaths.calcPathDistance(path);
+				//} else if (previousStopLocation == PICKUP)
 				} else {
 					// We're already at the correct link, wait until departure
 					lastTask.setEndTime(trip.getPickupTime());
@@ -173,7 +179,7 @@ public class ScheduledDispatcher implements AVDispatcher {
 
 				// Drive him to the destination
 				VrpPathWithTravelData path = VrpPaths.calcAndCreatePath(currentLink, trip.getDropoffLink(), currentTime,
-						forwardRouter, travelTime);
+						router, travelTime);
 				AVDriveTask dropoffDriveTask = new AVDriveTask(path);
 				schedule.addTask(dropoffDriveTask);
 				
@@ -190,10 +196,9 @@ public class ScheduledDispatcher implements AVDispatcher {
 				currentTime += DROPOFF_TIME;
 				
 				// Either stay there or return home ... 
-				//if (currentLink != privateSchedule.getHomeLink() && mode.equals(PrivateDispatcherMode.RETURN_HOME)) {
-				if (currentLink != privateSchedule.getHomeLink() && trip.returnHome()) {
+				if (currentLink != privateSchedule.getHomeLink() && trip.getStopLocation().equals(StopLocation.HOME)) {
 					VrpPathWithTravelData returnPath = VrpPaths.calcAndCreatePath(currentLink,
-							privateSchedule.getHomeLink(), currentTime, forwardRouter, travelTime);
+							privateSchedule.getHomeLink(), currentTime, router, travelTime);
 					AVDriveTask returnDriveTask = new AVDriveTask(returnPath);
 					schedule.addTask(returnDriveTask);
 
@@ -234,12 +239,12 @@ public class ScheduledDispatcher implements AVDispatcher {
 
 		@Override
 		public AVDispatcher createDispatcher(AVDispatcherConfig config) {
-			LeastCostPathCalculator forwardRouter = new Dijkstra(network,
+			LeastCostPathCalculator router = new Dijkstra(network,
 					new OnlyTimeDependentTravelDisutility(travelTime), travelTime);
 			
 			PrivateDispatcherMode mode = PrivateDispatcherMode.valueOf(config.getParams().getOrDefault("mode", "RETURN_HOME"));
 
-			return new ScheduledDispatcher(forwardRouter, travelTime, schedulers.get(config.getParent().getId()), generator,
+			return new ScheduledDispatcher(router, travelTime, schedulers.get(config.getParent().getId()), generator,
 					requestCreator, mode);
 		}
 	}

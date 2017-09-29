@@ -11,15 +11,19 @@ public class Trip {
 	final private Link dropoffLink;
 	final private AVRoute route;
 	final private Person person;
-	final private boolean returnHome;
+	final private StopLocation stopLocation;
 	
-	public Trip(double pickupTime, Link pickupLink, Link dropoffLink, AVRoute route, Person person, boolean returnHome) {
+	public enum StopLocation {
+		DROPOFF, HOME //, PICKUP
+	}
+	
+	public Trip(double pickupTime, Link pickupLink, Link dropoffLink, AVRoute route, Person person, StopLocation stopLocation) {
 		this.pickupTime = pickupTime;
 		this.pickupLink = pickupLink;
 		this.dropoffLink = dropoffLink;
 		this.route = route;
 		this.person = person;
-		this.returnHome = returnHome;
+		this.stopLocation = stopLocation;
 	}
 
 	public double getPickupTime() {
@@ -42,7 +46,7 @@ public class Trip {
 		return person;
 	}
 	
-	public boolean returnHome() {
-		return returnHome;
+	public StopLocation getStopLocation() {
+		return stopLocation;
 	}
 }

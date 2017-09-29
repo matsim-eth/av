@@ -18,6 +18,7 @@ import com.google.inject.Singleton;
 
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule.Trip;
+import ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule.Trip.StopLocation;
 import ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule.TripSchedule;
 import ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule.TripScheduler;
 import ch.ethz.matsim.av.dispatcher.scheduled.trip_schedule.TripSchedulerFactory;
@@ -28,6 +29,12 @@ import ch.ethz.matsim.av.routing.AVRoute;
  * 
  * This means one AV is created per person that intends to use an
  * AV with the respective operator.
+ * 
+ * There are two modes: Either the AV ALWAYS returns home or it
+ * NEVER returns home and stays at the last dropoff location.
+ * 
+ * TODO: This behaviour should be improved (depending on the length
+ * of the trip? Maybe let the vehicle roam?)
  * 
  * The vehicle will be initialized at the first activity of the agent
  * and has a home location, which is the home location of the agent.
@@ -66,7 +73,7 @@ public class PersonalScheduler implements TripScheduler {
 
 						Trip scheduleTrip = new Trip(trip.getOriginActivity().getEndTime(),
 								network.getLinks().get(trip.getOriginActivity().getLinkId()),
-								network.getLinks().get(trip.getDestinationActivity().getLinkId()), route, person, returnHome);
+								network.getLinks().get(trip.getDestinationActivity().getLinkId()), route, person, returnHome ? StopLocation.HOME : StopLocation.DROPOFF);
 
 						schedule.addTrip(scheduleTrip);
 
