@@ -89,6 +89,8 @@ public class ScheduledDispatcher implements AVDispatcher {
 	@Override
 	public void onNextTaskStarted(AVVehicle vehicle) {
 		// Do nothing
+		// TODO: Since now TripSchedule is introduced the routing can be done adaptively ...
+		//       Maybe there should be a dynamic and a static version
 	}
 
 	@Override
