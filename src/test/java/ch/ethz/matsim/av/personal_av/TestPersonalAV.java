@@ -12,6 +12,7 @@ import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.contrib.dvrp.run.DvrpConfigGroup;
 import org.matsim.contrib.dvrp.trafficmonitoring.VrpTravelTimeModules;
 import org.matsim.contrib.dynagent.run.DynQSimModule;
+import org.matsim.contrib.otfvis.OTFVisLiveModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
@@ -42,7 +43,7 @@ public class TestPersonalAV {
 		Activity activity1 = populationFactory.createActivityFromLinkId("home", Id.createLinkId("1:8_2:8"));
 		Activity activity2 = populationFactory.createActivityFromLinkId("work", Id.createLinkId("1:2_1:1"));
 		Activity activity3 = populationFactory.createActivityFromLinkId("shop", Id.createLinkId("8:2_8:3"));
-		Activity activity4 = populationFactory.createActivityFromLinkId("home", Id.createLinkId("6:6_6:7"));
+		Activity activity4 = populationFactory.createActivityFromLinkId("remote", Id.createLinkId("6:6_6:7"));
 		
 		for (Activity activity : new Activity[] { activity1, activity2, activity3, activity4 }) {
 			activity.setCoord(scenario.getNetwork().getLinks().get(activity.getLinkId()).getCoord());
