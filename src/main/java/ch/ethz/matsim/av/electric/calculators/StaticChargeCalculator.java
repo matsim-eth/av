@@ -14,12 +14,12 @@ public class StaticChargeCalculator implements ChargeCalculator {
     }
 
     @Override
-    public double calculateConsumption(double from, double until, double distance) {
+    public double calculateDistanceBasedConsumption(double from, double until, double distance) {
         return (distance / 1e-3) * config.getDischargeRateByDistance();
     }
 
     @Override
-    public double calculateConsumption(double from, double until) {
+    public double calculateTimeBasedConsumption(double from, double until) {
         return (until - from) / S_PER_H * config.getDischargeRateByTime();
     }
 
@@ -39,7 +39,12 @@ public class StaticChargeCalculator implements ChargeCalculator {
     }
 
     @Override
-    public double getRechargeTime(double now) {
-        return S_PER_H * (config.getMaximumCharge() - config.getMinimumCharge()) / config.getRechargeRatePerTime();
+    public double getRechargeTime(double now, double startCharge) {
+        return S_PER_H * (config.getMaximumCharge() - startCharge) / config.getRechargeRatePerTime();
     }
+
+	@Override
+	public double getRechargeRate(double now) {
+		return config.getRechargeRatePerTime();
+	}
 }

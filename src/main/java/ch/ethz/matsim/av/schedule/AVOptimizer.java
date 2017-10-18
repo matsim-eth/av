@@ -12,6 +12,7 @@ import org.matsim.contrib.dvrp.data.Request;
 import org.matsim.contrib.dvrp.data.Vehicle;
 import org.matsim.contrib.dvrp.optimizer.VrpOptimizerWithOnlineTracking;
 import org.matsim.contrib.dvrp.schedule.Schedule;
+import org.matsim.contrib.dvrp.schedule.StayTask;
 import org.matsim.contrib.dvrp.schedule.Task;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.mobsim.framework.events.MobsimBeforeSimStepEvent;
@@ -57,19 +58,19 @@ public class AVOptimizer implements VrpOptimizerWithOnlineTracking, MobsimBefore
 
         List<? extends Task> tasks = schedule.getTasks();
         int index = currentTask.getTaskIdx() + 1;
-        AVTask nextTask = null;
+        Task nextTask = null;
 
         if (index < tasks.size()) {
-            nextTask = (AVTask)tasks.get(index);
+            nextTask = tasks.get(index);
         }
 
         double startTime = now;
 
-        AVTask indexTask;
+        Task indexTask;
         while (index < tasks.size()) {
-            indexTask = (AVTask)tasks.get(index);
+            indexTask = tasks.get(index);
 
-            if (indexTask.getAVTaskType() == AVTask.AVTaskType.STAY) {
+            if (indexTask instanceof StayTask) {
                 if (indexTask.getEndTime() < startTime) indexTask.setEndTime(startTime);
             } else {
                 indexTask.setEndTime(indexTask.getEndTime() - indexTask.getBeginTime() + startTime);

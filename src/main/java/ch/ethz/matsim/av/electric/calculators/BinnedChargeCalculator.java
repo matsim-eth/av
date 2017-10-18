@@ -13,7 +13,7 @@ public class BinnedChargeCalculator implements ChargeCalculator {
     }
 
     @Override
-    public double calculateConsumption(double from, double until, double distance) {
+    public double calculateDistanceBasedConsumption(double from, double until, double distance) {
         int fromBin = data.calculateBin(from);
         int untilBin = data.calculateBin(until);
 
@@ -29,14 +29,14 @@ public class BinnedChargeCalculator implements ChargeCalculator {
         consumption += ((until - data.getBinStartTime(untilBin)) * speed / 1e3) * data.getDischargeRateByDistance(untilBin);
 
         for (int b = fromBin + 1; b < untilBin; b++) {
-            consumption += (data.getBinDuration(b) * speed / 1e3) * data.getDischargeRateByTime(b);
+            consumption += (data.getBinDuration(b) * speed / 1e3) * data.getDischargeRateByDistance(b);
         }
 
         return consumption;
     }
 
     @Override
-    public double calculateConsumption(double from, double until) {
+    public double calculateTimeBasedConsumption(double from, double until) {
         int fromBin = data.calculateBin(from);
         int untilBin = data.calculateBin(until);
 
@@ -72,12 +72,10 @@ public class BinnedChargeCalculator implements ChargeCalculator {
     }
 
     @Override
-    public double getRechargeTime(double now) {
+    public double getRechargeTime(double now, double startCharge) {
         int currentBin = data.calculateBin(now);
 
-        // TODO: maybe introduce another parameter here.
-        // recharging ALWAYS starts at 0.0 now
-        double charge = 0.0; // data.getMinimumCharge(currentBin);
+        double charge = startCharge;
         double time = 0.0;
         double duration;
 
@@ -92,4 +90,9 @@ public class BinnedChargeCalculator implements ChargeCalculator {
 
         return time - S_PER_H * (charge - data.getMaximumCharge(currentBin - 1)) / data.getRechgargeRate(currentBin - 1);
     }
+
+	@Override
+	public double getRechargeRate(double now) {
+		return data.getRechgargeRate(data.calculateBin(now));
+	}
 }

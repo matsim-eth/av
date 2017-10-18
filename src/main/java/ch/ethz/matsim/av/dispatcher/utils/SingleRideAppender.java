@@ -28,6 +28,10 @@ public class SingleRideAppender {
     final private TravelTime travelTime;
 
     private List<AppendTask> tasks = new LinkedList<>();
+    
+    static public interface FeedbackTravelTime {
+    	void addFeedback(VrpPathWithTravelData path);
+    }
 
     public SingleRideAppender(AVDispatcherConfig config, ParallelLeastCostPathCalculator router, TravelTime travelTime) {
         this.router = router;
@@ -85,6 +89,11 @@ public class SingleRideAppender {
         VrpPathWithTravelData pickupPath = VrpPaths.createPath(stayTask.getLink(), request.getFromLink(), startTime, task.pickup.get(), travelTime);
         VrpPathWithTravelData dropoffPath = VrpPaths.createPath(request.getFromLink(), request.getToLink(), pickupPath.getArrivalTime() + timing.getPickupDurationPerStop(), task.dropoff.get(), travelTime);
 
+        if (travelTime instanceof FeedbackTravelTime) {
+        	((FeedbackTravelTime) travelTime).addFeedback(pickupPath);
+        	((FeedbackTravelTime) travelTime).addFeedback(dropoffPath);
+        }
+        
         AVDriveTask pickupDriveTask = new AVDriveTask(pickupPath);
         AVPickupTask pickupTask = new AVPickupTask(
                 pickupPath.getArrivalTime(),

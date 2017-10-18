@@ -4,6 +4,7 @@ import ch.ethz.matsim.av.config.AVDispatcherConfig;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.electric.calculators.ChargeCalculator;
+import ch.ethz.matsim.av.electric.policy.RechargePolicy;
 import ch.ethz.matsim.av.electric.tracker.ConsumptionTracker;
 import ch.ethz.matsim.av.passenger.AVRequest;
 import ch.ethz.matsim.av.schedule.AVDriveTask;
@@ -20,19 +21,25 @@ import java.util.Set;
 
 public class RechargingDispatcher implements AVDispatcher {
     final private Map<AVVehicle, Double> chargeState = new HashMap<>();
+    final private Set<AVVehicle> chargingVehicles = new HashSet<>();
 
     final private AVDispatcher delegate;
     final private ChargeCalculator chargeCalculator;
     final private ConsumptionTracker consumptionTracker;
 
     final private Set<AVVehicle> ideling = new HashSet<>();
+    final private Set<AVVehicle> recharging = new HashSet<>();
+    
+    
+    final private RechargePolicy policy;
 
     private double now = Double.NEGATIVE_INFINITY;
 
-    public RechargingDispatcher(ChargeCalculator chargeCalculator, AVDispatcher dispatcher, ConsumptionTracker consumptionTracker) {
+    public RechargingDispatcher(ChargeCalculator chargeCalculator, AVDispatcher dispatcher, ConsumptionTracker consumptionTracker, RechargePolicy policy) {
         this.delegate = dispatcher;
         this.chargeCalculator = chargeCalculator;
         this.consumptionTracker = consumptionTracker;
+        this.policy = policy;
     }
 
     @Override
@@ -49,6 +56,10 @@ public class RechargingDispatcher implements AVDispatcher {
 
         Double currentChargeState = chargeState.get(vehicle);
         double delta;
+        
+        if (previous instanceof RechargingTask) {
+        	chargingVehicles.remove(vehicle);
+        }
 
         if (currentChargeState != null) {
             if (previous instanceof AVDriveTask) {
@@ -57,13 +68,13 @@ public class RechargingDispatcher implements AVDispatcher {
                     distance += ((AVDriveTask) previous).getPath().getLink(i).getLength();
                 }
 
-                delta = chargeCalculator.calculateConsumption(previous.getBeginTime(), previous.getEndTime(), distance);
+                delta = chargeCalculator.calculateDistanceBasedConsumption(previous.getBeginTime(), previous.getEndTime(), distance);
                 currentChargeState -= delta;
                 consumptionTracker.addDistanceBasedConsumption(previous.getBeginTime(), previous.getEndTime(), delta);
             }
 
-            if (!(previous instanceof AVStayTask)) {
-                delta = chargeCalculator.calculateConsumption(previous.getBeginTime(), previous.getEndTime());
+            if (!(previous instanceof AVStayTask) && !(previous instanceof RechargingTask)) {
+                delta = chargeCalculator.calculateTimeBasedConsumption(previous.getBeginTime(), previous.getEndTime());
                 currentChargeState -= delta;
                 consumptionTracker.addTimeBasedConsumption(previous.getBeginTime(), previous.getEndTime(), delta);
             }
@@ -92,16 +103,31 @@ public class RechargingDispatcher implements AVDispatcher {
         Schedule schedule = vehicle.getSchedule();
         Task currentTask = schedule.getCurrentTask();
 
-        if (currentChargeState != null && currentTask instanceof AVStayTask && chargeCalculator.isCritical(currentChargeState, now) && currentTask == Schedules.getLastTask(schedule)) {
+        if (currentChargeState != null && currentTask instanceof AVStayTask && (chargeCalculator.isCritical(currentChargeState, now) || policy.sendToRecharge(vehicle, currentChargeState)) && currentTask == Schedules.getLastTask(schedule)) {
             double scheduleEndTime = schedule.getEndTime();
-            double rechargingEndTime = Math.min(now + chargeCalculator.getRechargeTime(now), scheduleEndTime);
+            
+            double averageSpeed = 30.0;
+            double averageDistanceToFacility = 0.5;
+            double expectedAccessTime = (averageDistanceToFacility / averageSpeed) * 3600.0;
+            
+            double additionalDistanceCharge = chargeCalculator.calculateDistanceBasedConsumption(now, now + expectedAccessTime, averageDistanceToFacility * 1000.0);
+            double additionalTimeCharge = chargeCalculator.calculateTimeBasedConsumption(now, now + expectedAccessTime);
+            
+            consumptionTracker.addDistanceBasedConsumption(now, now + expectedAccessTime, additionalDistanceCharge);
+            consumptionTracker.addTimeBasedConsumption(now, now + expectedAccessTime, additionalTimeCharge);
+            
+            double chargeAtFacility = chargeState.get(vehicle) - additionalDistanceCharge - additionalTimeCharge;
+            double rechargingEndTime = Math.min(now + expectedAccessTime + chargeCalculator.getRechargeTime(now + expectedAccessTime, chargeAtFacility), scheduleEndTime);
 
             currentTask.setEndTime(now);
 
             schedule.addTask(new RechargingTask(now, rechargingEndTime, ((AVStayTask) currentTask).getLink()));
             schedule.addTask(new AVStayTask(rechargingEndTime, scheduleEndTime, ((AVStayTask) currentTask).getLink()));
 
+            consumptionTracker.addRecharge(now + expectedAccessTime, rechargingEndTime, chargeCalculator.getMaximumCharge(rechargingEndTime));
+            
             chargeState.put(vehicle, chargeCalculator.getMaximumCharge(rechargingEndTime));
+            chargingVehicles.add(vehicle);
 
             if (delegate.hasVehicle(vehicle)) {
                 delegate.removeVehicle(vehicle);
@@ -112,6 +138,8 @@ public class RechargingDispatcher implements AVDispatcher {
     @Override
     public void onNextTimestep(double now) {
         this.now = now;
+        
+        policy.informChargeState(now, chargeState, chargingVehicles);
 
         for (AVVehicle vehicle : ideling) {
             makeVehicleRechargeIfPossibleAndNecessary(vehicle);
@@ -145,6 +173,9 @@ public class RechargingDispatcher implements AVDispatcher {
 
         @Inject
         ConsumptionTracker tracker;
+        
+        @Inject
+        RechargePolicy policy;
 
         @Override
         public AVDispatcher createDispatcher(AVDispatcherConfig config) {
@@ -173,7 +204,7 @@ public class RechargingDispatcher implements AVDispatcher {
                 throw new IllegalArgumentException("Charge calculator '" + chargeCalculatorName + "' does not exist!");
             }
 
-            return new RechargingDispatcher(chargeCalculators.get(chargeCalculatorName), factories.get(delegateDisaptcherName).createDispatcher(delegateConfig), tracker);
+            return new RechargingDispatcher(chargeCalculators.get(chargeCalculatorName), factories.get(delegateDisaptcherName).createDispatcher(delegateConfig), tracker, policy);
         }
     }
 }

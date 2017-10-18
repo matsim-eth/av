@@ -11,6 +11,8 @@ import ch.ethz.matsim.av.dispatcher.AVDispatchmentListener;
 import ch.ethz.matsim.av.passenger.AVRequestCreator;
 import ch.ethz.matsim.av.schedule.AVOptimizer;
 import ch.ethz.matsim.av.vrpagent.AVActionCreator;
+import ch.ethz.matsim.av.vrpagent.AVActionCreatorFactory;
+
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -18,6 +20,7 @@ import com.google.inject.name.Names;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.dvrp.passenger.PassengerEngine;
+import org.matsim.contrib.dvrp.vrpagent.VrpAgentLogic;
 import org.matsim.contrib.dvrp.vrpagent.VrpAgentSource;
 import org.matsim.contrib.dvrp.vrpagent.VrpLegs;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -41,7 +44,6 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
     protected void configure() {
         bind(Double.class).annotatedWith(Names.named("pickupDuration")).toInstance(config.getTimingParameters().getPickupDurationPerStop());
         bind(AVOptimizer.class);
-        bind(AVActionCreator.class);
         bind(AVRequestCreator.class);
         bind(AVDispatchmentListener.class);
     }
@@ -64,7 +66,7 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
     }
 
     @Provides @Singleton
-    public VrpAgentSource provideAgentSource(AVActionCreator actionCreator, AVData data, AVOptimizer optimizer, @Named(AVModule.AV_MODE) VehicleType vehicleType) {
+    public VrpAgentSource provideAgentSource(@Named(AVModule.AV_MODE) VrpAgentLogic.DynActionCreator actionCreator, AVData data, AVOptimizer optimizer, @Named(AVModule.AV_MODE) VehicleType vehicleType) {
         return new VrpAgentSource(actionCreator, data, optimizer, qsim, vehicleType);
     }
 
@@ -92,5 +94,10 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
         }
 
         return dispatchers;
+    }
+    
+    @Named(AVModule.AV_MODE) @Singleton @Provides
+    public VrpAgentLogic.DynActionCreator provideActionCreator(AVActionCreatorFactory factory, PassengerEngine passengerEngine, VrpLegs.LegCreator legCreator, @Named("pickupDuration") Double pickupDuration) {
+		return factory.createActionCreator(passengerEngine, legCreator, pickupDuration);
     }
 }

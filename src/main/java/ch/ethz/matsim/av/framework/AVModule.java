@@ -17,6 +17,10 @@ import ch.ethz.matsim.av.routing.AVRoute;
 import ch.ethz.matsim.av.routing.AVRouteFactory;
 import ch.ethz.matsim.av.routing.AVRoutingModule;
 import ch.ethz.matsim.av.scoring.AVScoringFunctionFactory;
+import ch.ethz.matsim.av.vrpagent.AVActionCreator;
+import ch.ethz.matsim.av.vrpagent.DefaultAVActionCreatorFactory;
+import ch.ethz.matsim.av.vrpagent.AVActionCreatorFactory;
+
 import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -27,6 +31,7 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.dvrp.run.DvrpModule;
 import org.matsim.contrib.dvrp.trafficmonitoring.VrpTravelTimeModules;
+import org.matsim.contrib.dvrp.vrpagent.VrpAgentLogic;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.controler.AbstractModule;
@@ -77,6 +82,13 @@ public class AVModule extends AbstractModule {
 
         bind(Network.class).annotatedWith(Names.named(DvrpModule.DVRP_ROUTING)).to(Network.class);
         bind(Network.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(Key.get(Network.class, Names.named(DvrpModule.DVRP_ROUTING)));
+        
+        bind(AVActionCreatorFactory.class).to(DefaultAVActionCreatorFactory.class);
+	}
+	
+	@Provides @Singleton 
+	public DefaultAVActionCreatorFactory provideDefaultAVActionCreatorFactory() {
+		return new DefaultAVActionCreatorFactory();
 	}
 
 	@Provides @Singleton @Named(AVModule.AV_MODE)
@@ -107,7 +119,7 @@ public class AVModule extends AbstractModule {
     }
 
 	@Provides @Named(AVModule.AV_MODE)
-    LeastCostPathCalculator provideLeastCostPathCalculator(@com.google.inject.name.Named(AVModule.AV_MODE) Network network, @Named(VrpTravelTimeModules.DVRP_ESTIMATED) TravelTime travelTime) {
+    LeastCostPathCalculator provideLeastCostPathCalculator(@com.google.inject.name.Named(AVModule.AV_MODE) Network network, @Named(AVModule.AV_MODE) TravelTime travelTime) {
         return new Dijkstra(network, new OnlyTimeDependentTravelDisutility(travelTime), travelTime);
     }
 

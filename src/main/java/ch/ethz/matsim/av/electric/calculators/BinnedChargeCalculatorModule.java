@@ -19,7 +19,7 @@ public class BinnedChargeCalculatorModule extends AbstractModule {
 
     @Provides
     @Singleton
-    private BinnedChargeCalculatorData provideBinnedChargeCalculatorData(Config config, BinnedChargeCalculatorConfig chargeConfig) {
+    public BinnedChargeCalculatorData provideBinnedChargeCalculatorData(Config config, BinnedChargeCalculatorConfig chargeConfig) {
         VariableBinSizeData data = new VariableBinSizeData();
 
         if (chargeConfig.getInputPath() == null) {

@@ -24,14 +24,15 @@ public class AVActionCreator implements VrpAgentLogic.DynActionCreator {
     public static final String DROPOFF_ACTIVITY_TYPE = "AVDropoff";
     public static final String STAY_ACTIVITY_TYPE = "AVStay";
 
-    @Inject
     private PassengerEngine passengerEngine;
-
-    @Inject
     private VrpLegs.LegCreator legCreator;
-
-    @Inject @Named("pickupDuration")
-    private Double pickupDuration;
+    private double pickupDuration;
+    
+    public AVActionCreator(PassengerEngine passengerEngine, VrpLegs.LegCreator legCreator, double pickupDuration) {
+    	this.passengerEngine = passengerEngine;
+    	this.legCreator = legCreator;
+    	this.pickupDuration = pickupDuration;
+    }
 
     @Override
     public DynAction createAction(DynAgent dynAgent, Vehicle vehicle, double now)

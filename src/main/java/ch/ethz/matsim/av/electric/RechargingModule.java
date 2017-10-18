@@ -3,6 +3,8 @@ package ch.ethz.matsim.av.electric;
 import ch.ethz.matsim.av.electric.calculators.ChargeCalculator;
 import ch.ethz.matsim.av.electric.calculators.StaticChargeCalculator;
 import ch.ethz.matsim.av.electric.logic.RechargingDispatcher;
+import ch.ethz.matsim.av.electric.policy.NullRechargePolicy;
+import ch.ethz.matsim.av.electric.policy.RechargePolicy;
 import ch.ethz.matsim.av.electric.tracker.CSVConsumptionTracker;
 import ch.ethz.matsim.av.electric.tracker.ConsumptionTracker;
 import ch.ethz.matsim.av.electric.tracker.NullConsumptionTracker;
@@ -31,6 +33,8 @@ public class RechargingModule extends AbstractModule {
             logger.info("EAV Consumption tracking disabled");
             bind(ConsumptionTracker.class).toInstance(new NullConsumptionTracker());
         }
+        
+        bind(RechargePolicy.class).toInstance(new NullRechargePolicy());
     }
 
     @Provides @Singleton

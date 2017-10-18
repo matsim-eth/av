@@ -10,4 +10,9 @@ public class NullConsumptionTracker implements ConsumptionTracker {
     public void addTimeBasedConsumption(double start, double end, double consumption) {
 
     }
+
+	@Override
+	public void addRecharge(double start, double end, double amount) {
+
+	}
 }

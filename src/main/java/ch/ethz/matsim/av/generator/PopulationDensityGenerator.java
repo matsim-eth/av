@@ -34,7 +34,6 @@ public class PopulationDensityGenerator implements AVGenerator {
     public PopulationDensityGenerator(AVGeneratorConfig config, Network network, Population population,
 									  ActivityFacilities facilities) {
         this.numberOfVehicles = config.getNumberOfVehicles();
-		final CoordAnalyzer coordAnalyzer = new CoordAnalyzer(config.getPathToSHP(), network);
 
         String prefix = config.getPrefix();
         this.prefix = prefix == null ? "av_" + config.getParent().getId().toString() + "_" : prefix + "_";
@@ -48,7 +47,8 @@ public class PopulationDensityGenerator implements AVGenerator {
 			Id<Link> linkId = act.getLinkId() != null ? act.getLinkId() :
 					facilities.getFacilities().get(act.getFacilityId()).getLinkId();
 			Link link = network.getLinks().get(linkId);
-			if (coordAnalyzer.isLinkInArea(link)) {
+			
+			if (link != null) {
 				if (density.containsKey(link)) {
 					density.put(link, density.get(link) + 1.0);
 				} else {
@@ -101,50 +101,6 @@ public class PopulationDensityGenerator implements AVGenerator {
         @Override
         public AVGenerator createGenerator(AVGeneratorConfig generatorConfig) {
             return new PopulationDensityGenerator(generatorConfig, network, population, facilities);
-        }
-    }
-
-    static private class CoordAnalyzer {
-        private final Geometry area;
-        private final GeometryFactory factory;
-        private final Map<Id, Boolean> linkCache;
-
-        private CoordAnalyzer(String pathToSHP, Network network) {
-			this.linkCache = new HashMap<>();
-        	if (pathToSHP != null) {
-				Set<SimpleFeature> features = new HashSet<>();
-				features.addAll(ShapeFileReader.getAllFeatures(pathToSHP));
-				this.area = mergeGeometries(features);
-				this.factory = new GeometryFactory();
-			} else {
-        		for (Id<Link> linkId : network.getLinks().keySet()) {
-					this.linkCache.put(linkId, true);
-				}
-				this.area = null;
-				this.factory = null;
-			}
-        }
-
-        boolean isLinkInArea(Link link) {
-            Boolean inArea = linkCache.get(link.getId());
-            if (inArea == null) {
-                inArea = area.contains(
-                        factory.createPoint(new Coordinate(link.getCoord().getX(), link.getCoord().getY())));
-                linkCache.put(link.getId(), inArea);
-            }
-            return inArea;
-        }
-
-        private Geometry mergeGeometries(Set<SimpleFeature> features) {
-            Geometry geometry = null;
-            for (SimpleFeature feature : features) {
-                if (geometry == null) {
-                    geometry = (Geometry) ((Geometry) feature.getDefaultGeometry()).clone();
-                } else {
-                    geometry = geometry.union((Geometry) feature.getDefaultGeometry());
-                }
-            }
-            return geometry;
         }
     }
 }

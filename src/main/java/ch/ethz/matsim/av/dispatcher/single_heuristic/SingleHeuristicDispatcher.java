@@ -1,5 +1,23 @@
 package ch.ethz.matsim.av.dispatcher.single_heuristic;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
+import org.matsim.core.api.experimental.events.EventsManager;
+import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.router.util.TravelTime;
+import org.matsim.core.utils.collections.QuadTree;
+
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+
 import ch.ethz.matsim.av.config.AVDispatcherConfig;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVVehicle;
@@ -11,23 +29,9 @@ import ch.ethz.matsim.av.passenger.AVRequest;
 import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
 import ch.ethz.matsim.av.schedule.AVStayTask;
 import ch.ethz.matsim.av.schedule.AVTask;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import org.matsim.api.core.v01.Coord;
-import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.network.Network;
-import org.matsim.core.api.experimental.events.EventsManager;
-import org.matsim.core.network.NetworkUtils;
-import org.matsim.core.router.util.TravelTime;
-import org.matsim.core.utils.collections.QuadTree;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 public class SingleHeuristicDispatcher implements AVDispatcher {
+	final private Logger logger = Logger.getLogger(SingleHeuristicDispatcher.class);
     private boolean reoptimize = true;
 
     final private SingleRideAppender appender;
@@ -47,7 +51,7 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
         OVERSUPPLY, UNDERSUPPLY
     }
 
-    private HeuristicMode mode = HeuristicMode.OVERSUPPLY;
+    //private HeuristicMode mode = HeuristicMode.OVERSUPPLY;
 
     public SingleHeuristicDispatcher(Id<AVOperator> operatorId, EventsManager eventsManager, Network network, SingleRideAppender appender) {
         this.appender = appender;
@@ -74,14 +78,16 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
     }
 
     private void reoptimize(double now) {
-        HeuristicMode updatedMode = availableVehicles.size() > pendingRequests.size() ? HeuristicMode.OVERSUPPLY : HeuristicMode.UNDERSUPPLY;
+        /*HeuristicMode updatedMode = availableVehicles.size() > pendingRequests.size() ? HeuristicMode.OVERSUPPLY : HeuristicMode.UNDERSUPPLY;
 
         if (!updatedMode.equals(mode)) {
             mode = updatedMode;
             eventsManager.processEvent(new ModeChangeEvent(mode, operatorId, now));
-        }
-
+        }*/
+    	
         while (pendingRequests.size() > 0 && availableVehicles.size() > 0) {
+        	HeuristicMode mode = availableVehicles.size() > pendingRequests.size() ? HeuristicMode.OVERSUPPLY : HeuristicMode.UNDERSUPPLY;
+        	
             AVRequest request = null;
             AVVehicle vehicle = null;
 
@@ -102,11 +108,13 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
             appender.schedule(request, vehicle, now);
         }
     }
+    
+    final private static int updateInterval = 60;
 
     @Override
     public void onNextTimestep(double now) {
         appender.update();
-        if (reoptimize) reoptimize(now);
+        if (reoptimize && ((int) now % updateInterval) == 0) reoptimize(now);
     }
 
     private void addRequest(AVRequest request, Link link) {
