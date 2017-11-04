@@ -48,15 +48,18 @@ public class PopulationDensityGenerator implements AVGenerator {
 			Id<Link> linkId = act.getLinkId() != null ? act.getLinkId() :
 					facilities.getFacilities().get(act.getFacilityId()).getLinkId();
 			Link link = network.getLinks().get(linkId);
-			if (coordAnalyzer.isLinkInArea(link)) {
-				if (density.containsKey(link)) {
-					density.put(link, density.get(link) + 1.0);
-				} else {
-					density.put(link, 1.0);
+			
+			if (link != null) {
+				if (coordAnalyzer.isLinkInArea(link)) {
+					if (density.containsKey(link)) {
+						density.put(link, density.get(link) + 1.0);
+					} else {
+						density.put(link, 1.0);
+					}
+	
+					if (!linkList.contains(link)) linkList.add(link);
+					sum += 1.0;
 				}
-
-				if (!linkList.contains(link)) linkList.add(link);
-				sum += 1.0;
 			}
         }
 
