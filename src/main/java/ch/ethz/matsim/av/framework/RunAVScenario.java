@@ -7,7 +7,7 @@ import ch.ethz.matsim.av.routing.AVRouteFactory;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.dvrp.run.DvrpConfigGroup;
 import org.matsim.contrib.dvrp.run.DvrpModule;
-import org.matsim.contrib.dvrp.trafficmonitoring.VrpTravelTimeModules;
+import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
 import org.matsim.contrib.dynagent.run.DynQSimModule;
 import org.matsim.contrib.dynagent.run.DynRoutingModule;
 import org.matsim.core.config.Config;
@@ -29,7 +29,7 @@ public class RunAVScenario {
 		ScenarioUtils.loadScenario(scenario);
 
 		Controler controler = new Controler(scenario);
-		controler.addOverridingModule(VrpTravelTimeModules.createTravelTimeEstimatorModule());
+		controler.addOverridingModule(new DvrpTravelTimeModule());
 		controler.addOverridingModule(new DynQSimModule<>(AVQSimProvider.class));
 		controler.addOverridingModule(new AVModule());
 
