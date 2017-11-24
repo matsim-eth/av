@@ -56,7 +56,7 @@ public class RunAVExampleTest {
         config.planCalcScore().getOrCreateModeParams(AVModule.AV_MODE);
 
         Controler controler = new Controler(scenario);
-        controler.addOverridingModule(VrpTravelTimeModules.createTravelTimeEstimatorModule());
+        controler.addOverridingModule(new DvrpTravelTimeModule());
         controler.addOverridingModule(new DynQSimModule<>(AVQSimProvider.class));
         controler.addOverridingModule(new AVModule());
 
