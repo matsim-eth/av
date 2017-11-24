@@ -8,12 +8,15 @@ import ch.ethz.matsim.av.scenario.TestScenarioGenerator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
 import org.matsim.contrib.dvrp.run.DvrpConfigGroup;
 import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
 import org.matsim.contrib.dynagent.run.DynQSimModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
 import org.matsim.core.controler.Controler;
 
 public class RunAVExampleTest {
@@ -41,5 +44,26 @@ public class RunAVExampleTest {
         controler.run();
 
         Assert.assertEquals(0, analyzer.numberOfDepartures - analyzer.numberOfArrivals);
+    }
+    
+    @Test
+    public void testStuckScoring() {
+        AVConfigGroup avConfigGroup = new AVConfigGroup();
+        avConfigGroup.setConfigURL(getClass().getResource("/ch/ethz/matsim/av/zero_av.xml"));
+
+        Config config = ConfigUtils.createConfig(avConfigGroup, new DvrpConfigGroup());
+        Scenario scenario = TestScenarioGenerator.generateWithAVLegs(config);
+        config.planCalcScore().getOrCreateModeParams(AVModule.AV_MODE);
+
+        Controler controler = new Controler(scenario);
+        controler.addOverridingModule(new DvrpTravelTimeModule());
+        controler.addOverridingModule(new DynQSimModule<>(AVQSimProvider.class));
+        controler.addOverridingModule(new AVModule());
+
+        controler.run();
+        
+        for (Person person : scenario.getPopulation().getPersons().values()) {
+        	Assert.assertEquals(-1000.0, person.getSelectedPlan().getScore(), 1e-6);
+        }
     }
 }
