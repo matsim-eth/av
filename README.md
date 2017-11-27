@@ -5,7 +5,9 @@
 This project is an extension of the MATSim traffic simulation framework:
 https://github.com/matsim-org/matsim
 
-Releases are available on Bintray: https://bintray.com/matsim-eth/matsim/av
+Releases are available on [bintray](https://bintray.com/matsim-eth/matsim/av)
+
+Snapshots are available on [packagecloud](https://packagecloud.io/eth-ivt/matsim/packages/java/ch.ethz.matsim/av-0.1.2-SNAPSHOT.jar)
 
 Maintenance: Sebastian Hörl
 
