@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- Make AV package compatible with `matsim:0.10.0-nov17`
 - Bugfix: Add stuck scoring (new parameter in config), which adds a penalty if an agent is still on an AV leg when the simulation time ends, before those legs were NOT scored at all
 - Bugfix: Dispatching mode fixed for MultiODHeuristic (see below)
 - Bugfix: SingleHeuristicDispatcher now performs proper load balancing, before UNDERSUPPLY was only chosen if NO vehicle
