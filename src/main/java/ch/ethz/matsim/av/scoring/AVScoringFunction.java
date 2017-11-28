@@ -24,6 +24,7 @@ public class AVScoringFunction implements SumScoringFunction.ArbitraryEventScori
     final private double marginalUtilityOfWaiting;
     final private double marginalUtilityOfTraveling;
     final private double marginalUtilityOfMoney;
+    final private double stuckUtility;
 
     final private Set<Id<AVOperator>> subscriptions = new HashSet<>();
 
@@ -36,6 +37,7 @@ public class AVScoringFunction implements SumScoringFunction.ArbitraryEventScori
         this.marginalUtilityOfWaiting = config.getMarginalUtilityOfWaitingTime() / 3600.0;
         this.marginalUtilityOfTraveling = marginalUtilityOfTraveling;
         this.marginalUtilityOfMoney = marginalUtilityOfMoney;
+        this.stuckUtility = config.getStuckUtility();
         this.config = config;
         this.person = person;
     }
@@ -122,7 +124,11 @@ public class AVScoringFunction implements SumScoringFunction.ArbitraryEventScori
     }
     
     @Override
-    public void finish() {}
+    public void finish() {
+    	if (scoringTrip != null) {
+    		score += stuckUtility;
+    	}
+    }
 
     @Override
     public double getScore() {

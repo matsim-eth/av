@@ -7,6 +7,7 @@ import java.util.Set;
 
 public class AVConfig extends ReflectiveConfigGroup {
     final static String MARGINAL_UTILITY_OF_WAITING_TIME = "marginalUtilityOfWaitingTime";
+    final static String STUCK_UTILITY = "stuckUtility";
 
     final static String AV = "av";
 
@@ -14,6 +15,7 @@ public class AVConfig extends ReflectiveConfigGroup {
     final private AVTimingParameters timingParameters = AVTimingParameters.createDefault();
 
     private double marginalUtilityOfWaitingTime = 0.0;
+    private double stuckUtility = -1000.0;
 
     public AVConfig() {
         super(AV);
@@ -41,5 +43,15 @@ public class AVConfig extends ReflectiveConfigGroup {
     @StringSetter(MARGINAL_UTILITY_OF_WAITING_TIME)
     public void setMarginalUtilityOfWaitingTime(double marginalUtilityOfWaitingTime) {
         this.marginalUtilityOfWaitingTime = marginalUtilityOfWaitingTime;
+    }
+    
+    @StringGetter(STUCK_UTILITY)
+    public double getStuckUtility() {
+        return stuckUtility;
+    }
+
+    @StringSetter(STUCK_UTILITY)
+    public void setStuckUtility(double stuckUtility) {
+        this.stuckUtility = stuckUtility;
     }
 }

@@ -74,6 +74,13 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
     }
 
     private void reoptimize(double now) {
+        HeuristicMode updatedMode = availableVehicles.size() > pendingRequests.size() ? HeuristicMode.OVERSUPPLY : HeuristicMode.UNDERSUPPLY;
+
+        if (!updatedMode.equals(mode)) {
+            mode = updatedMode;
+            eventsManager.processEvent(new ModeChangeEvent(mode, operatorId, now));
+        }
+
         while (pendingRequests.size() > 0 && availableVehicles.size() > 0) {
             AVRequest request = null;
             AVVehicle vehicle = null;
@@ -93,12 +100,6 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
             removeVehicle(vehicle);
 
             appender.schedule(request, vehicle, now);
-        }
-
-        HeuristicMode updatedMode = availableVehicles.size() > 0 ? HeuristicMode.OVERSUPPLY : HeuristicMode.UNDERSUPPLY;
-        if (!updatedMode.equals(mode)) {
-            mode = updatedMode;
-            eventsManager.processEvent(new ModeChangeEvent(mode, operatorId, now));
         }
     }
 
