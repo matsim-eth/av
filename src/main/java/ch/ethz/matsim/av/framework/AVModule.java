@@ -10,7 +10,9 @@ import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
 import ch.ethz.matsim.av.generator.AVGenerator;
 import ch.ethz.matsim.av.generator.PopulationDensityGenerator;
-import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
+import ch.ethz.matsim.av.plcpc2.DefaultParallelLeastCostPathCalculator;
+import ch.ethz.matsim.av.plcpc2.ParallelLeastCostPathCalculator;
+import ch.ethz.matsim.av.plcpc2.SerialLeastCostPathCalculator;
 import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
 import ch.ethz.matsim.av.routing.AVParallelRouterFactory;
 import ch.ethz.matsim.av.routing.AVRoute;
@@ -73,17 +75,18 @@ public class AVModule extends AbstractModule {
         configureGeneratorStrategies();
 
         bind(AVParallelRouterFactory.class);
-        addControlerListenerBinding().to(Key.get(ParallelLeastCostPathCalculator.class, Names.named(AVModule.AV_MODE)));
-        addMobsimListenerBinding().to(Key.get(ParallelLeastCostPathCalculator.class, Names.named(AVModule.AV_MODE)));
+        //addControlerListenerBinding().to(Key.get(ParallelLeastCostPathCalculator.class, Names.named(AVModule.AV_MODE)));
+        //addMobsimListenerBinding().to(Key.get(ParallelLeastCostPathCalculator.class, Names.named(AVModule.AV_MODE)));
 
         bind(Network.class).annotatedWith(Names.named(DvrpModule.DVRP_ROUTING)).to(Network.class);
         bind(Network.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(Key.get(Network.class, Names.named(DvrpModule.DVRP_ROUTING)));
 	}
 
 	@Provides @Singleton @Named(AVModule.AV_MODE)
-	private ParallelLeastCostPathCalculator provideParallelLeastCostPathCalculator(AVConfigGroup config, AVParallelRouterFactory factory) {
-        return new ParallelLeastCostPathCalculator((int) config.getParallelRouters(), factory);
-    }
+	private ParallelLeastCostPathCalculator provideParallelLeastCostPathCalculator(AVConfigGroup config, AVParallelRouterFactory factory, @Named(AVModule.AV_MODE) Network network, @Named(AVModule.AV_MODE) TravelTime travelTime) {
+        //return DefaultParallelLeastCostPathCalculator.create((int) config.getParallelRouters(), new DijkstraFactory(), network, new OnlyTimeDependentTravelDisutility(travelTime), travelTime);
+		return new SerialLeastCostPathCalculator(factory.createRouter());
+	}
 
 	private void configureDispatchmentStrategies() {
         bind(SingleFIFODispatcher.Factory.class);

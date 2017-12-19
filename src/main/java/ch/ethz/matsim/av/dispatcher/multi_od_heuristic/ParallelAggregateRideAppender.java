@@ -5,8 +5,7 @@ import ch.ethz.matsim.av.config.AVTimingParameters;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.aggregation.AggregatedRequest;
 import ch.ethz.matsim.av.passenger.AVRequest;
-import ch.ethz.matsim.av.plcpc.LeastCostPathFuture;
-import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
+import ch.ethz.matsim.av.plcpc2.ParallelLeastCostPathCalculator;
 import ch.ethz.matsim.av.schedule.*;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.contrib.dvrp.path.VrpPath;
@@ -15,12 +14,15 @@ import org.matsim.contrib.dvrp.path.VrpPaths;
 import org.matsim.contrib.dvrp.schedule.Schedule;
 import org.matsim.contrib.dvrp.schedule.Schedules;
 import org.matsim.contrib.dvrp.schedule.Task;
+import org.matsim.core.router.util.LeastCostPathCalculator.Path;
 import org.matsim.core.router.util.TravelTime;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class ParallelAggregateRideAppender implements AggregateRideAppender {
@@ -45,14 +47,10 @@ public class ParallelAggregateRideAppender implements AggregateRideAppender {
         public List<AVRequest> pickupOrder = new LinkedList<>();
         public List<AVRequest> dropoffOrder = new LinkedList<>();
 
-        public List<LeastCostPathFuture> pickupPaths = new LinkedList<>();
-        public List<LeastCostPathFuture> dropoffPaths = new LinkedList<>();
+        public List<Future<Path>> pickupPaths = new LinkedList<>();
+        public List<Future<Path>> dropoffPaths = new LinkedList<>();
 
         public double time;
-
-        public boolean isDone() {
-            return pickupPaths.stream().filter(p -> p != null && !p.isDone()).count() + dropoffPaths.stream().filter(p -> p != null && !p.isDone()).count() == 0;
-        }
     }
 
     private class OrderedRequest {
@@ -169,7 +167,7 @@ public class ParallelAggregateRideAppender implements AggregateRideAppender {
         tasks.add(appendTask);
     }
 
-    public void schedule(AppendTask appendTask) {
+    public void schedule(AppendTask appendTask, List<Path> plainPickupPaths, List<Path> plainDropoffPaths) {
         Schedule schedule = appendTask.vehicle.getSchedule();
         AVStayTask stayTask = (AVStayTask) Schedules.getLastTask(schedule);
 
@@ -193,14 +191,14 @@ public class ParallelAggregateRideAppender implements AggregateRideAppender {
         LinkedList<VrpPathWithTravelData> paths = new LinkedList<>();
         LinkedList<AVDriveTask> driveTasks = new LinkedList<>();
 
-        Iterator<LeastCostPathFuture> pickupPathIterator = appendTask.pickupPaths.iterator();
-        Iterator<LeastCostPathFuture> dropoffPathIterator = appendTask.dropoffPaths.iterator();
+        Iterator<Path> pickupPathIterator = plainPickupPaths.iterator();
+        Iterator<Path> dropoffPathIterator = plainDropoffPaths.iterator();
 
         for (AVRequest pickup : appendTask.pickupOrder) {
-            LeastCostPathFuture pathFuture = pickupPathIterator.next();
+        	Path plainPath = pickupPathIterator.next();
 
-            if (pathFuture != null) {
-                VrpPathWithTravelData path = VrpPaths.createPath(currentLink, pickup.getFromLink(), currentTime, pathFuture.get(), travelTime);
+            //if (pathFuture != null) {
+                VrpPathWithTravelData path = VrpPaths.createPath(currentLink, pickup.getFromLink(), currentTime, plainPath, travelTime);
                 paths.add(path);
 
                 AVDriveTask driveTask = new AVDriveTask(path, currentRequests);
@@ -210,7 +208,7 @@ public class ParallelAggregateRideAppender implements AggregateRideAppender {
                 currentTask = driveTask;
                 currentLink = pickup.getFromLink();
                 currentTime = path.getArrivalTime();
-            }
+            //}
 
             if (currentTask instanceof AVPickupTask) {
                 ((AVPickupTask) currentTask).addRequest(pickup);
@@ -231,10 +229,10 @@ public class ParallelAggregateRideAppender implements AggregateRideAppender {
         }
 
         for (AVRequest dropoff : appendTask.dropoffOrder) {
-            LeastCostPathFuture pathFuture = dropoffPathIterator.next();
+        	Path plainPath = dropoffPathIterator.next();
 
-            if (pathFuture != null) {
-                VrpPathWithTravelData path = VrpPaths.createPath(currentLink, dropoff.getToLink(), currentTime, pathFuture.get(), travelTime);
+            //if (pathFuture != null) {
+                VrpPathWithTravelData path = VrpPaths.createPath(currentLink, dropoff.getToLink(), currentTime, plainPath, travelTime);
                 paths.add(path);
 
                 AVDriveTask driveTask = new AVDriveTask(path, currentRequests);
@@ -244,7 +242,7 @@ public class ParallelAggregateRideAppender implements AggregateRideAppender {
                 currentTask = driveTask;
                 currentLink = dropoff.getToLink();
                 currentTime = path.getArrivalTime();
-            }
+            //}
 
             if (currentTask instanceof AVDropoffTask) {
                 ((AVDropoffTask) currentTask).addRequest(dropoff);
@@ -289,16 +287,27 @@ public class ParallelAggregateRideAppender implements AggregateRideAppender {
     public void update() {
         // TODO: This can be made more efficient if one knows which ones have just been added and which ones are still
         // to be processed. Depends mainly on if "update" is called before new tasks are submitted or after ...
-
-        Iterator<AppendTask> iterator = tasks.iterator();
-
-        while (iterator.hasNext()) {
-            AppendTask task = iterator.next();
-
-            if (task.isDone()) {
-                schedule(task);
-                iterator.remove();
-            }
-        }
+    	try {
+	        Iterator<AppendTask> iterator = tasks.iterator();
+	
+	        while (iterator.hasNext()) {
+	            AppendTask task = iterator.next();
+	            
+	            List<Path> plainPickupPaths = new LinkedList<>();
+	            List<Path> plainDropoffPaths = new LinkedList<>();
+	            
+	            for (Future<Path> future : task.pickupPaths) {
+	            	plainPickupPaths.add(future.get());
+	            }
+	            
+	            for (Future<Path> future : task.dropoffPaths) {
+	            	plainDropoffPaths.add(future.get());
+	            }
+	            
+	            schedule(task, plainPickupPaths, plainDropoffPaths);
+	        }
+    	} catch (ExecutionException | InterruptedException e) {
+    		throw new RuntimeException(e);
+    	}
     }
 }
