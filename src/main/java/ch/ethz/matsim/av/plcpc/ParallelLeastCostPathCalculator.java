@@ -1,4 +1,4 @@
-package ch.ethz.matsim.av.plcpc2;
+package ch.ethz.matsim.av.plcpc;
 
 import java.io.Closeable;
 import java.util.concurrent.Future;

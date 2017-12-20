@@ -11,7 +11,7 @@ import ch.ethz.matsim.av.dispatcher.single_heuristic.ModeChangeEvent;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.passenger.AVRequest;
-import ch.ethz.matsim.av.plcpc2.ParallelLeastCostPathCalculator;
+import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
 import ch.ethz.matsim.av.schedule.AVStayTask;
 import ch.ethz.matsim.av.schedule.AVTask;
 import com.google.inject.Inject;

@@ -1,4 +1,4 @@
-package ch.ethz.matsim.av.plcpc2;
+package ch.ethz.matsim.av.plcpc;
 
 import java.util.Collection;
 import java.util.LinkedList;
