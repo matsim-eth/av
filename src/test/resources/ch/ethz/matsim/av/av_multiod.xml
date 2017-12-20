@@ -13,10 +13,9 @@
     <operator id="op1">
         <generator strategy="PopulationDensity">
             <param name="numberOfVehicles" value="100" />
-            <param name="vehicleLifetime" value="Infinity" />
         </generator>
 
-        <dispatcher strategy="SingleHeuristic" />
+        <dispatcher strategy="MultiOD" />
 
         <pricing>
             <param name="pricePerKm" value="0.48" />

@@ -7,7 +7,6 @@ public class AVGeneratorConfig extends ReflectiveConfigGroup {
     final static String NUMBER_OF_VEHICLES = "numberOfVehicles";
     final static String PREFIX = "prefix";
     final static String PATH_TO_SHP = "pathToSHP";
-    final static String VEHICLE_LIFETIME = "vehicleLifetime";
 
     final private AVOperatorConfig parent;
 
@@ -16,7 +15,6 @@ public class AVGeneratorConfig extends ReflectiveConfigGroup {
     private long numberOfVehicles = 10;
     private String prefix = null;
     private String pathToSHP = null;
-    private double vehicleLifetime = Double.POSITIVE_INFINITY;
 
     public AVGeneratorConfig(AVOperatorConfig parent, String strategyName) {
         super(GENERATOR, true);
@@ -61,15 +59,5 @@ public class AVGeneratorConfig extends ReflectiveConfigGroup {
 
     public AVOperatorConfig getParent() {
         return parent;
-    }
-    
-    @StringSetter(VEHICLE_LIFETIME)
-    public void setVehicleLifetime(double vehicleLifetime) {
-        this.vehicleLifetime = vehicleLifetime;
-    }
-
-    @StringGetter(VEHICLE_LIFETIME)
-    public double getVehicleLifetime() {
-        return vehicleLifetime;
     }
 }

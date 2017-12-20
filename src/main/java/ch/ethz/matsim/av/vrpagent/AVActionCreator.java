@@ -50,7 +50,8 @@ public class AVActionCreator implements VrpAgentLogic.DynActionCreator {
                 case DRIVE:
     				return legCreator.createLeg(vehicle);
                 case STAY:
-                    return new VrpActivity(((AVStayTask)task).getName(), (StayTask) task);
+                    return new AVStayActivity((AVStayTask) task);
+                	//return new VrpActivity(((AVStayTask)task).getName(), (StayTask) task);
     	    	default:
     	    		throw new IllegalStateException();
     		}

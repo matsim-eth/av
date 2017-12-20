@@ -25,7 +25,6 @@ import java.util.*;
 public class PopulationDensityGenerator implements AVGenerator {
     private final long numberOfVehicles;
 	private long generatedNumberOfVehicles = 0;
-	private double vehicleLifetime;
 
     private final String prefix;
 
@@ -35,7 +34,6 @@ public class PopulationDensityGenerator implements AVGenerator {
     public PopulationDensityGenerator(AVGeneratorConfig config, Network network, Population population,
 									  ActivityFacilities facilities) {
         this.numberOfVehicles = config.getNumberOfVehicles();
-        this.vehicleLifetime = config.getVehicleLifetime();
 		final CoordAnalyzer coordAnalyzer = new CoordAnalyzer(config.getPathToSHP(), network);
 
         String prefix = config.getPrefix();
@@ -95,7 +93,7 @@ public class PopulationDensityGenerator implements AVGenerator {
         }
 
         Id<Vehicle> id = Id.create("av_" + prefix + String.valueOf(generatedNumberOfVehicles), Vehicle.class);
-        return new AVVehicle(id, selectedLink, 4.0, 0.0, vehicleLifetime);
+        return new AVVehicle(id, selectedLink, 4.0, 0.0, Double.POSITIVE_INFINITY);
     }
 
     static public class Factory implements AVGenerator.AVGeneratorFactory {

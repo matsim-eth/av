@@ -68,9 +68,9 @@ public class RunAVExampleTest {
     }
     
     @Test
-    public void testConcurrentTiming() {
+    public void testMultiOD() {
         AVConfigGroup avConfigGroup = new AVConfigGroup();
-        avConfigGroup.setConfigURL(getClass().getResource("/ch/ethz/matsim/av/av_concurrency.xml"));
+        avConfigGroup.setConfigURL(getClass().getResource("/ch/ethz/matsim/av/av_multiod.xml"));
 
         Config config = ConfigUtils.createConfig(avConfigGroup, new DvrpConfigGroup());
         Scenario scenario = TestScenarioGenerator.generateWithAVLegs(config);
@@ -85,6 +85,11 @@ public class RunAVExampleTest {
         controler.addOverridingModule(new DynQSimModule<>(AVQSimProvider.class));
         controler.addOverridingModule(new AVModule());
 
+        TestScenarioAnalyzer analyzer = new TestScenarioAnalyzer();
+        controler.addOverridingModule(analyzer);
+
         controler.run();
+
+        Assert.assertEquals(0, analyzer.numberOfDepartures - analyzer.numberOfArrivals);
     }
 }
