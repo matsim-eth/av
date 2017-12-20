@@ -187,6 +187,10 @@ public class AVModule extends AbstractModule {
                 AVVehicle vehicle = generator.next();
                 vehicle.setOpeartor(operator);
                 operatorList.add(vehicle);
+                
+                if (Double.isFinite(vehicle.getServiceEndTime())) {
+                	throw new IllegalStateException("AV vehicles must have infinite service time");
+                }
             }
 
             vehicles.put(operator.getId(), operatorList);
