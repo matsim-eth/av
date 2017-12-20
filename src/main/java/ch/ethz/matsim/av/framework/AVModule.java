@@ -79,8 +79,11 @@ public class AVModule extends AbstractModule {
 
 	@Provides @Singleton @Named(AVModule.AV_MODE)
 	private ParallelLeastCostPathCalculator provideParallelLeastCostPathCalculator(AVConfigGroup config, @Named(AVModule.AV_MODE) Network network, @Named(AVModule.AV_MODE) TravelTime travelTime) {
-        //return DefaultParallelLeastCostPathCalculator.create((int) config.getParallelRouters(), new DijkstraFactory(), network, new OnlyTimeDependentTravelDisutility(travelTime), travelTime);
-		return new SerialLeastCostPathCalculator(new DijkstraFactory().createPathCalculator(network, new OnlyTimeDependentTravelDisutility(travelTime), travelTime));
+        if (config.getParallelRouters() == 0) {
+        	return new SerialLeastCostPathCalculator(new DijkstraFactory().createPathCalculator(network, new OnlyTimeDependentTravelDisutility(travelTime), travelTime));
+        } else {
+        	return DefaultParallelLeastCostPathCalculator.create((int) config.getParallelRouters(), new DijkstraFactory(), network, new OnlyTimeDependentTravelDisutility(travelTime), travelTime);
+        }
 	}
 
 	private void configureDispatchmentStrategies() {

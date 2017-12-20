@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -21,7 +20,6 @@ import org.matsim.core.router.util.TravelTime;
 import org.matsim.vehicles.Vehicle;
 
 public class DefaultParallelLeastCostPathCalculator implements ParallelLeastCostPathCalculator {
-	//final private List<Future<Path>> futures = new LinkedList<>();
 	final private BlockingQueue<LeastCostPathCalculator> calculators = new LinkedBlockingQueue<>();
 	final private ExecutorService executor;
 
@@ -40,7 +38,7 @@ public class DefaultParallelLeastCostPathCalculator implements ParallelLeastCost
 			return path;
 		});
 
-		//futures.add(future);
+		// futures.add(future);
 		return future;
 	}
 
@@ -48,17 +46,6 @@ public class DefaultParallelLeastCostPathCalculator implements ParallelLeastCost
 	public void close() {
 		executor.shutdownNow();
 	}
-
-	/*@Override
-	public void update() {
-		try {
-			for (Future<Path> future : futures) {
-				future.get();
-			}
-		} catch (InterruptedException | ExecutionException e) {
-			throw new RuntimeException(e);
-		}
-	}*/
 
 	static public DefaultParallelLeastCostPathCalculator create(int numberOfInstances,
 			LeastCostPathCalculatorFactory factory, Network network, TravelDisutility travelDisutility,
