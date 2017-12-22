@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- **0.1.3**
 - BC: Re-implementation of LeastCostPathCalculator component for better stability, potential fix of delayed routing issues
 - AV schedules (must) have infinite end time now
 - Bugfix: Exceptions due to `COMPLETED` schedules if the lifetime of vehicles was set too low
