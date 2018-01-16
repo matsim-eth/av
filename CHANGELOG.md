@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- Add replanning interval parameter for SingleHeuristicDispatcher
 - Bugfix: Close threads of parallel least cost path calculator
 - **0.1.3**
 - BC: Re-implementation of LeastCostPathCalculator component for better stability, potential fix of delayed routing issues
