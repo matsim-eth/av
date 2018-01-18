@@ -112,6 +112,7 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
         
         if (reoptimize && now >= nextReplanningTimestamp) {
         	reoptimize(now);
+        	reoptimize = false;
         	nextReplanningTimestamp = now + replanningInterval;
         }
     }
