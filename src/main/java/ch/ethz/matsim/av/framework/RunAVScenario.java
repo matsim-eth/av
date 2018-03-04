@@ -30,7 +30,6 @@ public class RunAVScenario {
 
 		Controler controler = new Controler(scenario);
 		controler.addOverridingModule(new DvrpTravelTimeModule());
-		controler.addOverridingModule(new DynQSimModule<>(AVQSimProvider.class));
 		controler.addOverridingModule(new AVModule());
 
 		controler.run();

@@ -1,5 +1,22 @@
 package ch.ethz.matsim.av.framework;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.network.Network;
+import org.matsim.contrib.dvrp.passenger.PassengerEngine;
+import org.matsim.contrib.dvrp.vrpagent.VrpAgentSource;
+import org.matsim.contrib.dvrp.vrpagent.VrpLegs;
+import org.matsim.core.api.experimental.events.EventsManager;
+import org.matsim.core.mobsim.qsim.QSim;
+import org.matsim.vehicles.VehicleType;
+
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+
 import ch.ethz.matsim.av.config.AVConfig;
 import ch.ethz.matsim.av.config.AVDispatcherConfig;
 import ch.ethz.matsim.av.config.AVOperatorConfig;
@@ -11,39 +28,19 @@ import ch.ethz.matsim.av.dispatcher.AVDispatchmentListener;
 import ch.ethz.matsim.av.passenger.AVRequestCreator;
 import ch.ethz.matsim.av.schedule.AVOptimizer;
 import ch.ethz.matsim.av.vrpagent.AVActionCreator;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.name.Names;
-import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.network.Network;
-import org.matsim.contrib.dvrp.passenger.PassengerEngine;
-import org.matsim.contrib.dvrp.vrpagent.VrpAgentSource;
-import org.matsim.contrib.dvrp.vrpagent.VrpLegs;
-import org.matsim.core.api.experimental.events.EventsManager;
-import org.matsim.core.mobsim.qsim.QSim;
-import org.matsim.vehicles.VehicleType;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class AVQSimModule extends com.google.inject.AbstractModule {
-    final private AVConfig config;
-    final private QSim qsim;
-
-    public AVQSimModule(AVConfig config, QSim qsim) {
-        this.config = config;
-        this.qsim = qsim;
-    }
-
     @Override
     protected void configure() {
-        bind(Double.class).annotatedWith(Names.named("pickupDuration")).toInstance(config.getTimingParameters().getPickupDurationPerStop());
         bind(AVOptimizer.class);
         bind(AVActionCreator.class);
         bind(AVRequestCreator.class);
         bind(AVDispatchmentListener.class);
+    }
+    
+    @Provides @Singleton @Named("pickupDuration")
+    public Double providePickupDuration(AVConfig config) {
+    	return config.getTimingParameters().getPickupDurationPerStop();
     }
 
     @Provides @Singleton
@@ -59,12 +56,12 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
 
     @Provides
     @Singleton
-    VrpLegs.LegCreator provideLegCreator(AVOptimizer avOptimizer) {
+    VrpLegs.LegCreator provideLegCreator(AVOptimizer avOptimizer, QSim qsim) {
         return VrpLegs.createLegWithOnlineTrackerCreator(avOptimizer, qsim.getSimTimer());
     }
 
     @Provides @Singleton
-    public VrpAgentSource provideAgentSource(AVActionCreator actionCreator, AVData data, AVOptimizer optimizer, @Named(AVModule.AV_MODE) VehicleType vehicleType) {
+    public VrpAgentSource provideAgentSource(AVActionCreator actionCreator, AVData data, AVOptimizer optimizer, @Named(AVModule.AV_MODE) VehicleType vehicleType, QSim qsim) {
         return new VrpAgentSource(actionCreator, data, optimizer, qsim, vehicleType);
     }
 
