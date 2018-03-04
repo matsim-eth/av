@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- BC: Switch from the custom QSim to a proper AbstractQSimPlugin. Make sure to register the plugin when using the AV package!
+- **0.1.4**
 - Add replanning interval parameter for SingleHeuristicDispatcher
 - Bugfix: Close threads of parallel least cost path calculator
 - **0.1.3**
