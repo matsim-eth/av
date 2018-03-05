@@ -7,6 +7,7 @@
 	<artifactId>av</artifactId>
 	<version>0.1.2-abmt17-electric</version>
 
+
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -47,6 +48,18 @@
 					<skipTests>${skipTests}</skipTests>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -79,13 +92,21 @@
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
+<<<<<<< HEAD
 			<version>0.10.0-abmt17</version>
+=======
+			<version>0.10.0-nov17</version>
+>>>>>>> master
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>dvrp</artifactId>
+<<<<<<< HEAD
 			<version>0.10.0-abmt17</version>
+=======
+			<version>0.10.0-nov17</version>
+>>>>>>> master
 		</dependency>
 
 		<dependency>

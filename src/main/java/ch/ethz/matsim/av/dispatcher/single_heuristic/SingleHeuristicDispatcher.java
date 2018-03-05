@@ -33,10 +33,12 @@ import ch.ethz.matsim.av.schedule.AVTask;
 public class SingleHeuristicDispatcher implements AVDispatcher {
 	final private Logger logger = Logger.getLogger(SingleHeuristicDispatcher.class);
     private boolean reoptimize = true;
+    private double nextReplanningTimestamp = 0.0;
 
     final private SingleRideAppender appender;
     final private Id<AVOperator> operatorId;
     final private EventsManager eventsManager;
+    final private double replanningInterval;
 
     final private List<AVVehicle> availableVehicles = new LinkedList<>();
     final private List<AVRequest> pendingRequests = new LinkedList<>();
@@ -53,10 +55,11 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
 
     //private HeuristicMode mode = HeuristicMode.OVERSUPPLY;
 
-    public SingleHeuristicDispatcher(Id<AVOperator> operatorId, EventsManager eventsManager, Network network, SingleRideAppender appender) {
+    public SingleHeuristicDispatcher(Id<AVOperator> operatorId, EventsManager eventsManager, Network network, SingleRideAppender appender, double replanningInterval) {
         this.appender = appender;
         this.operatorId = operatorId;
         this.eventsManager = eventsManager;
+        this.replanningInterval = replanningInterval;
 
         double[] bounds = NetworkUtils.getBoundingBox(network.getNodes().values()); // minx, miny, maxx, maxy
 
@@ -114,7 +117,12 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
     @Override
     public void onNextTimestep(double now) {
         appender.update();
-        if (reoptimize && ((int) now % updateInterval) == 0) reoptimize(now);
+
+        if (reoptimize && now >= nextReplanningTimestamp) {
+        	reoptimize(now);
+        	reoptimize = false;
+        	nextReplanningTimestamp = now + replanningInterval;
+        }
     }
 
     private void addRequest(AVRequest request, Link link) {
@@ -186,11 +194,14 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
 
         @Override
         public AVDispatcher createDispatcher(AVDispatcherConfig config) {
+        	double replanningInterval = Double.parseDouble(config.getParams().getOrDefault("replanningInterval", "0.0"));
+        	
             return new SingleHeuristicDispatcher(
                     config.getParent().getId(),
                     eventsManager,
                     network,
-                    new SingleRideAppender(config, router, travelTime)
+                    new SingleRideAppender(config, router, travelTime),
+                    replanningInterval
             );
         }
     }

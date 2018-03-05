@@ -25,8 +25,11 @@ public class AVRequest implements PassengerRequest {
 
     private AVPickupTask pickupTask;
     private AVDropoffTask dropoffTask;
+    
+    final private Request delegate;
 
-    public AVRequest(Id<Request> requestId, MobsimPassengerAgent passengerAgent, Link pickupLink, Link dropoffLink, double pickupTime, double submissionTime, AVRoute route, AVOperator operator, AVDispatcher dispatcher) {
+    public AVRequest(Id<Request> id, MobsimPassengerAgent passengerAgent, Link pickupLink, Link dropoffLink, double pickupTime, double submissionTime, AVRoute route, AVOperator operator, AVDispatcher dispatcher) {
+        this.delegate = new RequestImpl(id, 1.0, pickupTime, pickupTime, submissionTime);
         this.passengerAgent = passengerAgent;
         this.pickupLink = pickupLink;
         this.dropoffLink = dropoffLink;
@@ -83,31 +86,31 @@ public class AVRequest implements PassengerRequest {
 
 	@Override
 	public double getQuantity() {
-		return 1.0;
+		return delegate.getQuantity();
 	}
 
 	@Override
 	public double getEarliestStartTime() {
-		return pickupTime;
+		return delegate.getEarliestStartTime();
 	}
 
 	@Override
 	public double getLatestStartTime() {
-		return pickupTime;
+		return delegate.getLatestStartTime();
 	}
 
 	@Override
 	public double getSubmissionTime() {
-		return submissionTime;
+		return delegate.getSubmissionTime();
 	}
 
 	@Override
 	public boolean isRejected() {
-		return false;
+		return delegate.isRejected();
 	}
 
 	@Override
 	public Id<Request> getId() {
-		return requestId;
+		return delegate.getId();
 	}
 }

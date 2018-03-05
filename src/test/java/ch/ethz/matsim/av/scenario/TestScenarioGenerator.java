@@ -40,7 +40,7 @@ public class TestScenarioGenerator {
         config.controler().setWriteSnapshotsInterval(-1);
         config.controler().setCreateGraphs(false);
         config.controler().setDumpDataAtEnd(false);
-        config.qsim().setEndTime(duration + 3600.0 * 10.0);
+        config.qsim().setEndTime(duration * 2);
         config.planCalcScore().getOrCreateScoringParameters(null).getOrCreateActivityParams("activity").setScoringThisActivityAtAll(false);
         config.parallelEventHandling().setOneThreadPerHandler(true);
         config.global().setRandomSeed(0);
