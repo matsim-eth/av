@@ -5,8 +5,7 @@
 
 	<groupId>ch.ethz.matsim</groupId>
 	<artifactId>av</artifactId>
-	<version>0.1.2-abmt17-electric</version>
-
+	<version>0.1.4-electric</version>
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
@@ -92,21 +91,13 @@
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-<<<<<<< HEAD
-			<version>0.10.0-abmt17</version>
-=======
 			<version>0.10.0-nov17</version>
->>>>>>> master
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>dvrp</artifactId>
-<<<<<<< HEAD
-			<version>0.10.0-abmt17</version>
-=======
 			<version>0.10.0-nov17</version>
->>>>>>> master
 		</dependency>
 
 		<dependency>

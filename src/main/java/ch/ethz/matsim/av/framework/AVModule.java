@@ -1,6 +1,8 @@
 package ch.ethz.matsim.av.framework;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,9 +14,17 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.dvrp.run.DvrpModule;
 import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
+import org.matsim.contrib.dynagent.run.DynActivityEnginePlugin;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.controler.AbstractModule;
+import org.matsim.core.mobsim.qsim.AbstractQSimPlugin;
+import org.matsim.core.mobsim.qsim.PopulationPlugin;
+import org.matsim.core.mobsim.qsim.TeleportationPlugin;
+import org.matsim.core.mobsim.qsim.changeeventsengine.NetworkChangeEventsPlugin;
+import org.matsim.core.mobsim.qsim.messagequeueengine.MessageQueuePlugin;
+import org.matsim.core.mobsim.qsim.pt.TransitEnginePlugin;
+import org.matsim.core.mobsim.qsim.qnetsimengine.QNetsimEnginePlugin;
 import org.matsim.core.population.routes.RouteFactories;
 
 import org.matsim.core.router.DijkstraFactory;
@@ -239,5 +249,29 @@ public class AVModule extends AbstractModule {
 		}
 
 		return vehicles;
+	}
+
+	@Provides
+	@Singleton
+	public Collection<AbstractQSimPlugin> provideQSimPlugins(Config config) {
+		final Collection<AbstractQSimPlugin> plugins = new ArrayList<>();
+
+		plugins.add(new MessageQueuePlugin(config));
+		plugins.add(new DynActivityEnginePlugin(config));
+		plugins.add(new QNetsimEnginePlugin(config));
+
+		if (config.network().isTimeVariantNetwork()) {
+			plugins.add(new NetworkChangeEventsPlugin(config));
+		}
+
+		if (config.transit().isUseTransit()) {
+			plugins.add(new TransitEnginePlugin(config));
+		}
+
+		plugins.add(new TeleportationPlugin(config));
+		plugins.add(new PopulationPlugin(config));
+		plugins.add(new AVQSimPlugin(config));
+
+		return plugins;
 	}
 }
