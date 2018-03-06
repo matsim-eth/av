@@ -1,5 +1,8 @@
 # CHANGELOG
 
+- **0.1.5**
+- Release 0.1.4
+- Added test jars to deployment
 - BC: Switch from the custom QSim to a proper AbstractQSimPlugin. Make sure to register the plugin when using the AV package!
 - **0.1.4**
 - Add replanning interval parameter for SingleHeuristicDispatcher
