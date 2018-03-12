@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- Bugfix SingleHeuristicDispatcher: Reoptimization was only triggered if vehicle/request was added in previous period
 - **0.1.5**
 - Release 0.1.4
 - Added test jars to deployment
