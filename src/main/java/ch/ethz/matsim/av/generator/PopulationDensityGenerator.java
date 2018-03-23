@@ -23,6 +23,7 @@ import org.opengis.feature.simple.SimpleFeature;
 import java.util.*;
 
 public class PopulationDensityGenerator implements AVGenerator {
+    private final Random random;
     private final long numberOfVehicles;
 	private long generatedNumberOfVehicles = 0;
 
@@ -32,7 +33,8 @@ public class PopulationDensityGenerator implements AVGenerator {
     private Map<Link, Double> cumulativeDensity = new HashMap<>();
 
     public PopulationDensityGenerator(AVGeneratorConfig config, Network network, Population population,
-									  ActivityFacilities facilities) {
+									  ActivityFacilities facilities, int randomSeed) {
+        this.random = new Random(randomSeed);
         this.numberOfVehicles = config.getNumberOfVehicles();
 		final CoordAnalyzer coordAnalyzer = new CoordAnalyzer(config.getPathToSHP(), network);
 
@@ -82,7 +84,7 @@ public class PopulationDensityGenerator implements AVGenerator {
         generatedNumberOfVehicles++;
 
         // Multinomial selection
-        double r = MatsimRandom.getRandom().nextDouble();
+        double r = random.nextDouble();
         Link selectedLink = linkList.get(0);
 
         for (Link link : linkList) {
@@ -103,7 +105,8 @@ public class PopulationDensityGenerator implements AVGenerator {
 
         @Override
         public AVGenerator createGenerator(AVGeneratorConfig generatorConfig) {
-            return new PopulationDensityGenerator(generatorConfig, network, population, facilities);
+            int randomSeed = Integer.parseInt(generatorConfig.getParams().getOrDefault("randomSeed", "1234"));
+            return new PopulationDensityGenerator(generatorConfig, network, population, facilities, randomSeed);
         }
     }
 
