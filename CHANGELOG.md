@@ -1,6 +1,6 @@
 # CHANGELOG
 
-- Make AVTransit events useable by EventsReader
+- Bugfix PopulationDensityGenerator: Use proper random number generator
 - Bugfix SingleHeuristicDispatcher: Reoptimization was only triggered if vehicle/request was added in previous period
 - **0.1.5**
 - Release 0.1.4
