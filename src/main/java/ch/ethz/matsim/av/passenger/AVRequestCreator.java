@@ -33,6 +33,10 @@ public class AVRequestCreator implements PassengerRequestCreator {
         if (!(passenger instanceof PlanAgent)) {
             throw new RuntimeException("Need PlanAgent in order to figure out the operator");
         }
+        
+        if (pickupLink == null || dropoffLink == null) {
+            throw new IllegalStateException("Pickup or dropoff link is null: " + pickupLink + " / " + dropoffLink);
+        }
 
         PlanAgent agent = (PlanAgent) passenger;
         Leg leg = (Leg) agent.getCurrentPlanElement();
