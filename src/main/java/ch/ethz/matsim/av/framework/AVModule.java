@@ -11,6 +11,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.contrib.dvrp.router.DvrpRoutingNetworkProvider;
 import org.matsim.contrib.dvrp.run.DvrpModule;
 import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
 import org.matsim.contrib.dynagent.run.DynActivityEnginePlugin;
@@ -89,9 +90,9 @@ public class AVModule extends AbstractModule {
 		configureDispatchmentStrategies();
 		configureGeneratorStrategies();
 
-		bind(Network.class).annotatedWith(Names.named(DvrpModule.DVRP_ROUTING)).to(Network.class);
+		bind(Network.class).annotatedWith(Names.named(DvrpRoutingNetworkProvider.DVRP_ROUTING)).to(Network.class);
 		bind(Network.class).annotatedWith(Names.named(AVModule.AV_MODE))
-				.to(Key.get(Network.class, Names.named(DvrpModule.DVRP_ROUTING)));
+				.to(Key.get(Network.class, Names.named(DvrpRoutingNetworkProvider.DVRP_ROUTING)));
 
 		addControlerListenerBinding()
 				.to(Key.get(ParallelLeastCostPathCalculatorShutdownListener.class, Names.named(AVModule.AV_MODE)));

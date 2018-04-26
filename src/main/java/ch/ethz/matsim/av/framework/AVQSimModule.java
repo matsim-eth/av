@@ -8,7 +8,6 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.dvrp.passenger.PassengerEngine;
 import org.matsim.contrib.dvrp.vrpagent.VrpAgentSource;
-import org.matsim.contrib.dvrp.vrpagent.VrpLegs;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.vehicles.VehicleType;
@@ -28,6 +27,7 @@ import ch.ethz.matsim.av.dispatcher.AVDispatchmentListener;
 import ch.ethz.matsim.av.passenger.AVRequestCreator;
 import ch.ethz.matsim.av.schedule.AVOptimizer;
 import ch.ethz.matsim.av.vrpagent.AVActionCreator;
+import ch.ethz.matsim.av.vrpagent.AVLegFactory;
 
 public class AVQSimModule extends com.google.inject.AbstractModule {
     @Override
@@ -56,8 +56,8 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
 
     @Provides
     @Singleton
-    VrpLegs.LegCreator provideLegCreator(AVOptimizer avOptimizer, QSim qsim) {
-        return VrpLegs.createLegWithOnlineTrackerCreator(avOptimizer, qsim.getSimTimer());
+    AVLegFactory provideLegFactory(AVOptimizer avOptimizer, QSim qsim) {
+        return new AVLegFactory(qsim.getSimTimer(), avOptimizer);
     }
 
     @Provides @Singleton
