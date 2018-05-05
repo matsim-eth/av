@@ -11,16 +11,17 @@ public class AggregatedRequest {
     final private AVRequest master;
     final Collection<AVRequest> slaves = new LinkedList<>();
 
-    final long occupancyThreshold = 4;
+    final long occupancyThreshold;
     final double distanceThreshold;
 
     private AVVehicle vehicle = null;
 
     final private TravelTimeEstimator estimator;
 
-    public AggregatedRequest(AVRequest master, TravelTimeEstimator estimator) {
+    public AggregatedRequest(AVRequest master, TravelTimeEstimator estimator, long occupancyThreshold) {
         this.master = master;
         this.estimator = estimator;
+        this.occupancyThreshold = occupancyThreshold;
 
         distanceThreshold = estimator.getTravelTimeThreshold();
     }

@@ -1,5 +1,8 @@
 # CHANGELOG
 
+- Make number of seats configurable (and use in MultiODHeuristic)
+- Default reoptimization interval for MultiODHeuristic and SingleHeuristicDispatcher set to 10s
+- Bugifx MultiODHeuristic: Reoptimization was only triggered if vehicle/request was added in previous period
 - Throw exception when a request with unknown links is created
 - Bugfix PopulationDensityGenerator: Use proper random number generator
 - Bugfix SingleHeuristicDispatcher: Reoptimization was only triggered if vehicle/request was added in previous period
