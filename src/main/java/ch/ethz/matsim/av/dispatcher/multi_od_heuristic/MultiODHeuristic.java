@@ -33,9 +33,12 @@ import java.util.Map;
 
 public class MultiODHeuristic implements AVDispatcher {
     private boolean reoptimize = true;
+    private double nextReplanningTimestamp = 0.0;
 
     final private Id<AVOperator> operatorId;
     final private EventsManager eventsManager;
+    final private double replanningInterval;
+    final private long numberOfSeats;
 
     final private List<AVVehicle> availableVehicles = new LinkedList<>();
     final private List<AggregatedRequest> pendingRequests = new LinkedList<>();
@@ -54,25 +57,20 @@ public class MultiODHeuristic implements AVDispatcher {
     final private AggregateRideAppender appender;
     final private FactorTravelTimeEstimator estimator;
 
-    final private Map<Long, Long> shareHistogram = new HashMap<>();
-
     private double now;
 
-    public MultiODHeuristic(Id<AVOperator> operatorId, EventsManager eventsManager, Network network, AggregateRideAppender appender, FactorTravelTimeEstimator estimator) {
+    public MultiODHeuristic(Id<AVOperator> operatorId, EventsManager eventsManager, Network network, AggregateRideAppender appender, FactorTravelTimeEstimator estimator, double replanningInterval, long numberOfSeats) {
         this.operatorId = operatorId;
         this.eventsManager = eventsManager;
         this.appender = appender;
         this.estimator = estimator;
+        this.replanningInterval = replanningInterval;
+        this.numberOfSeats = numberOfSeats;
 
         double[] bounds = NetworkUtils.getBoundingBox(network.getNodes().values()); // minx, miny, maxx, maxy
 
         availableVehiclesTree = new QuadTree<>(bounds[0], bounds[1], bounds[2], bounds[3]);
         pendingRequestsTree = new QuadTree<>(bounds[0], bounds[1], bounds[2], bounds[3]);
-
-        shareHistogram.put(new Long(1), new Long(0));
-        shareHistogram.put(new Long(2), new Long(0));
-        shareHistogram.put(new Long(3), new Long(0));
-        shareHistogram.put(new Long(4), new Long(0));
     }
 
     @Override
@@ -121,17 +119,22 @@ public class MultiODHeuristic implements AVDispatcher {
 
             assignableRequests.remove(request); // TODO: IMPORTANT; otherwise REscheduling is necessary!!!
             appender.schedule(request, vehicle, now);
-
-            long count = request.getSlaveRequests().size() + 1;
-            shareHistogram.put(count, shareHistogram.get(count) + 1);
         }
     }
 
     @Override
     public void onNextTimestep(double now) {
         appender.update();
-        this.now = now;
-        if (reoptimize) reoptimize(now);
+        
+		if (now >= nextReplanningTimestamp) {
+			reoptimize = true;
+			nextReplanningTimestamp = now + replanningInterval;
+		}
+
+		if (reoptimize) {
+			reoptimize(now);
+			reoptimize = false;
+		}
     }
 
     private void addRequest(AVRequest request, Link link) {
@@ -141,12 +144,13 @@ public class MultiODHeuristic implements AVDispatcher {
             aggregate.addSlaveRequest(request);
             eventsManager.processEvent(new AggregationEvent(aggregate.getMasterRequest(), request, now));
         } else {
-            aggregate = new AggregatedRequest(request, estimator);
+            aggregate = new AggregatedRequest(request, estimator, numberOfSeats);
 
             pendingRequests.add(aggregate);
             assignableRequests.add(aggregate);
             requestLinks.put(aggregate, link);
             pendingRequestsTree.put(link.getCoord().getX(), link.getCoord().getY(), aggregate);
+            reoptimize = true;
         }
     }
 
@@ -227,8 +231,10 @@ public class MultiODHeuristic implements AVDispatcher {
 
         @Override
         public AVDispatcher createDispatcher(AVDispatcherConfig config) {
+			double replanningInterval = Double.parseDouble(config.getParams().getOrDefault("replanningInterval", "10.0"));
             double threshold = Double.parseDouble(config.getParams().getOrDefault("maximumTimeRadius", "600.0"));
             boolean useParallelImplementation = Boolean.parseBoolean(config.getParams().getOrDefault("useParallelImplementation", "true"));
+            long numberOfSeats = Long.parseLong(config.getParent().getGeneratorConfig().getParams().getOrDefault("numberOfSeats", "4"));
 
             FactorTravelTimeEstimator estimator = new FactorTravelTimeEstimator(threshold);
 
@@ -239,7 +245,7 @@ public class MultiODHeuristic implements AVDispatcher {
                     useParallelImplementation ?
                             new ParallelAggregateRideAppender(config, parallelRouter, travelTime, estimator) :
                             new SerialAggregateRideAppender(config, router, travelTime, estimator),
-                    estimator
+                    estimator, replanningInterval, numberOfSeats
             );
         }
     }

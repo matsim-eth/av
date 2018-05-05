@@ -202,7 +202,7 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
 		@Override
 		public AVDispatcher createDispatcher(AVDispatcherConfig config) {
 			double replanningInterval = Double
-					.parseDouble(config.getParams().getOrDefault("replanningInterval", "0.0"));
+					.parseDouble(config.getParams().getOrDefault("replanningInterval", "10.0"));
 
 			return new SingleHeuristicDispatcher(config.getParent().getId(), eventsManager, network,
 					new SingleRideAppender(config, router, travelTime), replanningInterval);

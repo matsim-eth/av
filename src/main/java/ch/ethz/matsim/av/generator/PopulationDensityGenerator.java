@@ -25,6 +25,7 @@ import java.util.*;
 public class PopulationDensityGenerator implements AVGenerator {
     private final Random random;
     private final long numberOfVehicles;
+    private final long numberOfSeats;
 	private long generatedNumberOfVehicles = 0;
 
     private final String prefix;
@@ -33,9 +34,10 @@ public class PopulationDensityGenerator implements AVGenerator {
     private Map<Link, Double> cumulativeDensity = new HashMap<>();
 
     public PopulationDensityGenerator(AVGeneratorConfig config, Network network, Population population,
-									  ActivityFacilities facilities, int randomSeed) {
+									  ActivityFacilities facilities, int randomSeed, long numberOfSeats) {
         this.random = new Random(randomSeed);
         this.numberOfVehicles = config.getNumberOfVehicles();
+        this.numberOfSeats = numberOfSeats;
 		final CoordAnalyzer coordAnalyzer = new CoordAnalyzer(config.getPathToSHP(), network);
 
         String prefix = config.getPrefix();
@@ -95,7 +97,7 @@ public class PopulationDensityGenerator implements AVGenerator {
         }
 
         Id<Vehicle> id = Id.create("av_" + prefix + String.valueOf(generatedNumberOfVehicles), Vehicle.class);
-        return new AVVehicle(id, selectedLink, 4.0, 0.0, Double.POSITIVE_INFINITY);
+        return new AVVehicle(id, selectedLink, numberOfSeats, 0.0, Double.POSITIVE_INFINITY);
     }
 
     static public class Factory implements AVGenerator.AVGeneratorFactory {
@@ -106,7 +108,8 @@ public class PopulationDensityGenerator implements AVGenerator {
         @Override
         public AVGenerator createGenerator(AVGeneratorConfig generatorConfig) {
             int randomSeed = Integer.parseInt(generatorConfig.getParams().getOrDefault("randomSeed", "1234"));
-            return new PopulationDensityGenerator(generatorConfig, network, population, facilities, randomSeed);
+            long numberOfSeats = Long.parseLong(generatorConfig.getParams().getOrDefault("numberOfSeats", "4"));
+            return new PopulationDensityGenerator(generatorConfig, network, population, facilities, randomSeed, numberOfSeats);
         }
     }
 
