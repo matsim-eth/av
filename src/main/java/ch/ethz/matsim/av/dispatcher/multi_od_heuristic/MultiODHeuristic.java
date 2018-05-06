@@ -127,6 +127,7 @@ public class MultiODHeuristic implements AVDispatcher {
     	for (Map.Entry<AVRequest, AVRequest> pair : aggregationMap.entrySet()) {
             eventsManager.processEvent(new AggregationEvent(pair.getValue(), pair.getKey(), now));
     	}
+    	aggregationMap.clear();
     	
         appender.update();
         
