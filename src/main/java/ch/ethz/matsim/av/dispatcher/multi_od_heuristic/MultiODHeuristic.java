@@ -157,7 +157,7 @@ public class MultiODHeuristic implements AVDispatcher {
             assignableRequests.add(aggregate);
             requestLinks.put(aggregate, link);
             pendingRequestsTree.put(link.getCoord().getX(), link.getCoord().getY(), aggregate);
-            reoptimize = true;
+            //reoptimize = true;
         }
     }
 
@@ -206,7 +206,7 @@ public class MultiODHeuristic implements AVDispatcher {
         availableVehicles.add(vehicle);
         availableVehiclesTree.put(link.getCoord().getX(), link.getCoord().getY(), vehicle);
         vehicleLinks.put(vehicle, link);
-        reoptimize = true;
+        //reoptimize = true;
     }
 
     private void removeVehicle(AVVehicle vehicle) {

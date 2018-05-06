@@ -129,7 +129,7 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
 		pendingRequests.add(request);
 		pendingRequestsTree.put(link.getCoord().getX(), link.getCoord().getY(), request);
 		requestLinks.put(request, link);
-		reoptimize = true;
+		//reoptimize = true;
 	}
 
 	private AVRequest findRequest() {
@@ -160,7 +160,7 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
 		availableVehicles.add(vehicle);
 		availableVehiclesTree.put(link.getCoord().getX(), link.getCoord().getY(), vehicle);
 		vehicleLinks.put(vehicle, link);
-		reoptimize = true;
+		//reoptimize = true;
 	}
 
 	private void removeVehicle(AVVehicle vehicle) {
