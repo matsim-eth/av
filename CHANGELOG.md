@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- Send aggregation events in MultiOD at correct time
 - Make number of seats configurable (and use in MultiODHeuristic)
 - Default reoptimization interval for MultiODHeuristic and SingleHeuristicDispatcher set to 10s
 - Bugifx MultiODHeuristic: Reoptimization was only triggered if vehicle/request was added in previous period
