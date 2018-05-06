@@ -97,7 +97,7 @@ public class PopulationDensityGenerator implements AVGenerator {
         }
 
         Id<Vehicle> id = Id.create("av_" + prefix + String.valueOf(generatedNumberOfVehicles), Vehicle.class);
-        return new AVVehicle(id, selectedLink, numberOfSeats, 0.0, Double.POSITIVE_INFINITY);
+        return new AVVehicle(id, selectedLink, numberOfSeats + 1, 0.0, Double.POSITIVE_INFINITY);
     }
 
     static public class Factory implements AVGenerator.AVGeneratorFactory {
