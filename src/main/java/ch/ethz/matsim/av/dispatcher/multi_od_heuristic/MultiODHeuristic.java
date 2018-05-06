@@ -124,6 +124,10 @@ public class MultiODHeuristic implements AVDispatcher {
 
     @Override
     public void onNextTimestep(double now) {
+    	for (Map.Entry<AVRequest, AVRequest> pair : aggregationMap.entrySet()) {
+            eventsManager.processEvent(new AggregationEvent(pair.getValue(), pair.getKey(), now));
+    	}
+    	
         appender.update();
         
 		if (now >= nextReplanningTimestamp) {
@@ -136,13 +140,15 @@ public class MultiODHeuristic implements AVDispatcher {
 			reoptimize = false;
 		}
     }
+    
+    final private Map<AVRequest, AVRequest> aggregationMap = new HashMap<>();
 
     private void addRequest(AVRequest request, Link link) {
         AggregatedRequest aggregate = findAggregateRequest(request);
 
         if (aggregate != null) {
             aggregate.addSlaveRequest(request);
-            eventsManager.processEvent(new AggregationEvent(aggregate.getMasterRequest(), request, now));
+            aggregationMap.put(request, aggregate.getMasterRequest());
         } else {
             aggregate = new AggregatedRequest(request, estimator, numberOfSeats);
 
