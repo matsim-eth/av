@@ -1,6 +1,8 @@
 # CHANGELOG
 
-### 0.1.6 (SNAPSHOT
+### 0.1.6 (SNAPSHOT)
+
+- Add router customization
 
 ### 0.1.5
 
