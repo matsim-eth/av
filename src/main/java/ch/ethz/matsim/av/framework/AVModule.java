@@ -58,6 +58,7 @@ import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
 import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculatorShutdownListener;
 import ch.ethz.matsim.av.plcpc.SerialLeastCostPathCalculator;
 import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
+import ch.ethz.matsim.av.router.DefaultAVRouter;
 import ch.ethz.matsim.av.routing.AVRoute;
 import ch.ethz.matsim.av.routing.AVRouteFactory;
 import ch.ethz.matsim.av.routing.AVRoutingModule;
@@ -95,6 +96,8 @@ public class AVModule extends AbstractModule {
 
 		addControlerListenerBinding()
 				.to(Key.get(ParallelLeastCostPathCalculatorShutdownListener.class, Names.named(AVModule.AV_MODE)));
+		
+		AVUtils.registerRouterFactory(binder(), "DefaultAVRouter", DefaultAVRouter.Factory.class);
 	}
 
 	@Provides
