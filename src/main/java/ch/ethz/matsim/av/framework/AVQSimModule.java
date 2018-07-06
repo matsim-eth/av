@@ -69,24 +69,18 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
 	@Provides
 	@Singleton
 	Map<Id<AVOperator>, AVDispatcher> provideDispatchers(Map<String, AVDispatcher.AVDispatcherFactory> factories,
-			Map<String, AVRouter.Factory> routerFactories, AVConfig config, Map<Id<AVOperator>, List<AVVehicle>> vehicles) {
+			Map<Id<AVOperator>, AVRouter> routers, AVConfig config, Map<Id<AVOperator>, List<AVVehicle>> vehicles) {
 		Map<Id<AVOperator>, AVDispatcher> dispatchers = new HashMap<>();
 
 		for (AVOperatorConfig oc : config.getOperatorConfigs()) {
 			AVDispatcherConfig dc = oc.getDispatcherConfig();
 			String strategy = dc.getStrategyName();
-			String routerName = oc.getRouterName();
 
 			if (!factories.containsKey(strategy)) {
 				throw new IllegalArgumentException("Dispatcher strategy '" + strategy + "' is not registered.");
 			}
-			
-			if (!routerFactories.containsKey(routerName)) {
-				throw new IllegalArgumentException("Router '" + routerName + "' is not registered.");
-			}
 
-			AVRouter.Factory routerFactory = routerFactories.get(routerName);
-			AVRouter router = routerFactory.createRouter();
+			AVRouter router = routers.get(oc.getId());
 
 			AVDispatcher.AVDispatcherFactory factory = factories.get(strategy);
 			AVDispatcher dispatcher = factory.createDispatcher(dc, router);
