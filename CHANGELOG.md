@@ -1,6 +1,8 @@
 # CHANGELOG
 
-### 0.1.5 (SNAPSHOT)
+### 0.1.6 (SNAPSHOT
+
+### 0.1.5
 
 - Send aggregation events in MultiOD at correct time
 - Make number of seats configurable (and use in MultiODHeuristic)
