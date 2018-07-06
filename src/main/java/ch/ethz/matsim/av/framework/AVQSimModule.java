@@ -26,68 +26,73 @@ import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.dispatcher.AVDispatchmentListener;
 import ch.ethz.matsim.av.passenger.AVRequestCreator;
+import ch.ethz.matsim.av.router.AVRouter;
 import ch.ethz.matsim.av.schedule.AVOptimizer;
 import ch.ethz.matsim.av.vrpagent.AVActionCreator;
 
 public class AVQSimModule extends com.google.inject.AbstractModule {
-    @Override
-    protected void configure() {
-        bind(AVOptimizer.class);
-        bind(AVActionCreator.class);
-        bind(AVRequestCreator.class);
-        bind(AVDispatchmentListener.class);
-    }
-    
-    @Provides @Singleton @Named("pickupDuration")
-    public Double providePickupDuration(AVConfig config) {
-    	return config.getTimingParameters().getPickupDurationPerStop();
-    }
+	@Override
+	protected void configure() {
+		bind(AVOptimizer.class);
+		bind(AVActionCreator.class);
+		bind(AVRequestCreator.class);
+		bind(AVDispatchmentListener.class);
+	}
 
-    @Provides @Singleton
-    public PassengerEngine providePassengerEngine(EventsManager events, AVRequestCreator requestCreator, AVOptimizer optimizer, @Named(AVModule.AV_MODE) Network network) {
-        return new PassengerEngine(
-                AVModule.AV_MODE,
-                events,
-                requestCreator,
-                optimizer,
-                network
-        );
-    }
+	@Provides
+	@Singleton
+	@Named("pickupDuration")
+	public Double providePickupDuration(AVConfig config) {
+		return config.getTimingParameters().getPickupDurationPerStop();
+	}
 
-    @Provides
-    @Singleton
-    VrpLegs.LegCreator provideLegCreator(AVOptimizer avOptimizer, QSim qsim) {
-        return VrpLegs.createLegWithOnlineTrackerCreator(avOptimizer, qsim.getSimTimer());
-    }
+	@Provides
+	@Singleton
+	public PassengerEngine providePassengerEngine(EventsManager events, AVRequestCreator requestCreator,
+			AVOptimizer optimizer, @Named(AVModule.AV_MODE) Network network) {
+		return new PassengerEngine(AVModule.AV_MODE, events, requestCreator, optimizer, network);
+	}
 
-    @Provides @Singleton
-    public VrpAgentSource provideAgentSource(AVActionCreator actionCreator, AVData data, AVOptimizer optimizer, @Named(AVModule.AV_MODE) VehicleType vehicleType, QSim qsim) {
-        return new VrpAgentSource(actionCreator, data, optimizer, qsim, vehicleType);
-    }
+	@Provides
+	@Singleton
+	VrpLegs.LegCreator provideLegCreator(AVOptimizer avOptimizer, QSim qsim) {
+		return VrpLegs.createLegWithOnlineTrackerCreator(avOptimizer, qsim.getSimTimer());
+	}
 
-    @Provides @Singleton
-    Map<Id<AVOperator>, AVDispatcher> provideDispatchers(Map<String, AVDispatcher.AVDispatcherFactory> factories, AVConfig config, Map<Id<AVOperator>, List<AVVehicle>> vehicles) {
-        Map<Id<AVOperator>, AVDispatcher> dispatchers = new HashMap<>();
+	@Provides
+	@Singleton
+	public VrpAgentSource provideAgentSource(AVActionCreator actionCreator, AVData data, AVOptimizer optimizer,
+			@Named(AVModule.AV_MODE) VehicleType vehicleType, QSim qsim) {
+		return new VrpAgentSource(actionCreator, data, optimizer, qsim, vehicleType);
+	}
 
-        for (AVOperatorConfig oc : config.getOperatorConfigs()) {
-            AVDispatcherConfig dc = oc.getDispatcherConfig();
-            String strategy = dc.getStrategyName();
+	@Provides
+	@Singleton
+	Map<Id<AVOperator>, AVDispatcher> provideDispatchers(Map<String, AVDispatcher.AVDispatcherFactory> factories,
+			Map<Id<AVOperator>, AVRouter> routers, AVConfig config, Map<Id<AVOperator>, List<AVVehicle>> vehicles) {
+		Map<Id<AVOperator>, AVDispatcher> dispatchers = new HashMap<>();
 
-            if (!factories.containsKey(strategy)) {
-                throw new IllegalArgumentException("Dispatcher strategy '" + strategy + "' is not registered.");
-            }
+		for (AVOperatorConfig oc : config.getOperatorConfigs()) {
+			AVDispatcherConfig dc = oc.getDispatcherConfig();
+			String strategy = dc.getStrategyName();
 
-            AVDispatcher.AVDispatcherFactory factory = factories.get(strategy);
-            AVDispatcher dispatcher = factory.createDispatcher(dc);
+			if (!factories.containsKey(strategy)) {
+				throw new IllegalArgumentException("Dispatcher strategy '" + strategy + "' is not registered.");
+			}
 
-            for (AVVehicle vehicle : vehicles.get(oc.getId())) {
-                dispatcher.addVehicle(vehicle);
-                vehicle.setDispatcher(dispatcher);
-            }
+			AVRouter router = routers.get(oc.getId());
 
-            dispatchers.put(oc.getId(), dispatcher);
-        }
+			AVDispatcher.AVDispatcherFactory factory = factories.get(strategy);
+			AVDispatcher dispatcher = factory.createDispatcher(dc, router);
 
-        return dispatchers;
-    }
+			for (AVVehicle vehicle : vehicles.get(oc.getId())) {
+				dispatcher.addVehicle(vehicle);
+				vehicle.setDispatcher(dispatcher);
+			}
+
+			dispatchers.put(oc.getId(), dispatcher);
+		}
+
+		return dispatchers;
+	}
 }

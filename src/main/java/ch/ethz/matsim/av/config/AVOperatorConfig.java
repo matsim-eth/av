@@ -14,6 +14,7 @@ public class AVOperatorConfig extends ReflectiveConfigGroup {
     private AVPriceStructureConfig priceStructureConfig = null;
     private AVDispatcherConfig dispatcherConfig = null;
     private AVGeneratorConfig generatorConfig = null;
+    private String routerName = "DefaultAVRouter";
 
     public AVOperatorConfig(String id, AVConfig parentConfig) {
         super(OPERATOR);
@@ -63,5 +64,15 @@ public class AVOperatorConfig extends ReflectiveConfigGroup {
     public AVPriceStructureConfig createPriceStructureConfig() {
         priceStructureConfig = new AVPriceStructureConfig();
         return priceStructureConfig;
+    }
+    
+    @StringGetter("routerName")
+    public String getRouterName() {
+    	return routerName;
+    }
+    
+    @StringSetter("routerName")
+    public void setRouterName(String routerName) {
+    	this.routerName = routerName;
     }
 }

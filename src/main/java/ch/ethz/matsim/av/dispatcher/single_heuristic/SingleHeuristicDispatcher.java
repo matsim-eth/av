@@ -26,6 +26,7 @@ import ch.ethz.matsim.av.dispatcher.utils.SingleRideAppender;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.passenger.AVRequest;
 import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
+import ch.ethz.matsim.av.router.AVRouter;
 import ch.ethz.matsim.av.schedule.AVStayTask;
 import ch.ethz.matsim.av.schedule.AVTask;
 
@@ -195,12 +196,8 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
 		@Named(AVModule.AV_MODE)
 		private TravelTime travelTime;
 
-		@Inject
-		@Named(AVModule.AV_MODE)
-		private ParallelLeastCostPathCalculator router;
-
 		@Override
-		public AVDispatcher createDispatcher(AVDispatcherConfig config) {
+		public AVDispatcher createDispatcher(AVDispatcherConfig config, AVRouter router) {
 			double replanningInterval = Double
 					.parseDouble(config.getParams().getOrDefault("replanningInterval", "10.0"));
 

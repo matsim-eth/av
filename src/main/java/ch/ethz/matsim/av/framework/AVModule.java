@@ -53,11 +53,10 @@ import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
 import ch.ethz.matsim.av.generator.AVGenerator;
 import ch.ethz.matsim.av.generator.PopulationDensityGenerator;
-import ch.ethz.matsim.av.plcpc.DefaultParallelLeastCostPathCalculator;
-import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
-import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculatorShutdownListener;
-import ch.ethz.matsim.av.plcpc.SerialLeastCostPathCalculator;
 import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
+import ch.ethz.matsim.av.router.AVRouter;
+import ch.ethz.matsim.av.router.AVRouterShutdownListener;
+import ch.ethz.matsim.av.router.DefaultAVRouter;
 import ch.ethz.matsim.av.routing.AVRoute;
 import ch.ethz.matsim.av.routing.AVRouteFactory;
 import ch.ethz.matsim.av.routing.AVRoutingModule;
@@ -93,30 +92,8 @@ public class AVModule extends AbstractModule {
 		bind(Network.class).annotatedWith(Names.named(AVModule.AV_MODE))
 				.to(Key.get(Network.class, Names.named(DvrpModule.DVRP_ROUTING)));
 
-		addControlerListenerBinding()
-				.to(Key.get(ParallelLeastCostPathCalculatorShutdownListener.class, Names.named(AVModule.AV_MODE)));
-	}
-
-	@Provides
-	@Singleton
-	@Named(AVModule.AV_MODE)
-	private ParallelLeastCostPathCalculatorShutdownListener provideParallelLeastCostPathCalculatorShutdownListener(
-			@Named(AVModule.AV_MODE) ParallelLeastCostPathCalculator calculator) {
-		return new ParallelLeastCostPathCalculatorShutdownListener(calculator);
-	}
-
-	@Provides
-	@Singleton
-	@Named(AVModule.AV_MODE)
-	private ParallelLeastCostPathCalculator provideParallelLeastCostPathCalculator(AVConfigGroup config,
-			@Named(AVModule.AV_MODE) Network network, @Named(AVModule.AV_MODE) TravelTime travelTime) {
-		if (config.getParallelRouters() == 0) {
-			return new SerialLeastCostPathCalculator(new DijkstraFactory().createPathCalculator(network,
-					new OnlyTimeDependentTravelDisutility(travelTime), travelTime));
-		} else {
-			return DefaultParallelLeastCostPathCalculator.create((int) config.getParallelRouters(),
-					new DijkstraFactory(), network, new OnlyTimeDependentTravelDisutility(travelTime), travelTime);
-		}
+		addControlerListenerBinding().to(AVRouterShutdownListener.class);
+		AVUtils.registerRouterFactory(binder(), "DefaultAVRouter", DefaultAVRouter.Factory.class);
 	}
 
 	private void configureDispatchmentStrategies() {
@@ -242,6 +219,25 @@ public class AVModule extends AbstractModule {
 		}
 
 		return vehicles;
+	}
+
+	@Provides
+	@Singleton
+	public Map<Id<AVOperator>, AVRouter> provideRouters(Map<Id<AVOperator>, AVOperator> operators,
+			Map<String, AVRouter.Factory> factories) {
+		Map<Id<AVOperator>, AVRouter> routers = new HashMap<>();
+
+		for (AVOperator operator : operators.values()) {
+			String routerName = operator.getConfig().getRouterName();
+
+			if (!factories.containsKey(routerName)) {
+				throw new IllegalStateException("Router '" + routerName + "' is not registered");
+			}
+
+			routers.put(operator.getId(), factories.get(routerName).createRouter());
+		}
+
+		return routers;
 	}
 
 	@Provides

@@ -12,6 +12,7 @@ import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.passenger.AVRequest;
 import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
+import ch.ethz.matsim.av.router.AVRouter;
 import ch.ethz.matsim.av.schedule.AVStayTask;
 import ch.ethz.matsim.av.schedule.AVTask;
 import com.google.inject.Inject;
@@ -231,13 +232,10 @@ public class MultiODHeuristic implements AVDispatcher {
         private LeastCostPathCalculator router;
 
         @Inject @Named(AVModule.AV_MODE)
-        private ParallelLeastCostPathCalculator parallelRouter;
-
-        @Inject @Named(AVModule.AV_MODE)
         private TravelTime travelTime;
 
         @Override
-        public AVDispatcher createDispatcher(AVDispatcherConfig config) {
+        public AVDispatcher createDispatcher(AVDispatcherConfig config, AVRouter parallelRouter) {
 			double replanningInterval = Double.parseDouble(config.getParams().getOrDefault("replanningInterval", "10.0"));
             double threshold = Double.parseDouble(config.getParams().getOrDefault("maximumTimeRadius", "600.0"));
             boolean useParallelImplementation = Boolean.parseBoolean(config.getParams().getOrDefault("useParallelImplementation", "true"));
