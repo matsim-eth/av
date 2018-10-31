@@ -5,6 +5,7 @@ import org.matsim.contrib.dvrp.vrpagent.VrpLeg;
 import org.matsim.contrib.dvrp.vrpagent.VrpLegFactory;
 import org.matsim.core.mobsim.framework.MobsimTimer;
 
+import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.schedule.AVOptimizer;
 
 public class AVLegFactory implements VrpLegFactory {
@@ -18,6 +19,6 @@ public class AVLegFactory implements VrpLegFactory {
 
 	@Override
 	public VrpLeg create(Vehicle vehicle) {
-		return VrpLegFactory.createWithOnlineTracker(vehicle, optimizer, mobsimTimer);
+		return VrpLegFactory.createWithOnlineTracker(AVModule.AV_MODE, vehicle, optimizer, mobsimTimer);
 	}
 }

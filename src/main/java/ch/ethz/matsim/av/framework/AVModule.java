@@ -14,17 +14,19 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.dvrp.router.DvrpRoutingNetworkProvider;
 import org.matsim.contrib.dvrp.run.DvrpModule;
 import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
-import org.matsim.contrib.dynagent.run.DynActivityEnginePlugin;
+import org.matsim.contrib.dynagent.run.DynActivityEngineModule;
+import org.matsim.contrib.dynagent.run.DynRoutingModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.controler.AbstractModule;
-import org.matsim.core.mobsim.qsim.AbstractQSimPlugin;
-import org.matsim.core.mobsim.qsim.PopulationPlugin;
-import org.matsim.core.mobsim.qsim.TeleportationPlugin;
-import org.matsim.core.mobsim.qsim.changeeventsengine.NetworkChangeEventsPlugin;
-import org.matsim.core.mobsim.qsim.messagequeueengine.MessageQueuePlugin;
-import org.matsim.core.mobsim.qsim.pt.TransitEnginePlugin;
-import org.matsim.core.mobsim.qsim.qnetsimengine.QNetsimEnginePlugin;
+import org.matsim.core.mobsim.qsim.AbstractQSimModule;
+import org.matsim.core.mobsim.qsim.PopulationModule;
+import org.matsim.core.mobsim.qsim.QSimModule;
+import org.matsim.core.mobsim.qsim.TeleportationModule;
+import org.matsim.core.mobsim.qsim.changeeventsengine.NetworkChangeEventsModule;
+import org.matsim.core.mobsim.qsim.messagequeueengine.MessageQueueModule;
+import org.matsim.core.mobsim.qsim.pt.TransitEngineModule;
+import org.matsim.core.mobsim.qsim.qnetsimengine.QNetsimEngineModule;
 import org.matsim.core.population.routes.RouteFactories;
 import org.matsim.core.router.DijkstraFactory;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
@@ -76,7 +78,7 @@ public class AVModule extends AbstractModule {
 
 		bind(AVOperatorChoiceStrategy.class);
 		addPlanStrategyBinding("AVOperatorChoice").to(AVOperatorChoiceStrategy.class);
-
+		
 		// Bind the AV travel time to the DVRP estimated travel time
 		bind(TravelTime.class).annotatedWith(Names.named(AVModule.AV_MODE))
 				.to(Key.get(TravelTime.class, Names.named(DvrpTravelTimeModule.DVRP_ESTIMATED)));
@@ -247,25 +249,13 @@ public class AVModule extends AbstractModule {
 
 	@Provides
 	@Singleton
-	public Collection<AbstractQSimPlugin> provideQSimPlugins(Config config) {
-		final Collection<AbstractQSimPlugin> plugins = new ArrayList<>();
+	public Collection<AbstractQSimModule> provideQSimModules(Config config) {
+		final Collection<AbstractQSimModule> modules = new LinkedList<>(QSimModule.getDefaultQSimModules());
+		
+		modules.add(new DynActivityEngineModule());
 
-		plugins.add(new MessageQueuePlugin(config));
-		plugins.add(new DynActivityEnginePlugin(config));
-		plugins.add(new QNetsimEnginePlugin(config));
+		modules.add(new AVQSimModule());
 
-		if (config.network().isTimeVariantNetwork()) {
-			plugins.add(new NetworkChangeEventsPlugin(config));
-		}
-
-		if (config.transit().isUseTransit()) {
-			plugins.add(new TransitEnginePlugin(config));
-		}
-
-		plugins.add(new TeleportationPlugin(config));
-		plugins.add(new PopulationPlugin(config));
-		plugins.add(new AVQSimPlugin(config));
-
-		return plugins;
+		return modules;
 	}
 }

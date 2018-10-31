@@ -9,6 +9,7 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.dvrp.passenger.PassengerEngine;
 import org.matsim.contrib.dvrp.vrpagent.VrpAgentSource;
 import org.matsim.core.api.experimental.events.EventsManager;
+import org.matsim.core.mobsim.qsim.AbstractQSimModule;
 import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.vehicles.VehicleType;
 
@@ -29,9 +30,9 @@ import ch.ethz.matsim.av.schedule.AVOptimizer;
 import ch.ethz.matsim.av.vrpagent.AVActionCreator;
 import ch.ethz.matsim.av.vrpagent.AVLegFactory;
 
-public class AVQSimModule extends com.google.inject.AbstractModule {
+public class AVQSimModule extends AbstractQSimModule {
     @Override
-    protected void configure() {
+    protected void configureQSim() {
         bind(AVOptimizer.class);
         bind(AVActionCreator.class);
         bind(AVRequestCreator.class);
