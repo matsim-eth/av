@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>ch.ethz.matsim</groupId>
 	<artifactId>av</artifactId>
-	<version>0.1.6-SNAPSHOT</version>
+	<version>0.2.6</version>
+	<description>Compatibility with MATSim 0.10.1</description>
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
@@ -70,7 +72,7 @@
 
 	<distributionManagement>
 		<repository>
-			<id>matsim-eth-bintray</id>
+			<id>matsim-eth</id>
 			<url>https://api.bintray.com/maven/matsim-eth/matsim/av/;publish=1</url>
 		</repository>
 	</distributionManagement>
