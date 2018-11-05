@@ -10,12 +10,12 @@ public class AVVehicle extends VehicleImpl {
     private AVOperator operator;
     private AVDispatcher dispatcher;
 
-    public AVVehicle(Id<Vehicle> id, Link startLink, double capacity, double t0, double t1, AVOperator operator) {
+    public AVVehicle(Id<Vehicle> id, Link startLink, int capacity, double t0, double t1, AVOperator operator) {
         super(id, startLink, capacity, t0, t1);
         this.operator = operator;
     }
 
-    public AVVehicle(Id<Vehicle> id, Link startLink, double capacity, double t0, double t1) {
+    public AVVehicle(Id<Vehicle> id, Link startLink, int capacity, double t0, double t1) {
         this(id, startLink, capacity, t0, t1, null);
     }
 

@@ -3,6 +3,7 @@ package ch.ethz.matsim.av.framework;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,20 +12,14 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.contrib.dvrp.data.Fleet;
 import org.matsim.contrib.dvrp.router.DvrpRoutingNetworkProvider;
+import org.matsim.contrib.dvrp.run.DvrpModeQSimModule;
 import org.matsim.contrib.dvrp.run.DvrpModule;
 import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
-import org.matsim.contrib.dynagent.run.DynActivityEnginePlugin;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.controler.AbstractModule;
-import org.matsim.core.mobsim.qsim.AbstractQSimPlugin;
-import org.matsim.core.mobsim.qsim.PopulationPlugin;
-import org.matsim.core.mobsim.qsim.TeleportationPlugin;
-import org.matsim.core.mobsim.qsim.changeeventsengine.NetworkChangeEventsPlugin;
-import org.matsim.core.mobsim.qsim.messagequeueengine.MessageQueuePlugin;
-import org.matsim.core.mobsim.qsim.pt.TransitEnginePlugin;
-import org.matsim.core.mobsim.qsim.qnetsimengine.QNetsimEnginePlugin;
 import org.matsim.core.population.routes.RouteFactories;
 import org.matsim.core.router.DijkstraFactory;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
@@ -69,6 +64,8 @@ public class AVModule extends AbstractModule {
 
 	@Override
 	public void install() {
+		installQSimModule(new AVQSimModule());
+		
 		addRoutingModuleBinding(AV_MODE).to(AVRoutingModule.class);
 		bind(ScoringFunctionFactory.class).to(AVScoringFunctionFactory.class).asEagerSingleton();
 		addControlerListenerBinding().to(AVLoader.class);
@@ -89,12 +86,14 @@ public class AVModule extends AbstractModule {
 		configureDispatchmentStrategies();
 		configureGeneratorStrategies();
 
-		bind(Network.class).annotatedWith(Names.named(DvrpRoutingNetworkProvider.DVRP_ROUTING)).to(Network.class);
+		//bind(Network.class).annotatedWith(Names.named(DvrpRoutingNetworkProvider.DVRP_ROUTING)).to(Network.class);
 		bind(Network.class).annotatedWith(Names.named(AVModule.AV_MODE))
 				.to(Key.get(Network.class, Names.named(DvrpRoutingNetworkProvider.DVRP_ROUTING)));
 
 		addControlerListenerBinding().to(AVRouterShutdownListener.class);
 		AVUtils.registerRouterFactory(binder(), "DefaultAVRouter", DefaultAVRouter.Factory.class);
+	
+		bind(Fleet.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(AVData.class);
 	}
 
 	private void configureDispatchmentStrategies() {
@@ -239,29 +238,5 @@ public class AVModule extends AbstractModule {
 		}
 
 		return routers;
-	}
-
-	@Provides
-	@Singleton
-	public Collection<AbstractQSimPlugin> provideQSimPlugins(Config config) {
-		final Collection<AbstractQSimPlugin> plugins = new ArrayList<>();
-
-		plugins.add(new MessageQueuePlugin(config));
-		plugins.add(new DynActivityEnginePlugin(config));
-		plugins.add(new QNetsimEnginePlugin(config));
-
-		if (config.network().isTimeVariantNetwork()) {
-			plugins.add(new NetworkChangeEventsPlugin(config));
-		}
-
-		if (config.transit().isUseTransit()) {
-			plugins.add(new TransitEnginePlugin(config));
-		}
-
-		plugins.add(new TeleportationPlugin(config));
-		plugins.add(new PopulationPlugin(config));
-		plugins.add(new AVQSimPlugin(config));
-
-		return plugins;
 	}
 }

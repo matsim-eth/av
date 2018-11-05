@@ -1,19 +1,27 @@
 package ch.ethz.matsim.av;
 
+import java.util.Collections;
+
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.contrib.dvrp.run.DvrpConfigGroup;
+import org.matsim.contrib.dvrp.run.DvrpModule;
 import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
+import org.matsim.contrib.dynagent.run.DynActivityEngineModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
+import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.mobsim.qsim.AbstractQSimModule;
+import org.matsim.core.mobsim.qsim.components.StandardQSimComponentConfigurator;
 
 import ch.ethz.matsim.av.framework.AVConfigGroup;
 import ch.ethz.matsim.av.framework.AVModule;
+import ch.ethz.matsim.av.framework.AVQSimModule;
 import ch.ethz.matsim.av.scenario.TestScenarioAnalyzer;
 import ch.ethz.matsim.av.scenario.TestScenarioGenerator;
 
@@ -32,8 +40,10 @@ public class RunAVExampleTest {
         modeParams.setConstant(0.0);
 
         Controler controler = new Controler(scenario);
-        controler.addOverridingModule(new DvrpTravelTimeModule());
+        controler.addOverridingModule(new DvrpModule());
         controler.addOverridingModule(new AVModule());
+        
+        controler.configureQSimComponents(AVQSimModule::configureComponents);
 
         TestScenarioAnalyzer analyzer = new TestScenarioAnalyzer();
         controler.addOverridingModule(analyzer);
@@ -53,8 +63,10 @@ public class RunAVExampleTest {
         config.planCalcScore().getOrCreateModeParams(AVModule.AV_MODE);
 
         Controler controler = new Controler(scenario);
-        controler.addOverridingModule(new DvrpTravelTimeModule());
+        controler.addOverridingModule(new DvrpModule());
         controler.addOverridingModule(new AVModule());
+        
+        controler.configureQSimComponents(AVQSimModule::configureComponents);
 
         controler.run();
         
@@ -77,8 +89,10 @@ public class RunAVExampleTest {
         modeParams.setConstant(0.0);
 
         Controler controler = new Controler(scenario);
-        controler.addOverridingModule(new DvrpTravelTimeModule());
+        controler.addOverridingModule(new DvrpModule());
         controler.addOverridingModule(new AVModule());
+        
+        controler.configureQSimComponents(AVQSimModule::configureComponents);
 
         TestScenarioAnalyzer analyzer = new TestScenarioAnalyzer();
         controler.addOverridingModule(analyzer);

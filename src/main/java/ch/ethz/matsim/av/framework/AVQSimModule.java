@@ -1,21 +1,37 @@
 package ch.ethz.matsim.av.framework;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.geotools.data.ows.Request;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.contrib.dvrp.data.Vehicle;
+import org.matsim.contrib.dvrp.optimizer.VrpOptimizer;
 import org.matsim.contrib.dvrp.passenger.PassengerEngine;
+import org.matsim.contrib.dvrp.passenger.PassengerRequestCreator;
+import org.matsim.contrib.dvrp.run.DvrpModeQSimModule;
+import org.matsim.contrib.dvrp.vrpagent.VrpAgentLogic.DynActionCreator;
 import org.matsim.contrib.dvrp.vrpagent.VrpAgentSource;
-import org.matsim.contrib.dvrp.vrpagent.VrpLegs;
+import org.matsim.contrib.dvrp.vrpagent.VrpLeg;
+import org.matsim.contrib.dvrp.vrpagent.VrpLegFactory;
+import org.matsim.contrib.dynagent.run.DynActivityEngineModule;
 import org.matsim.core.api.experimental.events.EventsManager;
+import org.matsim.core.mobsim.framework.listeners.MobsimListener;
+import org.matsim.core.mobsim.qsim.AbstractQSimModule;
 import org.matsim.core.mobsim.qsim.QSim;
+import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
 import org.matsim.vehicles.VehicleType;
 
+import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import com.google.inject.name.Names;
 
 import ch.ethz.matsim.av.config.AVConfig;
 import ch.ethz.matsim.av.config.AVDispatcherConfig;
@@ -30,13 +46,28 @@ import ch.ethz.matsim.av.router.AVRouter;
 import ch.ethz.matsim.av.schedule.AVOptimizer;
 import ch.ethz.matsim.av.vrpagent.AVActionCreator;
 
-public class AVQSimModule extends com.google.inject.AbstractModule {
+public class AVQSimModule extends AbstractQSimModule {
+	public final static String COMPONENT_NAME = "AVExtension";
+	
+	public static void configureComponents(QSimComponentsConfig components) {
+		DynActivityEngineModule.configureComponents(components);
+		components.addNamedComponent(COMPONENT_NAME);
+		components.addNamedComponent(AVModule.AV_MODE);
+	}
+	
 	@Override
-	protected void configure() {
+	protected void configureQSim() {
+		install(new DvrpModeQSimModule(AVModule.AV_MODE, true, Collections.emptySet()));
+		
+		bind(PassengerRequestCreator.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(AVRequestCreator.class);
+		bind(DynActionCreator.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(AVActionCreator.class);
+		bind(VrpOptimizer.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(AVOptimizer.class);
+		
 		bind(AVOptimizer.class);
-		bind(AVActionCreator.class);
-		bind(AVRequestCreator.class);
 		bind(AVDispatchmentListener.class);
+		
+		addNamedComponent(AVOptimizer.class, COMPONENT_NAME);
+		addNamedComponent(AVDispatchmentListener.class, COMPONENT_NAME);
 	}
 
 	@Provides
@@ -48,22 +79,13 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
 
 	@Provides
 	@Singleton
-	public PassengerEngine providePassengerEngine(EventsManager events, AVRequestCreator requestCreator,
-			AVOptimizer optimizer, @Named(AVModule.AV_MODE) Network network) {
-		return new PassengerEngine(AVModule.AV_MODE, events, requestCreator, optimizer, network);
-	}
-
-	@Provides
-	@Singleton
-	VrpLegs.LegCreator provideLegCreator(AVOptimizer avOptimizer, QSim qsim) {
-		return VrpLegs.createLegWithOnlineTrackerCreator(avOptimizer, qsim.getSimTimer());
-	}
-
-	@Provides
-	@Singleton
-	public VrpAgentSource provideAgentSource(AVActionCreator actionCreator, AVData data, AVOptimizer optimizer,
-			@Named(AVModule.AV_MODE) VehicleType vehicleType, QSim qsim) {
-		return new VrpAgentSource(actionCreator, data, optimizer, qsim, vehicleType);
+	VrpLegFactory provideLegCreator(AVOptimizer avOptimizer, QSim qsim) {
+		return new VrpLegFactory() {
+			@Override
+			public VrpLeg create(Vehicle vehicle) {
+				return VrpLegFactory.createWithOnlineTracker(TransportMode.car, vehicle, avOptimizer, qsim.getSimTimer());
+			}
+		};
 	}
 
 	@Provides

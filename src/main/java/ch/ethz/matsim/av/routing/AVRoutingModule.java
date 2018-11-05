@@ -24,7 +24,7 @@ public class AVRoutingModule implements RoutingModule {
     @Inject private AVRouteFactory routeFactory;
 
     @Override
-    public List<? extends PlanElement> calcRoute(Facility<?> fromFacility, Facility<?> toFacility, double departureTime, Person person) {
+    public List<? extends PlanElement> calcRoute(Facility fromFacility, Facility toFacility, double departureTime, Person person) {
         Id<AVOperator> operator = choiceStrategy.chooseRandomOperator();
 
         AVRoute route = routeFactory.createRoute(fromFacility.getLinkId(), toFacility.getLinkId(), operator);
