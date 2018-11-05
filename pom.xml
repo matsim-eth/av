@@ -14,13 +14,6 @@
 	</properties>
 
 	<build>
-		<extensions>
-			<extension>
-				<groupId>io.packagecloud.maven.wagon</groupId>
-				<artifactId>maven-packagecloud-wagon</artifactId>
-				<version>0.0.6</version>
-			</extension>
-		</extensions>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -70,8 +63,8 @@
 			<url>http://download.osgeo.org/webdav/geotools</url>
 		</repository>
 		<repository>
-			<id>matsim-eth</id>
-			<url>http://dl.bintray.com/matsim-eth/matsim</url>
+			<id>matsim</id>
+			<url>http://dl.bintray.com/matsim/matsim</url>
 		</repository>
 	</repositories>
 
@@ -80,23 +73,19 @@
 			<id>matsim-eth-bintray</id>
 			<url>https://api.bintray.com/maven/matsim-eth/matsim/av/;publish=1</url>
 		</repository>
-		<snapshotRepository>
-			<id>packagecloud-eth-ivt</id>
-			<url>packagecloud+https://packagecloud.io/eth-ivt/matsim</url>
-		</snapshotRepository>
 	</distributionManagement>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.10.0-nov17</version>
+			<version>0.10.0</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>dvrp</artifactId>
-			<version>0.10.0-nov17</version>
+			<version>0.10.0</version>
 		</dependency>
 
 		<dependency>

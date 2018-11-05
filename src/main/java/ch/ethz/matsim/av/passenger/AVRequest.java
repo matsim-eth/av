@@ -8,11 +8,12 @@ import ch.ethz.matsim.av.schedule.AVPickupTask;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.contrib.dvrp.data.Request;
-import org.matsim.contrib.dvrp.data.RequestImpl;
 import org.matsim.contrib.dvrp.passenger.PassengerRequest;
 import org.matsim.core.mobsim.framework.MobsimPassengerAgent;
 
 public class AVRequest implements PassengerRequest {
+	final private Id<Request> id;
+	
     final private Link pickupLink;
     final private Link dropoffLink;
     final private MobsimPassengerAgent passengerAgent;
@@ -22,13 +23,10 @@ public class AVRequest implements PassengerRequest {
 
     private AVPickupTask pickupTask;
     private AVDropoffTask dropoffTask;
-    
-    final private Request delegate;
 
     public AVRequest(Id<Request> id, MobsimPassengerAgent passengerAgent, Link pickupLink, Link dropoffLink, double pickupTime, double submissionTime, AVRoute route, AVOperator operator, AVDispatcher dispatcher) {
-        this.delegate = new RequestImpl(id, 1.0, pickupTime, pickupTime, submissionTime);
-
-        this.passengerAgent = passengerAgent;
+        this.id = id;
+    	this.passengerAgent = passengerAgent;
         this.pickupLink = pickupLink;
         this.dropoffLink = dropoffLink;
         this.operator = operator;
@@ -80,32 +78,22 @@ public class AVRequest implements PassengerRequest {
     }
 
 	@Override
-	public double getQuantity() {
-		return delegate.getQuantity();
-	}
-
-	@Override
-	public double getEarliestStartTime() {
-		return delegate.getEarliestStartTime();
-	}
-
-	@Override
-	public double getLatestStartTime() {
-		return delegate.getLatestStartTime();
-	}
-
-	@Override
 	public double getSubmissionTime() {
-		return delegate.getSubmissionTime();
+		return 0.0;
 	}
 
 	@Override
 	public boolean isRejected() {
-		return delegate.isRejected();
+		return false;
 	}
 
 	@Override
 	public Id<Request> getId() {
-		return delegate.getId();
+		return id;
+	}
+
+	@Override
+	public double getEarliestStartTime() {
+		return 0.0;
 	}
 }
