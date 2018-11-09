@@ -14,7 +14,7 @@ The package can be added to the maven dependencies by adding the following repos
 ```xml
 <repository>
   <id>matsim</id>
-  <url>http://dl.bintray.com/matsim/matsim</url>
+  <url>http://dl.bintray.com/matsim-eth/matsim</url>
 </repository>
 ```
 
