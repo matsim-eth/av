@@ -1,6 +1,8 @@
 # CHANGELOG
 
-### 0.1.6 (SNAPSHOT)
+- Fix submission time for AVRequest
+
+### 0.1.6
 
 - Add router customization
 
