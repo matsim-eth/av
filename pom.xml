@@ -6,7 +6,7 @@
 
 	<groupId>ch.ethz.matsim</groupId>
 	<artifactId>av</artifactId>
-	<version>0.2.6</version>
+	<version>0.2.7</version>
 	<description>Compatibility with MATSim 0.10.1</description>
 
 	<properties>
