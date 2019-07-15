@@ -1,5 +1,11 @@
 # CHANGELOG
 
+### 0.3.8
+
+- Compatibility with MATSim 11.0
+
+### 0.3.7
+
 - Fix submission time for AVRequest
 
 ### 0.1.6

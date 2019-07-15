@@ -1,37 +1,40 @@
 package ch.ethz.matsim.av.data;
 
-import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
-import org.matsim.contrib.dvrp.data.Vehicle;
-import org.matsim.contrib.dvrp.data.VehicleImpl;
+import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
+import org.matsim.contrib.dvrp.fleet.DvrpVehicleImpl;
+import org.matsim.contrib.dvrp.fleet.ImmutableDvrpVehicleSpecification;
 
-public class AVVehicle extends VehicleImpl {
-    private AVOperator operator;
-    private AVDispatcher dispatcher;
+import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 
-    public AVVehicle(Id<Vehicle> id, Link startLink, int capacity, double t0, double t1, AVOperator operator) {
-        super(id, startLink, capacity, t0, t1);
-        this.operator = operator;
-    }
+public class AVVehicle extends DvrpVehicleImpl {
+	private AVOperator operator;
+	private AVDispatcher dispatcher;
 
-    public AVVehicle(Id<Vehicle> id, Link startLink, int capacity, double t0, double t1) {
-        this(id, startLink, capacity, t0, t1, null);
-    }
+	public AVVehicle(Id<DvrpVehicle> id, Link startLink, int capacity, double t0, double t1, AVOperator operator) {
+		super(ImmutableDvrpVehicleSpecification.newBuilder().id(id).capacity(capacity).startLinkId(startLink.getId())
+				.serviceBeginTime(t0).serviceEndTime(t1).build(), startLink);
+		this.operator = operator;
+	}
 
-    public AVOperator getOperator() {
-        return operator;
-    }
+	public AVVehicle(Id<DvrpVehicle> id, Link startLink, int capacity, double t0, double t1) {
+		this(id, startLink, capacity, t0, t1, null);
+	}
 
-    public AVDispatcher getDispatcher() {
-        return dispatcher;
-    }
+	public AVOperator getOperator() {
+		return operator;
+	}
 
-    public void setOpeartor(AVOperator operator) {
-        this.operator = operator;
-    }
+	public AVDispatcher getDispatcher() {
+		return dispatcher;
+	}
 
-    public void setDispatcher(AVDispatcher dispatcher) {
-        this.dispatcher = dispatcher;
-    }
+	public void setOpeartor(AVOperator operator) {
+		this.operator = operator;
+	}
+
+	public void setDispatcher(AVDispatcher dispatcher) {
+		this.dispatcher = dispatcher;
+	}
 }
