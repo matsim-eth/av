@@ -1,19 +1,20 @@
 package ch.ethz.matsim.av.vrpagent;
 
-import org.matsim.contrib.dynagent.AbstractDynActivity;
+import org.matsim.contrib.dynagent.DynActivity;
 
 import ch.ethz.matsim.av.schedule.AVStayTask;
 
-public class AVStayActivity extends AbstractDynActivity {
+public class AVStayActivity implements DynActivity {
 	final private AVStayTask stayTask;
 	private double now;
-	
+	private final String activityType;
+
 	public AVStayActivity(AVStayTask stayTask) {
-		super(stayTask.getName());
+		activityType = stayTask.getName();
 		this.stayTask = stayTask;
 		this.now = stayTask.getBeginTime();
 	}
-	
+
 	@Override
 	public void doSimStep(double now) {
 		this.now = now;
@@ -26,6 +27,11 @@ public class AVStayActivity extends AbstractDynActivity {
 		} else {
 			return stayTask.getEndTime();
 		}
+	}
+
+	@Override
+	public String getActivityType() {
+		return activityType;
 	}
 
 }

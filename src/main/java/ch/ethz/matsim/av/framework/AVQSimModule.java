@@ -1,37 +1,29 @@
 package ch.ethz.matsim.av.framework;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import org.geotools.data.ows.Request;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
-import org.matsim.api.core.v01.network.Network;
-import org.matsim.contrib.dvrp.data.Vehicle;
+import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
+import org.matsim.contrib.dvrp.fleet.Fleet;
 import org.matsim.contrib.dvrp.optimizer.VrpOptimizer;
-import org.matsim.contrib.dvrp.passenger.PassengerEngine;
+import org.matsim.contrib.dvrp.passenger.PassengerEngineQSimModule;
 import org.matsim.contrib.dvrp.passenger.PassengerRequestCreator;
-import org.matsim.contrib.dvrp.run.DvrpModeQSimModule;
+import org.matsim.contrib.dvrp.run.AbstractDvrpModeQSimModule;
+import org.matsim.contrib.dvrp.run.DvrpModes;
 import org.matsim.contrib.dvrp.vrpagent.VrpAgentLogic.DynActionCreator;
-import org.matsim.contrib.dvrp.vrpagent.VrpAgentSource;
+import org.matsim.contrib.dvrp.vrpagent.VrpAgentSourceQSimModule;
 import org.matsim.contrib.dvrp.vrpagent.VrpLeg;
 import org.matsim.contrib.dvrp.vrpagent.VrpLegFactory;
 import org.matsim.contrib.dynagent.run.DynActivityEngineModule;
-import org.matsim.core.api.experimental.events.EventsManager;
-import org.matsim.core.mobsim.framework.listeners.MobsimListener;
-import org.matsim.core.mobsim.qsim.AbstractQSimModule;
 import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
-import org.matsim.vehicles.VehicleType;
 
-import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import com.google.inject.name.Names;
 
 import ch.ethz.matsim.av.config.AVConfig;
 import ch.ethz.matsim.av.config.AVDispatcherConfig;
@@ -44,30 +36,40 @@ import ch.ethz.matsim.av.dispatcher.AVDispatchmentListener;
 import ch.ethz.matsim.av.passenger.AVRequestCreator;
 import ch.ethz.matsim.av.router.AVRouter;
 import ch.ethz.matsim.av.schedule.AVOptimizer;
+import ch.ethz.matsim.av.schedule.AVStayTask;
 import ch.ethz.matsim.av.vrpagent.AVActionCreator;
 
-public class AVQSimModule extends AbstractQSimModule {
+public class AVQSimModule extends AbstractDvrpModeQSimModule {
 	public final static String COMPONENT_NAME = "AVExtension";
-	
+
 	public static void configureComponents(QSimComponentsConfig components) {
 		DynActivityEngineModule.configureComponents(components);
-		components.addNamedComponent(COMPONENT_NAME);
-		components.addNamedComponent(AVModule.AV_MODE);
+		// components.addNamedComponent(COMPONENT_NAME);
+		// components.addNamedComponent(AVModule.AV_MODE);
+		components.addComponent(DvrpModes.mode(AVModule.AV_MODE));
 	}
-	
+
+	public AVQSimModule() {
+		super(AVModule.AV_MODE);
+	}
+
 	@Override
 	protected void configureQSim() {
-		install(new DvrpModeQSimModule(AVModule.AV_MODE, true, Collections.emptySet()));
-		
-		bind(PassengerRequestCreator.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(AVRequestCreator.class);
-		bind(DynActionCreator.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(AVActionCreator.class);
-		bind(VrpOptimizer.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(AVOptimizer.class);
-		
+		install(new VrpAgentSourceQSimModule(getMode()));
+		install(new PassengerEngineQSimModule(getMode()));
+
+		bindModal(PassengerRequestCreator.class).to(AVRequestCreator.class);
+		bindModal(DynActionCreator.class).to(AVActionCreator.class);
+		bindModal(VrpOptimizer.class).to(AVOptimizer.class);
+
 		bind(AVOptimizer.class);
 		bind(AVDispatchmentListener.class);
+
+		addModalQSimComponentBinding().to(AVDispatchmentListener.class);
+		addModalQSimComponentBinding().to(AVOptimizer.class);
 		
-		addNamedComponent(AVOptimizer.class, COMPONENT_NAME);
-		addNamedComponent(AVDispatchmentListener.class, COMPONENT_NAME);
+		bindModal(AVDispatchmentListener.class).to(AVDispatchmentListener.class);
+		bindModal(Fleet.class).to(AVData.class);
 	}
 
 	@Provides
@@ -82,8 +84,9 @@ public class AVQSimModule extends AbstractQSimModule {
 	VrpLegFactory provideLegCreator(AVOptimizer avOptimizer, QSim qsim) {
 		return new VrpLegFactory() {
 			@Override
-			public VrpLeg create(Vehicle vehicle) {
-				return VrpLegFactory.createWithOnlineTracker(TransportMode.car, vehicle, avOptimizer, qsim.getSimTimer());
+			public VrpLeg create(DvrpVehicle vehicle) {
+				return VrpLegFactory.createWithOnlineTracker(TransportMode.car, vehicle, avOptimizer,
+						qsim.getSimTimer());
 			}
 		};
 	}
@@ -116,5 +119,23 @@ public class AVQSimModule extends AbstractQSimModule {
 		}
 
 		return dispatchers;
+	}
+
+	@Provides
+	@Singleton
+	public AVData provideData(Map<Id<AVOperator>, AVOperator> operators,
+			Map<Id<AVOperator>, List<AVVehicle>> vehicles) {
+		AVData data = new AVData();
+
+		for (List<AVVehicle> vehs : vehicles.values()) {
+			for (AVVehicle vehicle : vehs) {
+				data.addVehicle(vehicle);
+
+				vehicle.getSchedule().addTask(new AVStayTask(vehicle.getServiceBeginTime(), vehicle.getServiceEndTime(),
+						vehicle.getStartLink()));
+			}
+		}
+
+		return data;
 	}
 }

@@ -1,9 +1,6 @@
 package ch.ethz.matsim.av.framework;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,10 +9,10 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.contrib.dvrp.data.Fleet;
+import org.matsim.contrib.dvrp.passenger.DefaultPassengerRequestValidator;
+import org.matsim.contrib.dvrp.passenger.PassengerRequestValidator;
 import org.matsim.contrib.dvrp.router.DvrpRoutingNetworkProvider;
-import org.matsim.contrib.dvrp.run.DvrpModeQSimModule;
-import org.matsim.contrib.dvrp.run.DvrpModule;
+import org.matsim.contrib.dvrp.run.DvrpModes;
 import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
@@ -39,8 +36,6 @@ import ch.ethz.matsim.av.config.AVConfig;
 import ch.ethz.matsim.av.config.AVConfigReader;
 import ch.ethz.matsim.av.config.AVGeneratorConfig;
 import ch.ethz.matsim.av.config.AVOperatorConfig;
-import ch.ethz.matsim.av.data.AVData;
-import ch.ethz.matsim.av.data.AVLoader;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVOperatorFactory;
 import ch.ethz.matsim.av.data.AVVehicle;
@@ -62,13 +57,28 @@ public class AVModule extends AbstractModule {
 	final static public String AV_MODE = "av";
 	final static Logger log = Logger.getLogger(AVModule.class);
 
+	private final boolean addQSimModule;
+
+	public AVModule() {
+		addQSimModule = true;
+	}
+
+	// Only for compatibility with Amodeus
+	public AVModule(boolean addQSimModule) {
+		this.addQSimModule = addQSimModule;
+	}
+
 	@Override
 	public void install() {
-		installQSimModule(new AVQSimModule());
-		
+		bind(DvrpModes.key(PassengerRequestValidator.class, AV_MODE))
+				.toInstance(new DefaultPassengerRequestValidator());
+
+		if (addQSimModule) {
+			installQSimModule(new AVQSimModule());
+		}
+
 		addRoutingModuleBinding(AV_MODE).to(AVRoutingModule.class);
 		bind(ScoringFunctionFactory.class).to(AVScoringFunctionFactory.class).asEagerSingleton();
-		addControlerListenerBinding().to(AVLoader.class);
 
 		bind(AVOperatorChoiceStrategy.class);
 		addPlanStrategyBinding("AVOperatorChoice").to(AVOperatorChoiceStrategy.class);
@@ -86,14 +96,12 @@ public class AVModule extends AbstractModule {
 		configureDispatchmentStrategies();
 		configureGeneratorStrategies();
 
-		//bind(Network.class).annotatedWith(Names.named(DvrpRoutingNetworkProvider.DVRP_ROUTING)).to(Network.class);
+		// bind(Network.class).annotatedWith(Names.named(DvrpRoutingNetworkProvider.DVRP_ROUTING)).to(Network.class);
 		bind(Network.class).annotatedWith(Names.named(AVModule.AV_MODE))
 				.to(Key.get(Network.class, Names.named(DvrpRoutingNetworkProvider.DVRP_ROUTING)));
 
 		addControlerListenerBinding().to(AVRouterShutdownListener.class);
 		AVUtils.registerRouterFactory(binder(), "DefaultAVRouter", DefaultAVRouter.Factory.class);
-	
-		bind(Fleet.class).annotatedWith(Names.named(AVModule.AV_MODE)).to(AVData.class);
 	}
 
 	private void configureDispatchmentStrategies() {
@@ -154,21 +162,6 @@ public class AVModule extends AbstractModule {
 
 		reader.readFile(configPath.getPath());
 		return avConfig;
-	}
-
-	@Provides
-	@Singleton
-	public AVData provideData(Map<Id<AVOperator>, AVOperator> operators,
-			Map<Id<AVOperator>, List<AVVehicle>> vehicles) {
-		AVData data = new AVData();
-
-		for (List<AVVehicle> vehs : vehicles.values()) {
-			for (AVVehicle vehicle : vehs) {
-				data.addVehicle(vehicle);
-			}
-		}
-
-		return data;
 	}
 
 	@Provides
