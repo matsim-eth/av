@@ -221,7 +221,7 @@ public class ParallelAggregateRideAppender implements AggregateRideAppender {
                 AVPickupTask pickupTask = new AVPickupTask(
                         currentTime,
                         currentTime + timing.getPickupDurationPerStop(),
-                        pickup.getFromLink(),
+                        pickup.getFromLink(), Double.NEGATIVE_INFINITY,
                         Arrays.asList(pickup)
                 );
 

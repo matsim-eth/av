@@ -45,7 +45,7 @@ public class AVActionCreator implements VrpAgentLogic.DynActionCreator {
 			case PICKUP:
 				AVPickupTask mpt = (AVPickupTask) task;
 				return new AVPassengerPickupActivity(passengerEngine, dynAgent, vehicle, mpt, mpt.getRequests(),
-						pickupDuration, PICKUP_ACTIVITY_TYPE);
+						pickupDuration, PICKUP_ACTIVITY_TYPE, mpt.getEarliestDepartureTime());
 			case DROPOFF:
 				AVDropoffTask mdt = (AVDropoffTask) task;
 				return new AVPassengerDropoffActivity(passengerEngine, dynAgent, vehicle, mdt, mdt.getRequests(),
