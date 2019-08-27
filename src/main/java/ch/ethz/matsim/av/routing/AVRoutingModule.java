@@ -1,46 +1,112 @@
 package ch.ethz.matsim.av.routing;
 
-import ch.ethz.matsim.av.data.AVOperator;
-import ch.ethz.matsim.av.framework.AVModule;
-import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.core.population.PopulationUtils;
-import org.matsim.core.router.EmptyStageActivityTypes;
+import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.StageActivityTypes;
+import org.matsim.core.router.StageActivityTypesImpl;
+import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.facilities.Facility;
 
-import java.util.Collections;
-import java.util.List;
+import ch.ethz.matsim.av.data.AVOperator;
+import ch.ethz.matsim.av.framework.AVModule;
+import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
+import ch.ethz.matsim.av.routing.interaction.AVInteractionFinder;
 
-@Singleton
 public class AVRoutingModule implements RoutingModule {
-    @Inject private AVOperatorChoiceStrategy choiceStrategy;
-    @Inject private AVRouteFactory routeFactory;
+	static final public String INTERACTION_ACTIVITY_TYPE = "av interaction";
 
-    @Override
-    public List<? extends PlanElement> calcRoute(Facility fromFacility, Facility toFacility, double departureTime, Person person) {
-        Id<AVOperator> operator = choiceStrategy.chooseRandomOperator();
+	private final AVOperatorChoiceStrategy choiceStrategy;
+	private final AVRouteFactory routeFactory;
+	private final AVInteractionFinder interactionFinder;
+	private final RoutingModule walkRoutingModule;
+	private final PopulationFactory populationFactory;
+	private final boolean useAccessEgress;
 
-        AVRoute route = routeFactory.createRoute(fromFacility.getLinkId(), toFacility.getLinkId(), operator);
-        route.setDistance(Double.NaN);
-        route.setTravelTime(Double.NaN);
+	public AVRoutingModule(AVOperatorChoiceStrategy choiceStrategy, AVRouteFactory routeFactory,
+			AVInteractionFinder interactionFinder, PopulationFactory populationFactory, RoutingModule walkRoutingModule,
+			boolean useAccessEgress) {
+		this.choiceStrategy = choiceStrategy;
+		this.routeFactory = routeFactory;
+		this.interactionFinder = interactionFinder;
+		this.walkRoutingModule = walkRoutingModule;
+		this.populationFactory = populationFactory;
+		this.useAccessEgress = useAccessEgress;
+	}
 
-        Leg leg = PopulationUtils.createLeg(AVModule.AV_MODE);
-        leg.setDepartureTime(departureTime);
-        leg.setTravelTime(Double.NaN);
-        leg.setRoute(route);
+	@Override
+	public List<? extends PlanElement> calcRoute(Facility fromFacility, Facility toFacility, double departureTime,
+			Person person) {
+		Facility pickupFacility = interactionFinder.findPickupFacility(fromFacility, departureTime);
+		Facility dropoffFacility = interactionFinder.findDropoffFacility(toFacility, departureTime);
 
-        return Collections.singletonList(leg);
-    }
+		if (pickupFacility.getLinkId().equals(dropoffFacility.getLinkId())) {
+			// Special case: PassengerEngine will complain that request has same start and
+			// end link. In that case we just return walk.
+			return walkRoutingModule.calcRoute(fromFacility, toFacility, departureTime, person);
+		}
 
-    @Override
-    public StageActivityTypes getStageActivityTypes() {
-        return EmptyStageActivityTypes.INSTANCE;
-    }
+		double pickupDistance = CoordUtils.calcEuclideanDistance(fromFacility.getCoord(), pickupFacility.getCoord());
+		double dropoffDistance = CoordUtils.calcEuclideanDistance(dropoffFacility.getCoord(), toFacility.getCoord());
+
+		double pickupTime = departureTime;
+
+		List<PlanElement> routeElements = new LinkedList<>();
+
+		if (fromFacility != pickupFacility && useAccessEgress && pickupDistance > 0.0) {
+			List<? extends PlanElement> pickupElements = walkRoutingModule.calcRoute(fromFacility, pickupFacility,
+					departureTime, person);
+			routeElements.addAll(pickupElements);
+
+			Activity pickupActivity = populationFactory.createActivityFromLinkId(INTERACTION_ACTIVITY_TYPE,
+					pickupFacility.getLinkId());
+			pickupActivity.setMaximumDuration(0.0);
+			routeElements.add(pickupActivity);
+
+			if (pickupElements.size() != 1) {
+				throw new IllegalStateException();
+			}
+
+			pickupTime = ((Leg) pickupElements.get(0)).getTravelTime();
+		}
+
+		AVRoute route = routeFactory.createRoute(pickupFacility.getLinkId(), dropoffFacility.getLinkId());
+
+		Id<AVOperator> operatorId = choiceStrategy.chooseRandomOperator();
+		route.setOperatorId(operatorId);
+		route.setDistance(Double.NaN);
+		route.setTravelTime(Double.NaN);
+
+		Leg leg = populationFactory.createLeg(AVModule.AV_MODE);
+		leg.setDepartureTime(pickupTime);
+		leg.setTravelTime(Double.NaN);
+		leg.setRoute(route);
+
+		routeElements.add(leg);
+
+		if (toFacility != dropoffFacility && useAccessEgress && dropoffDistance > 0.0) {
+			Activity dropoffActivity = populationFactory.createActivityFromLinkId(INTERACTION_ACTIVITY_TYPE,
+					dropoffFacility.getLinkId());
+			dropoffActivity.setMaximumDuration(0.0);
+			routeElements.add(dropoffActivity);
+
+			List<? extends PlanElement> dropoffElements = walkRoutingModule.calcRoute(dropoffFacility, toFacility,
+					departureTime, person);
+			routeElements.addAll(dropoffElements);
+		}
+
+		return routeElements;
+	}
+
+	@Override
+	public StageActivityTypes getStageActivityTypes() {
+		return new StageActivityTypesImpl(INTERACTION_ACTIVITY_TYPE);
+	}
 }

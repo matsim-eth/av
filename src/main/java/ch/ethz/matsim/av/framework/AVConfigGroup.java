@@ -1,21 +1,30 @@
 package ch.ethz.matsim.av.framework;
 
-import org.matsim.core.config.ReflectiveConfigGroup;
-
 import java.net.URL;
 
+import org.matsim.core.config.ReflectiveConfigGroup;
+
 public class AVConfigGroup extends ReflectiveConfigGroup {
-	final static String AV = "av";
-	final static String CONFIG = "config";
-	final static String PARALLEL_ROUTERS = "parallelRouters";
+	static final public String GROUP_NAME = "av";
+	static final public String CONFIG = "config";
+	static final public String PARALLEL_ROUTERS = "parallelRouters";
+	static final public String ACCESS_EGRESS_TYPE = "accessEgressType";
+	static final public String ACCESS_EGRESS_LINK_FLAG = "accessEgressLinkFlag";
 
 	private String configPath;
 	private URL configURL;
 
 	private long parallelRouters = 4;
-	
+
+	public enum AccessEgressType {
+		NONE, MODE, ATTRIBUTE
+	}
+
+	private AccessEgressType accessEgressType = AccessEgressType.NONE;
+	private String accessEgressLinkFlag = "avAccessEgress";
+
 	public AVConfigGroup() {
-		super(AV);
+		super(GROUP_NAME);
 	}
 
 	@StringGetter(CONFIG)
@@ -44,5 +53,25 @@ public class AVConfigGroup extends ReflectiveConfigGroup {
 
 	public void setConfigURL(URL url) {
 		this.configURL = url;
+	}
+
+	@StringGetter(ACCESS_EGRESS_TYPE)
+	public AccessEgressType getAccessEgressType() {
+		return accessEgressType;
+	}
+
+	@StringSetter(ACCESS_EGRESS_TYPE)
+	public void setAccessEgressType(AccessEgressType accessEgressType) {
+		this.accessEgressType = accessEgressType;
+	}
+	
+	@StringGetter(ACCESS_EGRESS_LINK_FLAG)
+	public String getAccessEgressLinkFlag() {
+		return accessEgressLinkFlag;
+	}
+
+	@StringSetter(ACCESS_EGRESS_LINK_FLAG)
+	public void setAccessEgressLinkFlag(String accessEgressLinkFlag) {
+		this.accessEgressLinkFlag = accessEgressLinkFlag;
 	}
 }

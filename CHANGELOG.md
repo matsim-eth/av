@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- Add access/egress walk functionality (off / by network mode / by link attribute)
 - Add earliestDepartureTime to pickup activities
 
 ### 0.3.8
