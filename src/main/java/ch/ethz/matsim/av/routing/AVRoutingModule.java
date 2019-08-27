@@ -25,9 +25,10 @@ public class AVRoutingModule implements RoutingModule {
 
     @Override
     public List<? extends PlanElement> calcRoute(Facility fromFacility, Facility toFacility, double departureTime, Person person) {
-        Id<AVOperator> operator = choiceStrategy.chooseRandomOperator();
+        Id<AVOperator> operatorId = choiceStrategy.chooseRandomOperator();
 
-        AVRoute route = routeFactory.createRoute(fromFacility.getLinkId(), toFacility.getLinkId(), operator);
+        AVRoute route = routeFactory.createRoute(fromFacility.getLinkId(), toFacility.getLinkId());
+        route.setOperatorId(operatorId);
         route.setDistance(Double.NaN);
         route.setTravelTime(Double.NaN);
 
