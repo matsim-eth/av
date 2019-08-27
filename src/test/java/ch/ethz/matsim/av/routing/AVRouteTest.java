@@ -14,7 +14,6 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.facilities.Facility;
 
 import ch.ethz.matsim.av.data.AVOperator;
 
@@ -45,8 +44,7 @@ public class AVRouteTest {
 			leg = factory.createLeg("av");
 			route = routeFactory.createRoute(Id.createLinkId("S1"), Id.createLinkId("E1"));
 			route.setOperatorId(Id.create("O1", AVOperator.class));
-			route.setAccessFacilityId(Id.create("AF1", Facility.class));
-			route.setEgressFacility(Id.create("EF1", Facility.class));
+			route.setWaitingTime(123.0);
 			leg.setRoute(route);
 			plan.addLeg(leg);
 
@@ -55,8 +53,7 @@ public class AVRouteTest {
 			leg = factory.createLeg("av");
 			route = routeFactory.createRoute(Id.createLinkId("S2"), Id.createLinkId("E2"));
 			route.setOperatorId(Id.create("O2", AVOperator.class));
-			route.setAccessFacilityId(Id.create("AF2", Facility.class));
-			route.setEgressFacility(Id.create("EF2", Facility.class));
+			route.setWaitingTime(987.0);
 			leg.setRoute(route);
 			plan.addLeg(leg);
 
@@ -86,14 +83,12 @@ public class AVRouteTest {
 			Assert.assertEquals("S1", route1.getStartLinkId().toString());
 			Assert.assertEquals("E1", route1.getEndLinkId().toString());
 			Assert.assertEquals("O1", route1.getOperatorId().toString());
-			Assert.assertEquals("AF1", route1.getAccessFacilityId().toString());
-			Assert.assertEquals("EF1", route1.getEgressFacilityId().toString());
+			Assert.assertEquals(123.0, route1.getWaitingTime(), 1e-3);
 
 			Assert.assertEquals("S2", route2.getStartLinkId().toString());
 			Assert.assertEquals("E2", route2.getEndLinkId().toString());
 			Assert.assertEquals("O2", route2.getOperatorId().toString());
-			Assert.assertEquals("AF2", route2.getAccessFacilityId().toString());
-			Assert.assertEquals("EF2", route2.getEgressFacilityId().toString());
+			Assert.assertEquals(987.0, route2.getWaitingTime(), 1e-3);
 		}
 	}
 }
