@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- Add earliestDepartureTime to pickup activities
+
 ### 0.3.8
 
 - Compatibility with MATSim 11.0

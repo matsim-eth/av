@@ -21,10 +21,14 @@ public class AVPassengerPickupActivity implements PassengerPickupActivity {
 
 	private double endTime = 0.0;
 	private int passengersAboard = 0;
+	
+	private final double earliestDepartureTime;
 
 	public AVPassengerPickupActivity(PassengerEngine passengerEngine, DynAgent driver, DvrpVehicle vehicle,
-			StayTask pickupTask, Set<? extends PassengerRequest> requests, double pickupDuration, String activityType) {
+			StayTask pickupTask, Set<? extends PassengerRequest> requests, double pickupDuration, String activityType,
+			double earliestDepartureTime) {
 		this.activityType = activityType;
+		this.earliestDepartureTime = earliestDepartureTime;
 
 		if (requests.size() > vehicle.getCapacity()) {
 			// Number of requests exceeds number of seats
@@ -68,7 +72,7 @@ public class AVPassengerPickupActivity implements PassengerPickupActivity {
 
 	@Override
 	public double getEndTime() {
-		return endTime;
+		return Math.max(endTime, earliestDepartureTime);
 	}
 
 	@Override
