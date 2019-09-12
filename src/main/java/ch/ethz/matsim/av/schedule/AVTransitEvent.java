@@ -18,8 +18,7 @@ public class AVTransitEvent extends GenericEvent implements HasPersonId {
 	final private double distance;
 
 	public AVTransitEvent(AVRequest request, double time) {
-		this(request.getPassenger().getId(), request.getOperator().getId(), request.getRoute().getDistance(), time,
-				request);
+		this(request.getPassenger().getId(), request.getOperator().getId(), request.getRoute().getDistance(), time, request);
 	}
 
 	public AVTransitEvent(Id<Person> personId, Id<AVOperator> operatorId, double distance, double time) {

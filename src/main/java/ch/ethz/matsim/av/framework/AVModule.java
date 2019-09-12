@@ -11,6 +11,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.contrib.dvrp.router.DvrpRoutingNetworkProvider;
 import org.matsim.contrib.dvrp.run.DvrpModule;
 import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
@@ -27,6 +28,7 @@ import org.matsim.core.mobsim.qsim.pt.TransitEnginePlugin;
 import org.matsim.core.mobsim.qsim.qnetsimengine.QNetsimEnginePlugin;
 import org.matsim.core.population.routes.RouteFactories;
 import org.matsim.core.router.DijkstraFactory;
+import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.TravelTime;
@@ -52,6 +54,7 @@ import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
 import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
+import ch.ethz.matsim.av.framework.AVConfigGroup.AccessEgressType;
 import ch.ethz.matsim.av.generator.AVGenerator;
 import ch.ethz.matsim.av.generator.PopulationDensityGenerator;
 import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
@@ -61,6 +64,10 @@ import ch.ethz.matsim.av.router.DefaultAVRouter;
 import ch.ethz.matsim.av.routing.AVRoute;
 import ch.ethz.matsim.av.routing.AVRouteFactory;
 import ch.ethz.matsim.av.routing.AVRoutingModule;
+import ch.ethz.matsim.av.routing.interaction.AVInteractionFinder;
+import ch.ethz.matsim.av.routing.interaction.InteractionDataFinder;
+import ch.ethz.matsim.av.routing.interaction.InteractionLinkData;
+import ch.ethz.matsim.av.routing.interaction.ModeInteractionFinder;
 import ch.ethz.matsim.av.scoring.AVScoringFunctionFactory;
 
 public class AVModule extends AbstractModule {
@@ -69,6 +76,8 @@ public class AVModule extends AbstractModule {
 
 	@Override
 	public void install() {
+		AVConfigGroup config = (AVConfigGroup) getConfig().getModules().get(AVConfigGroup.GROUP_NAME);
+		
 		addRoutingModuleBinding(AV_MODE).to(AVRoutingModule.class);
 		bind(ScoringFunctionFactory.class).to(AVScoringFunctionFactory.class).asEagerSingleton();
 		addControlerListenerBinding().to(AVLoader.class);
@@ -85,6 +94,20 @@ public class AVModule extends AbstractModule {
 
 		bind(AVOperatorFactory.class);
 		bind(AVRouteFactory.class);
+		
+		switch (config.getAccessEgressType()) {
+		case ATTRIBUTE:
+			bind(AVInteractionFinder.class).to(InteractionDataFinder.class);
+			bind(InteractionLinkData.class).to(Key.get(InteractionLinkData.class, Names.named("attribute")));
+			break;
+		case MODE:
+		case NONE:
+			bind(AVInteractionFinder.class).to(ModeInteractionFinder.class);
+			bind(InteractionLinkData.class).to(Key.get(InteractionLinkData.class, Names.named("empty")));
+			break;
+		default:
+			throw new IllegalStateException();
+		}
 
 		configureDispatchmentStrategies();
 		configureGeneratorStrategies();
@@ -239,6 +262,39 @@ public class AVModule extends AbstractModule {
 		}
 
 		return routers;
+	}
+	
+	@Provides
+	public AVRoutingModule provideAVRoutingModule(AVOperatorChoiceStrategy choiceStrategy, AVRouteFactory routeFactory,
+			AVInteractionFinder interactionFinder, PopulationFactory populationFactory,
+			@Named("walk") RoutingModule walkRoutingModule, AVConfigGroup config) {
+		return new AVRoutingModule(choiceStrategy, routeFactory, interactionFinder, populationFactory,
+				walkRoutingModule, !config.getAccessEgressType().equals(AccessEgressType.NONE));
+	}
+	
+	@Provides
+	public ModeInteractionFinder provideModeInteractionFinder(@Named(AV_MODE) Network network) {
+		return new ModeInteractionFinder(network);
+	}
+
+	@Provides
+	@Singleton
+	@Named("attribute")
+	public InteractionLinkData provideAttributeInteractionLinkData(@Named(AV_MODE) Network network,
+			AVConfigGroup config) {
+		return InteractionLinkData.fromAttribute(config.getAccessEgressLinkFlag(), network);
+	}
+
+	@Provides
+	@Singleton
+	@Named("empty")
+	public InteractionLinkData provideEmptyInteractionLinkData() {
+		return InteractionLinkData.empty();
+	}
+
+	@Provides
+	public InteractionDataFinder provideInteractionDataFinder(InteractionLinkData data) {
+		return new InteractionDataFinder(data);
 	}
 
 	@Provides

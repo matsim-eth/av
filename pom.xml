@@ -6,13 +6,14 @@
 
 	<groupId>ch.ethz.matsim</groupId>
 	<artifactId>av</artifactId>
-	<version>0.2.7</version>
-	<description>Compatibility with MATSim 0.10.1</description>
+	<version>0.3.9-matsim10</version>
+	<description>Automated vehicles for MATSim</description>
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<skipTests>false</skipTests>
+		<matsim.version>0.10.1</matsim.version>
 	</properties>
 
 	<build>
@@ -68,6 +69,10 @@
 			<id>matsim</id>
 			<url>http://dl.bintray.com/matsim/matsim</url>
 		</repository>
+		<repository>
+			<id>matsim-snapshot</id>
+			<url>http://oss.jfrog.org/libs-snapshot</url>
+		</repository>
 	</repositories>
 
 	<distributionManagement>
@@ -81,13 +86,19 @@
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.10.1</version>
+			<version>${matsim.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>dvrp</artifactId>
-			<version>0.10.1</version>
+			<version>${matsim.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.9.9.3</version>
 		</dependency>
 
 		<dependency>

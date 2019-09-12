@@ -91,7 +91,7 @@ public class SingleRideAppender {
         AVPickupTask pickupTask = new AVPickupTask(
                 pickupPath.getArrivalTime(),
                 pickupPath.getArrivalTime() + timing.getPickupDurationPerStop(),
-                request.getFromLink(), Arrays.asList(request));
+                request.getFromLink(), Double.NEGATIVE_INFINITY, Arrays.asList(request));
         AVDriveTask dropoffDriveTask = new AVDriveTask(dropoffPath, Arrays.asList(request));
         AVDropoffTask dropoffTask = new AVDropoffTask(
                 dropoffPath.getArrivalTime(),
