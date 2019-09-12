@@ -6,7 +6,7 @@ This project is an extension of the [MATSim](https://github.com/matsim-org/matsi
 
 The AV extension is currently kept compatible with the following MATSim versions:
 
-|MATSim              |DMC version      |               |
+|MATSim              |AV version      |               |
 |--------------------|-----------------|---------------|
 | Weekly SNAPSHOT `12.0-2019w20`            | `0.3.9`           | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master)](https://travis-ci.org/matsim-eth/av) |
 | Release `11.0`       | `0.3.9-matsim11`  | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master-11)](https://travis-ci.org/matsim-eth/av) |
