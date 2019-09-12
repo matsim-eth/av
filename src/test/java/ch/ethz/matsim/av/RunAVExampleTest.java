@@ -18,6 +18,7 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup.ActivityParams;
+import org.matsim.core.config.groups.QSimConfigGroup.StarttimeInterpretation;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.utils.geometry.CoordUtils;
 
@@ -201,6 +202,7 @@ public class RunAVExampleTest {
 		modeParams.setConstant(0.0);
 		
 		config.qsim().setEndTime(40.0 * 3600.0);
+		config.qsim().setSimStarttimeInterpretation(StarttimeInterpretation.onlyUseStarttime);
 
 		Controler controler = new Controler(scenario);
 		controler.addOverridingModule(new DvrpModule());

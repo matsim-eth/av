@@ -1,6 +1,7 @@
 # CHANGELOG
 
 - Update repository structure to GitFlow
+- Compatibility with MATSim 12
 - Fix & test pickup/dropoff duration by stop and passenger
 - Add access/egress walk functionality (off / by network mode / by link attribute)
 - Add earliestDepartureTime to pickup activities

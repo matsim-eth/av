@@ -12,6 +12,7 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.config.groups.QSimConfigGroup.StarttimeInterpretation;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.scenario.ScenarioUtils;
 
@@ -42,6 +43,7 @@ public class TestScenarioGenerator {
         config.controler().setDumpDataAtEnd(false);
         config.qsim().setEndTime(duration * 2);
         config.planCalcScore().getOrCreateScoringParameters(null).getOrCreateActivityParams("activity").setScoringThisActivityAtAll(false);
+        config.qsim().setSimStarttimeInterpretation(StarttimeInterpretation.onlyUseStarttime);
 
         Random random = new Random(randomSeed);
         Scenario scenario = ScenarioUtils.createScenario(config);
