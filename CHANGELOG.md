@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- Update repository structure to GitFlow
 - Fix & test pickup/dropoff duration by stop and passenger
 - Add access/egress walk functionality (off / by network mode / by link attribute)
 - Add earliestDepartureTime to pickup activities

@@ -1,38 +1,41 @@
-# Autonomous vehicles for MATSim
+# Automated vehicles for MATSim
 
-[![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master)](https://travis-ci.org/matsim-eth/av)
+This project is an extension of the [MATSim](https://github.com/matsim-org/matsim) traffic simulation framework that adds shared automated vehicles to the simulation.
 
-This project is an extension of the MATSim traffic simulation framework:
-https://github.com/matsim-org/matsim
+## Available versions
 
-Maintenance: Sebastian Hörl
+The AV extension is currently kept compatible with the following MATSim versions:
 
-## Usage
+|MATSim              |DMC version      |               |
+|--------------------|-----------------|---------------|
+| Weekly SNAPSHOT `12.0-2019w20`            | `0.3.8`           | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master)](https://travis-ci.org/matsim-eth/av) |
+| Release `11.0`       | `0.3.8-matsim11`  | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master-11)](https://travis-ci.org/matsim-eth/av) |
+| Release `0.10.1`     | `0.3.8-matsim10`  | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master-10)](https://travis-ci.org/matsim-eth/av) |
 
-The package can be added to the maven dependencies by adding the following repository:
+Since we have to react to changes in the `master` branch of the [MATSim main repository](https://github.com/matsim-org/matsim) "on demand", compatibility may be "out-of-synch" for a short time until we updated to the next weekly SNAPSHOT. We recommend using the AV extension with a stable version of MATSim.
+
+To use the AV extension you first need to add the ETH MATSim Bintray repository to your `pom.xml`:
 
 ```xml
 <repository>
-  <id>matsim</id>
-  <url>http://dl.bintray.com/matsim-eth/matsim</url>
+    <id>matsim-eth</id>
+    <url>https://dl.bintray.com/matsim-eth/matsim</url>
 </repository>
 ```
 
-And using the following dependency:
+Add the following to your `pom.xml` dependencies to use the extension with version `0.3.8` and MATSim 11, for instance:
 
 ```xml
 <dependency>
-  <groupId>ch.ethz.matsim</groupId>
-  <artifactId>av</artifactId>
-  <version>0.3.6</version>
+    <groupId>ch.ethz.matsim</groupId>
+    <artifactId>av</artifactId>
+    <version>0.3.8-matsim11</version>
 </dependency>
 ```
-The versions of the AV extension correspond to specific versions of MATSim:
 
-|AV Extension|Compatible MATSim|
-|------------|-----------------|
-| 0.3.x      | 0.11.x          |
-| 0.2.x      | 0.10.1          |
-| 0.1.x      | 0.10.0          |
+## Repository sturcture
 
-In the respository there is a dedicated branch for 0.3.x, 0.2.x etc. Note that the latest branch makes the extension compatible with the current SNAPSHOT version of MATSim. However, it depends on a specific weekly release of MATSim (e.g. `0.11.0-2018w44`. As long as this version (as specified in the `pom.xml` here is used, things should work well). In many cases it may be possible to override the version used here with a newer weekly version or even the `-SNAPSHOT` version. If for instance changes have been made in the `DVRP` contribution or other parts, incompatibilities can arise which should be updated here.
+This repository makes use of the [GitFlow](https://nvie.com/posts/a-successful-git-branching-model/) repository model. This means that development is taking place in the `develop` branch, while the current production version can be found in the `master` branch. Note that, contrary to the basic model, we use multiple `master` branches to maintain versions of the code that are compatible with different releases of MATSim. For instance, `master-11` is compatible with MATSim 11. The `master` branch is kept compatible with the `master` branch of the [MATSim main repository](https://github.com/matsim-org/matsim). Backports are always derived from the `master` branch into the specific backport branches.
+
+For creating the backports, the recommended workflow is as follows: Branch `backport-X` from master, add changes for compatibility, merge back `backport-X` into `master-X`. 
+
