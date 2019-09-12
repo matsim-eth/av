@@ -12,12 +12,13 @@ import org.matsim.contrib.dynagent.DynAgent;
 public class AVPassengerDropoffActivity implements DynActivity {
 	private final PassengerEngine passengerEngine;
 	private final DynAgent driver;
-	private final Set<? extends PassengerRequest> requests;
+	private final Set<AVRequest> requests;
 	private final String activityType;
 	private final StayTask dropoffTask;
+	private final double endTime;
 
 	public AVPassengerDropoffActivity(PassengerEngine passengerEngine, DynAgent driver, DvrpVehicle vehicle,
-			StayTask dropoffTask, Set<? extends PassengerRequest> requests, String activityType) {
+			StayTask dropoffTask, Set<AVRequest> requests, String activityType) {
 		this.activityType = activityType;
 		this.dropoffTask = dropoffTask;
 
@@ -29,6 +30,25 @@ public class AVPassengerDropoffActivity implements DynActivity {
 			// Number of requests exceeds number of seats
 			throw new IllegalStateException();
 		}
+
+		double dropoffTimePerPassenger = 0.0;
+		double dropoffTimePerStop = 0.0;
+
+		if (requests.size() == 0) {
+			throw new IllegalStateException("Received dropoff task without request");
+		} else {
+			// TODO: Not ideal since we go through the requests instead of passing it
+			// directly
+			AVRequest firstRequest = requests.iterator().next();
+
+			dropoffTimePerPassenger = firstRequest.getOperator().getConfig().getTimingParameters()
+					.getDropoffDurationPerPassenger();
+			dropoffTimePerStop = firstRequest.getOperator().getConfig().getTimingParameters()
+					.getDropoffDurationPerStop();
+		}
+
+		endTime = Math.max(dropoffTask.getEndTime(),
+				dropoffTask.getBeginTime() + dropoffTimePerStop + requests.size() * dropoffTimePerPassenger);
 	}
 
 	@Override
@@ -45,7 +65,7 @@ public class AVPassengerDropoffActivity implements DynActivity {
 
 	@Override
 	public double getEndTime() {
-		return dropoffTask.getEndTime();
+		return endTime;
 	}
 
 	@Override

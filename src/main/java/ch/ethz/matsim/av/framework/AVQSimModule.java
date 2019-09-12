@@ -23,7 +23,6 @@ import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
 
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 
 import ch.ethz.matsim.av.config.AVConfig;
 import ch.ethz.matsim.av.config.AVDispatcherConfig;
@@ -67,16 +66,9 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 
 		addModalQSimComponentBinding().to(AVDispatchmentListener.class);
 		addModalQSimComponentBinding().to(AVOptimizer.class);
-		
+
 		bindModal(AVDispatchmentListener.class).to(AVDispatchmentListener.class);
 		bindModal(Fleet.class).to(AVData.class);
-	}
-
-	@Provides
-	@Singleton
-	@Named("pickupDuration")
-	public Double providePickupDuration(AVConfig config) {
-		return config.getTimingParameters().getPickupDurationPerStop();
 	}
 
 	@Provides
