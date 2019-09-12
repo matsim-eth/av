@@ -11,24 +11,24 @@ import org.matsim.contrib.dynagent.DynAgent;
 import org.matsim.core.mobsim.framework.MobsimPassengerAgent;
 
 public class AVPassengerPickupActivity implements PassengerPickupActivity {
+	private final DvrpVehicle vehicle;
 	private final PassengerEngine passengerEngine;
 	private final DynAgent driver;
-	private final Set<? extends PassengerRequest> requests;
-	private final double pickupDuration;
+	private final Set<AVRequest> requests;
+	private final double pickupDurationPerPassenger;
 	private final String activityType;
 
-	private double maximumRequestT0 = 0;
-
 	private double endTime = 0.0;
-	private int passengersAboard = 0;
-	
-	private final double earliestDepartureTime;
+
+	private int arrivedPassengers = 0;
+	private int enteredPassengers = 0;
+
+	private final double latestDepartureTime;
 
 	public AVPassengerPickupActivity(PassengerEngine passengerEngine, DynAgent driver, DvrpVehicle vehicle,
-			StayTask pickupTask, Set<? extends PassengerRequest> requests, double pickupDuration, String activityType,
-			double earliestDepartureTime) {
+			StayTask pickupTask, Set<AVRequest> requests, String activityType, double latestDepartureTime) {
 		this.activityType = activityType;
-		this.earliestDepartureTime = earliestDepartureTime;
+		this.latestDepartureTime = latestDepartureTime;
 
 		if (requests.size() > vehicle.getCapacity()) {
 			// Number of requests exceeds number of seats
@@ -37,49 +37,83 @@ public class AVPassengerPickupActivity implements PassengerPickupActivity {
 
 		this.passengerEngine = passengerEngine;
 		this.driver = driver;
-		this.pickupDuration = pickupDuration;
 		this.requests = requests;
+		this.vehicle = vehicle;
 
-		endTime = pickupTask.getBeginTime();
-		passengersAboard = 0;
+		double pickupDurationPerStop = Double.NaN;
+
+		if (requests.size() == 0) {
+			throw new IllegalStateException("Received a pickup task without requests");
+		} else {
+			// TODO: Not the best way... we assume that all requests are from the same
+			// operator with the same parameters
+			AVRequest firstRequest = requests.iterator().next();
+
+			this.pickupDurationPerPassenger = firstRequest.getOperator().getConfig().getTimingParameters()
+					.getPickupDurationPerPassenger();
+			pickupDurationPerStop = firstRequest.getOperator().getConfig().getTimingParameters()
+					.getPickupDurationPerStop();
+		}
 
 		double now = pickupTask.getBeginTime();
 
 		for (PassengerRequest request : requests) {
 			if (passengerEngine.pickUpPassenger(this, driver, request, pickupTask.getBeginTime())) {
-				passengersAboard++;
+				arrivedPassengers++;
 			}
 
-			if (request.getEarliestStartTime() > maximumRequestT0) {
-				maximumRequestT0 = request.getEarliestStartTime();
+			if (request.getEarliestStartTime() > latestDepartureTime) {
+				latestDepartureTime = request.getEarliestStartTime();
 			}
 		}
 
-		if (passengersAboard == requests.size()) {
-			endTime = now + pickupDuration;
-		} else {
-			setEndTimeIfWaitingForPassengers(now);
-		}
+		latestDepartureTime = Math.max(latestDepartureTime, now + pickupDurationPerStop);
+		endTime = now + pickupDurationPerStop;
+
+		updateEndTime(now);
 	}
 
-	private void setEndTimeIfWaitingForPassengers(double now) {
-		endTime = Math.max(now, maximumRequestT0) + pickupDuration;
+	private void updateEndTime(double now) {
+		if (enteredPassengers < arrivedPassengers) {
+			// We still need to wait a bit, because people are entering
 
-		if (endTime == now) {
-			endTime += 1;
+			int enteringPassengers = arrivedPassengers - enteredPassengers;
+			enteredPassengers = arrivedPassengers;
+
+			if (pickupDurationPerPassenger > 0.0) {
+				endTime = Math.max(endTime, now + enteringPassengers * pickupDurationPerPassenger);
+				return;
+			}
+		}
+
+		if (enteredPassengers < requests.size()) {
+			// We still need to wait, because some people have not arrived
+
+			if (endTime == now) {
+				endTime += 1.0;
+			}
+		} else {
+			// All passengers have arrived and are in the vehicle
+
+			if (enteredPassengers == vehicle.getCapacity()) {
+				// Vehicle is full, let's depart whenever planned (we consider pickup time that
+				// has been added before!)
+				// Therefore no endTime = now !
+			} else if (now < latestDepartureTime) {
+				// Vehicle is not full and latest departure time is not reached
+				endTime += 1.0;
+			}
 		}
 	}
 
 	@Override
 	public double getEndTime() {
-		return Math.max(endTime, earliestDepartureTime);
+		return endTime;
 	}
 
 	@Override
 	public void doSimStep(double now) {
-		if (passengersAboard < requests.size()) {
-			setEndTimeIfWaitingForPassengers(now);
-		}
+		updateEndTime(now);
 	}
 
 	private PassengerRequest getRequestForPassenger(MobsimPassengerAgent passenger) {
@@ -100,15 +134,13 @@ public class AVPassengerPickupActivity implements PassengerPickupActivity {
 		}
 
 		if (passengerEngine.pickUpPassenger(this, driver, request, now)) {
-			passengersAboard++;
+			arrivedPassengers++;
 		} else {
 			throw new IllegalStateException(
 					"The ch.ethz.matsim.av.passenger is not on the link or not available for departure!");
 		}
 
-		if (passengersAboard == requests.size()) {
-			endTime = now + pickupDuration;
-		}
+		updateEndTime(now);
 	}
 
 	@Override

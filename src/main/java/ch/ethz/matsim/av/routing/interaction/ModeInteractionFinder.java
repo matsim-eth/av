@@ -23,6 +23,10 @@ public class ModeInteractionFinder implements AVInteractionFinder {
 	}
 
 	private Facility findFacility(Facility baseFacility) {
+		if (baseFacility.getCoord() == null) {
+			throw new IllegalStateException("Trying to find closest interaction facility, but not coords are given.");
+		}
+		
 		return new LinkWrapperFacility(NetworkUtils.getNearestLink(network, baseFacility.getCoord()));
 	}
 }

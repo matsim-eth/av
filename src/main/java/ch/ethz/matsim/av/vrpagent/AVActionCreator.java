@@ -1,7 +1,5 @@
 package ch.ethz.matsim.av.vrpagent;
 
-import javax.inject.Named;
-
 import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
 import org.matsim.contrib.dvrp.passenger.PassengerEngine;
 import org.matsim.contrib.dvrp.run.DvrpMode;
@@ -33,10 +31,6 @@ public class AVActionCreator implements VrpAgentLogic.DynActionCreator {
 	@Inject
 	private VrpLegFactory legFactory;
 
-	@Inject
-	@Named("pickupDuration")
-	private Double pickupDuration;
-
 	@Override
 	public DynAction createAction(DynAgent dynAgent, DvrpVehicle vehicle, double now) {
 		Task task = vehicle.getSchedule().getCurrentTask();
@@ -45,7 +39,7 @@ public class AVActionCreator implements VrpAgentLogic.DynActionCreator {
 			case PICKUP:
 				AVPickupTask mpt = (AVPickupTask) task;
 				return new AVPassengerPickupActivity(passengerEngine, dynAgent, vehicle, mpt, mpt.getRequests(),
-						pickupDuration, PICKUP_ACTIVITY_TYPE, mpt.getEarliestDepartureTime());
+						PICKUP_ACTIVITY_TYPE, mpt.getEarliestDepartureTime());
 			case DROPOFF:
 				AVDropoffTask mdt = (AVDropoffTask) task;
 				return new AVPassengerDropoffActivity(passengerEngine, dynAgent, vehicle, mdt, mdt.getRequests(),

@@ -12,6 +12,10 @@ public class InteractionDataFinder implements AVInteractionFinder {
 
 	@Override
 	public Facility findPickupFacility(Facility fromFacility, double departureTime) {
+		if (fromFacility.getCoord() == null) {
+			throw new IllegalStateException("Trying to find closest interaction facility, but not coords are given.");
+		}
+
 		return new LinkWrapperFacility(data.getClosestLink(fromFacility.getCoord()));
 	}
 
