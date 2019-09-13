@@ -1,6 +1,5 @@
 package ch.ethz.matsim.av.framework;
 
-import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,8 +14,6 @@ import org.matsim.contrib.dvrp.passenger.PassengerRequestValidator;
 import org.matsim.contrib.dvrp.router.DvrpRoutingNetworkProvider;
 import org.matsim.contrib.dvrp.run.DvrpModes;
 import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
-import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.population.routes.RouteFactories;
 import org.matsim.core.router.DijkstraFactory;
@@ -34,17 +31,16 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
-import ch.ethz.matsim.av.config.AVConfig;
-import ch.ethz.matsim.av.config.AVConfigReader;
-import ch.ethz.matsim.av.config.AVGeneratorConfig;
-import ch.ethz.matsim.av.config.AVOperatorConfig;
+import ch.ethz.matsim.av.config.AVConfigGroup;
+import ch.ethz.matsim.av.config.AVConfigGroup.AccessEgressType;
+import ch.ethz.matsim.av.config.operator.GeneratorConfig;
+import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVOperatorFactory;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
 import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
-import ch.ethz.matsim.av.framework.AVConfigGroup.AccessEgressType;
 import ch.ethz.matsim.av.generator.AVGenerator;
 import ch.ethz.matsim.av.generator.PopulationDensityGenerator;
 import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
@@ -59,6 +55,7 @@ import ch.ethz.matsim.av.routing.interaction.InteractionDataFinder;
 import ch.ethz.matsim.av.routing.interaction.InteractionLinkData;
 import ch.ethz.matsim.av.routing.interaction.ModeInteractionFinder;
 import ch.ethz.matsim.av.scoring.AVScoringFunctionFactory;
+import ch.ethz.matsim.av.scoring.AVSubpopulationScoringParameters;
 
 public class AVModule extends AbstractModule {
 	final static public String AV_MODE = "av";
@@ -125,7 +122,9 @@ public class AVModule extends AbstractModule {
 				.to(Key.get(Network.class, Names.named(DvrpRoutingNetworkProvider.DVRP_ROUTING)));
 
 		addControlerListenerBinding().to(AVRouterShutdownListener.class);
-		AVUtils.registerRouterFactory(binder(), "DefaultAVRouter", DefaultAVRouter.Factory.class);
+		AVUtils.registerRouterFactory(binder(), DefaultAVRouter.TYPE, DefaultAVRouter.Factory.class);
+
+		bind(AVSubpopulationScoringParameters.class);
 	}
 
 	private void configureDispatchmentStrategies() {
@@ -133,14 +132,15 @@ public class AVModule extends AbstractModule {
 		bind(SingleHeuristicDispatcher.Factory.class);
 		bind(MultiODHeuristic.Factory.class);
 
-		AVUtils.bindDispatcherFactory(binder(), "SingleFIFO").to(SingleFIFODispatcher.Factory.class);
-		AVUtils.bindDispatcherFactory(binder(), "SingleHeuristic").to(SingleHeuristicDispatcher.Factory.class);
-		AVUtils.bindDispatcherFactory(binder(), "MultiOD").to(MultiODHeuristic.Factory.class);
+		AVUtils.bindDispatcherFactory(binder(), SingleFIFODispatcher.TYPE).to(SingleFIFODispatcher.Factory.class);
+		AVUtils.bindDispatcherFactory(binder(), SingleHeuristicDispatcher.TYPE)
+				.to(SingleHeuristicDispatcher.Factory.class);
+		AVUtils.bindDispatcherFactory(binder(), MultiODHeuristic.TYPE).to(MultiODHeuristic.Factory.class);
 	}
 
 	private void configureGeneratorStrategies() {
 		bind(PopulationDensityGenerator.Factory.class);
-		AVUtils.bindGeneratorFactory(binder(), "PopulationDensity").to(PopulationDensityGenerator.Factory.class);
+		AVUtils.bindGeneratorFactory(binder(), PopulationDensityGenerator.TYPE).to(PopulationDensityGenerator.Factory.class);
 	}
 
 	@Provides
@@ -162,10 +162,10 @@ public class AVModule extends AbstractModule {
 
 	@Provides
 	@Singleton
-	Map<Id<AVOperator>, AVOperator> provideOperators(AVConfig config, AVOperatorFactory factory) {
+	Map<Id<AVOperator>, AVOperator> provideOperators(AVConfigGroup config, AVOperatorFactory factory) {
 		Map<Id<AVOperator>, AVOperator> operators = new HashMap<>();
 
-		for (AVOperatorConfig oc : config.getOperatorConfigs()) {
+		for (OperatorConfig oc : config.getOperators().values()) {
 			operators.put(oc.getId(), factory.createOperator(oc.getId(), oc));
 		}
 
@@ -174,36 +174,20 @@ public class AVModule extends AbstractModule {
 
 	@Provides
 	@Singleton
-	AVConfig provideAVConfig(Config config, AVConfigGroup configGroup) {
-		URL configPath = configGroup.getConfigURL();
-
-		if (configPath == null) {
-			configPath = ConfigGroup.getInputFileURL(config.getContext(), configGroup.getConfigPath());
-		}
-
-		AVConfig avConfig = new AVConfig();
-		AVConfigReader reader = new AVConfigReader(avConfig);
-
-		reader.readFile(configPath.getPath());
-		return avConfig;
-	}
-
-	@Provides
-	@Singleton
 	Map<Id<AVOperator>, AVGenerator> provideGenerators(Map<String, AVGenerator.AVGeneratorFactory> factories,
-			AVConfig config) {
+			AVConfigGroup config) {
 		Map<Id<AVOperator>, AVGenerator> generators = new HashMap<>();
 
-		for (AVOperatorConfig oc : config.getOperatorConfigs()) {
-			AVGeneratorConfig gc = oc.getGeneratorConfig();
-			String strategy = gc.getStrategyName();
+		for (OperatorConfig oc : config.getOperators().values()) {
+			GeneratorConfig gc = oc.getGeneratorConfig();
+			String strategy = gc.getType();
 
 			if (!factories.containsKey(strategy)) {
 				throw new IllegalArgumentException("Generator strategy '" + strategy + "' is not registered.");
 			}
 
 			AVGenerator.AVGeneratorFactory factory = factories.get(strategy);
-			AVGenerator generator = factory.createGenerator(gc);
+			AVGenerator generator = factory.createGenerator(oc);
 
 			generators.put(oc.getId(), generator);
 		}
@@ -245,13 +229,14 @@ public class AVModule extends AbstractModule {
 		Map<Id<AVOperator>, AVRouter> routers = new HashMap<>();
 
 		for (AVOperator operator : operators.values()) {
-			String routerName = operator.getConfig().getRouterName();
+			String routerName = operator.getConfig().getRouterConfig().getType();
 
 			if (!factories.containsKey(routerName)) {
 				throw new IllegalStateException("Router '" + routerName + "' is not registered");
 			}
 
-			routers.put(operator.getId(), factories.get(routerName).createRouter());
+			routers.put(operator.getId(),
+					factories.get(routerName).createRouter(operator.getConfig().getRouterConfig()));
 		}
 
 		return routers;

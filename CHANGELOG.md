@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- BC: Streamline config (no separate config file anymore, everything included in MATSim config)
+
 **0.3.9**
 
 - Update repository structure to GitFlow
