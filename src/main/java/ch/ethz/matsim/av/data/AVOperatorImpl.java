@@ -1,13 +1,14 @@
 package ch.ethz.matsim.av.data;
 
 import org.matsim.api.core.v01.Id;
-import ch.ethz.matsim.av.config.AVOperatorConfig;
+
+import ch.ethz.matsim.av.config.operator.OperatorConfig;
 
 public class AVOperatorImpl implements AVOperator {
     final private Id<AVOperator> id;
-    private final AVOperatorConfig config;
+    private final OperatorConfig config;
 
-    public AVOperatorImpl(Id<AVOperator> id, AVOperatorConfig config) {
+    public AVOperatorImpl(Id<AVOperator> id, OperatorConfig config) {
         this.id = id;
         this.config = config;
     }
@@ -18,7 +19,7 @@ public class AVOperatorImpl implements AVOperator {
     }
 
     @Override
-    public AVOperatorConfig getConfig() {
+    public OperatorConfig getConfig() {
         return config;
     }
 }

@@ -29,12 +29,17 @@ public class AVOperatorChoiceStrategy implements PlanStrategy {
     }
 
     @Override
-    public void init(ReplanningContext replanningContext) {}
+    public void init(ReplanningContext replanningContext) {
+    }
 
     @Override
     public void finish() {}
 
     public Id<AVOperator> chooseRandomOperator() {
+    	if (operators.size() == 0) {
+    		throw new IllegalStateException("No AV operators have been defined.");
+    	}
+    	
         int draw = MatsimRandom.getRandom().nextInt(operators.size());
         Iterator<Id<AVOperator>> iterator = operators.keySet().iterator();
 

@@ -22,8 +22,12 @@ import org.matsim.core.config.groups.QSimConfigGroup.StarttimeInterpretation;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.utils.geometry.CoordUtils;
 
-import ch.ethz.matsim.av.framework.AVConfigGroup;
-import ch.ethz.matsim.av.framework.AVConfigGroup.AccessEgressType;
+import ch.ethz.matsim.av.config.AVConfigGroup;
+import ch.ethz.matsim.av.config.AVConfigGroup.AccessEgressType;
+import ch.ethz.matsim.av.config.AVScoringParameterSet;
+import ch.ethz.matsim.av.config.operator.OperatorConfig;
+import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
+import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.framework.AVQSimModule;
 import ch.ethz.matsim.av.scenario.TestScenarioAnalyzer;
@@ -33,7 +37,17 @@ public class RunAVExampleTest {
 	@Test
 	public void testAVExample() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
-		avConfigGroup.setConfigURL(getClass().getResource("/ch/ethz/matsim/av/av.xml"));
+		
+		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
+		scoringParams.setSubpopulation(null);
+		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
+		avConfigGroup.addScoringParameters(scoringParams);
+		
+		OperatorConfig operatorConfig = new OperatorConfig();
+		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);
+		operatorConfig.getPricingConfig().setPricePerKm(0.48);
+		operatorConfig.getPricingConfig().setSpatialBillingInterval(1000.0);
+		avConfigGroup.addOperator(operatorConfig);
 
 		Config config = ConfigUtils.createConfig(avConfigGroup, new DvrpConfigGroup());
 		Scenario scenario = TestScenarioGenerator.generateWithAVLegs(config);
@@ -60,7 +74,15 @@ public class RunAVExampleTest {
 	@Test
 	public void testStuckScoring() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
-		avConfigGroup.setConfigURL(getClass().getResource("/ch/ethz/matsim/av/zero_av.xml"));
+		
+		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
+		scoringParams.setSubpopulation(null);
+		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
+		avConfigGroup.addScoringParameters(scoringParams);
+		
+		OperatorConfig operatorConfig = new OperatorConfig();
+		operatorConfig.getGeneratorConfig().setNumberOfVehicles(0);
+		avConfigGroup.addOperator(operatorConfig);
 
 		Config config = ConfigUtils.createConfig(avConfigGroup, new DvrpConfigGroup());
 		Scenario scenario = TestScenarioGenerator.generateWithAVLegs(config);
@@ -82,7 +104,18 @@ public class RunAVExampleTest {
 	@Test
 	public void testMultiOD() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
-		avConfigGroup.setConfigURL(getClass().getResource("/ch/ethz/matsim/av/av_multiod.xml"));
+		
+		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
+		scoringParams.setSubpopulation(null);
+		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
+		avConfigGroup.addScoringParameters(scoringParams);
+		
+		OperatorConfig operatorConfig = new OperatorConfig();
+		operatorConfig.getDispatcherConfig().setType(MultiODHeuristic.TYPE);
+		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);
+		operatorConfig.getPricingConfig().setPricePerKm(0.48);
+		operatorConfig.getPricingConfig().setSpatialBillingInterval(1000.0);
+		avConfigGroup.addOperator(operatorConfig);
 
 		Config config = ConfigUtils.createConfig(avConfigGroup, new DvrpConfigGroup());
 		Scenario scenario = TestScenarioGenerator.generateWithAVLegs(config);
@@ -107,34 +140,20 @@ public class RunAVExampleTest {
 	}
 
 	@Test
-	@Ignore
-	public void testAllThreadsExit() {
-		AVConfigGroup avConfigGroup = new AVConfigGroup();
-		avConfigGroup.setConfigURL(getClass().getResource("/ch/ethz/matsim/av/av.xml"));
-
-		Config config = ConfigUtils.createConfig(avConfigGroup, new DvrpConfigGroup());
-		Scenario scenario = TestScenarioGenerator.generateWithAVLegs(config);
-
-		PlanCalcScoreConfigGroup.ModeParams modeParams = config.planCalcScore().getOrCreateModeParams(AVModule.AV_MODE);
-		modeParams.setMonetaryDistanceRate(0.0);
-		modeParams.setMarginalUtilityOfTraveling(8.86);
-		modeParams.setConstant(0.0);
-
-		Controler controler = new Controler(scenario);
-		controler.addOverridingModule(new DvrpTravelTimeModule());
-		controler.addOverridingModule(new AVModule());
-
-		int beforeThreadCount = Thread.activeCount();
-		controler.run();
-		int afterThreadCount = Thread.activeCount();
-
-		Assert.assertEquals(beforeThreadCount, afterThreadCount);
-	}
-
-	@Test
 	public void testAVExampleWithAccessEgress() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
-		avConfigGroup.setConfigURL(getClass().getResource("/ch/ethz/matsim/av/av.xml"));
+		
+		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
+		scoringParams.setSubpopulation(null);
+		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
+		avConfigGroup.addScoringParameters(scoringParams);
+		
+		OperatorConfig operatorConfig = new OperatorConfig();
+		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);
+		operatorConfig.getPricingConfig().setPricePerKm(0.48);
+		operatorConfig.getPricingConfig().setSpatialBillingInterval(1000.0);
+		avConfigGroup.addOperator(operatorConfig);
+		
 		avConfigGroup.setAccessEgressType(AccessEgressType.MODE);
 
 		Config config = ConfigUtils.createConfig(avConfigGroup, new DvrpConfigGroup());
@@ -179,7 +198,18 @@ public class RunAVExampleTest {
 	@Test
 	public void testAVExampleWithAccessEgressAttribute() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
-		avConfigGroup.setConfigURL(getClass().getResource("/ch/ethz/matsim/av/av.xml"));
+		
+		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
+		scoringParams.setSubpopulation(null);
+		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
+		avConfigGroup.addScoringParameters(scoringParams);
+		
+		OperatorConfig operatorConfig = new OperatorConfig();
+		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);
+		operatorConfig.getPricingConfig().setPricePerKm(0.48);
+		operatorConfig.getPricingConfig().setSpatialBillingInterval(1000.0);
+		avConfigGroup.addOperator(operatorConfig);
+		
 		avConfigGroup.setAccessEgressType(AccessEgressType.ATTRIBUTE);
 		avConfigGroup.setAccessEgressLinkFlag("avflag");
 

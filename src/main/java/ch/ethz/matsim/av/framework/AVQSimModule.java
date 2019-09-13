@@ -24,9 +24,9 @@ import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
-import ch.ethz.matsim.av.config.AVConfig;
-import ch.ethz.matsim.av.config.AVDispatcherConfig;
-import ch.ethz.matsim.av.config.AVOperatorConfig;
+import ch.ethz.matsim.av.config.AVConfigGroup;
+import ch.ethz.matsim.av.config.operator.DispatcherConfig;
+import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.data.AVData;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVVehicle;
@@ -86,12 +86,12 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 	@Provides
 	@Singleton
 	Map<Id<AVOperator>, AVDispatcher> provideDispatchers(Map<String, AVDispatcher.AVDispatcherFactory> factories,
-			Map<Id<AVOperator>, AVRouter> routers, AVConfig config, Map<Id<AVOperator>, List<AVVehicle>> vehicles) {
+			Map<Id<AVOperator>, AVRouter> routers, AVConfigGroup config, Map<Id<AVOperator>, List<AVVehicle>> vehicles) {
 		Map<Id<AVOperator>, AVDispatcher> dispatchers = new HashMap<>();
 
-		for (AVOperatorConfig oc : config.getOperatorConfigs()) {
-			AVDispatcherConfig dc = oc.getDispatcherConfig();
-			String strategy = dc.getStrategyName();
+		for (OperatorConfig oc : config.getOperators().values()) {
+			DispatcherConfig dc = oc.getDispatcherConfig();
+			String strategy = dc.getType();
 
 			if (!factories.containsKey(strategy)) {
 				throw new IllegalArgumentException("Dispatcher strategy '" + strategy + "' is not registered.");
@@ -100,7 +100,7 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 			AVRouter router = routers.get(oc.getId());
 
 			AVDispatcher.AVDispatcherFactory factory = factories.get(strategy);
-			AVDispatcher dispatcher = factory.createDispatcher(dc, router);
+			AVDispatcher dispatcher = factory.createDispatcher(oc, router);
 
 			for (AVVehicle vehicle : vehicles.get(oc.getId())) {
 				dispatcher.addVehicle(vehicle);

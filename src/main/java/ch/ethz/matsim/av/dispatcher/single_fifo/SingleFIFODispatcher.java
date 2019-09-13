@@ -9,7 +9,7 @@ import org.matsim.core.router.util.TravelTime;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
-import ch.ethz.matsim.av.config.AVDispatcherConfig;
+import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.dispatcher.AVVehicleAssignmentEvent;
@@ -20,6 +20,8 @@ import ch.ethz.matsim.av.router.AVRouter;
 import ch.ethz.matsim.av.schedule.AVTask;
 
 public class SingleFIFODispatcher implements AVDispatcher {
+	static public final String TYPE = "SingleFIFO";
+	
 	final private SingleRideAppender appender;
 	final private Queue<AVVehicle> availableVehicles = new LinkedList<>();
 	final private Queue<AVRequest> pendingRequests = new LinkedList<>();
@@ -79,8 +81,9 @@ public class SingleFIFODispatcher implements AVDispatcher {
 		private EventsManager eventsManager;
 
 		@Override
-		public AVDispatcher createDispatcher(AVDispatcherConfig config, AVRouter router) {
-			return new SingleFIFODispatcher(eventsManager, new SingleRideAppender(config, router, travelTime));
+		public AVDispatcher createDispatcher(OperatorConfig operatorConfig, AVRouter router) {
+			return new SingleFIFODispatcher(eventsManager,
+					new SingleRideAppender(operatorConfig.getTimingConfig(), router, travelTime));
 		}
 	}
 }

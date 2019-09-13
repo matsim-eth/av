@@ -1,12 +1,13 @@
 package ch.ethz.matsim.av.dispatcher.multi_od_heuristic;
 
-import ch.ethz.matsim.av.config.AVDispatcherConfig;
-import ch.ethz.matsim.av.config.AVTimingParameters;
-import ch.ethz.matsim.av.data.AVVehicle;
-import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.aggregation.AggregatedRequest;
-import ch.ethz.matsim.av.passenger.AVRequest;
-import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
-import ch.ethz.matsim.av.schedule.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.contrib.dvrp.path.VrpPath;
 import org.matsim.contrib.dvrp.path.VrpPathWithTravelData;
@@ -17,28 +18,29 @@ import org.matsim.contrib.dvrp.schedule.Task;
 import org.matsim.core.router.util.LeastCostPathCalculator.Path;
 import org.matsim.core.router.util.TravelTime;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
+import ch.ethz.matsim.av.config.operator.TimingConfig;
+import ch.ethz.matsim.av.data.AVVehicle;
+import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.aggregation.AggregatedRequest;
+import ch.ethz.matsim.av.passenger.AVRequest;
+import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
+import ch.ethz.matsim.av.schedule.AVDriveTask;
+import ch.ethz.matsim.av.schedule.AVDropoffTask;
+import ch.ethz.matsim.av.schedule.AVPickupTask;
+import ch.ethz.matsim.av.schedule.AVStayTask;
+import ch.ethz.matsim.av.schedule.AVTask;
 
 public class ParallelAggregateRideAppender implements AggregateRideAppender {
     final private ParallelLeastCostPathCalculator router;
     final private TravelTime travelTime;
-    final private AVDispatcherConfig config;
+    final private TimingConfig timing;
     final private TravelTimeEstimator travelTimeEstimator;
-    final private AVTimingParameters timing;
     private List<AppendTask> tasks = new LinkedList<>();
 
-    public ParallelAggregateRideAppender(AVDispatcherConfig config, ParallelLeastCostPathCalculator router, TravelTime travelTime, TravelTimeEstimator travelTimeEstimator) {
+    public ParallelAggregateRideAppender(TimingConfig timing, ParallelLeastCostPathCalculator router, TravelTime travelTime, TravelTimeEstimator travelTimeEstimator) {
         this.router = router;
         this.travelTime = travelTime;
-        this.config = config;
+        this.timing = timing;
         this.travelTimeEstimator = travelTimeEstimator;
-        this.timing = config.getParent().getTimingParameters();
     }
 
     private class AppendTask {
