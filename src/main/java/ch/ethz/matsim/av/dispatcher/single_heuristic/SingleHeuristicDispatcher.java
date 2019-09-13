@@ -187,10 +187,6 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
 
 	static public class Factory implements AVDispatcherFactory {
 		@Inject
-		@Named(AVModule.AV_MODE)
-		private Network network;
-
-		@Inject
 		private EventsManager eventsManager;
 
 		@Inject
@@ -198,7 +194,7 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
 		private TravelTime travelTime;
 
 		@Override
-		public AVDispatcher createDispatcher(OperatorConfig operatorConfig, AVRouter router) {
+		public AVDispatcher createDispatcher(OperatorConfig operatorConfig, AVRouter router, Network network) {
 			double replanningInterval = Double.parseDouble(
 					operatorConfig.getDispatcherConfig().getParams().getOrDefault("replanningInterval", "10.0"));
 

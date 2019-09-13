@@ -7,6 +7,6 @@ public class AVConfigConsistencyChecker implements ConfigConsistencyChecker {
 	@Override
 	public void checkConsistency(Config config) {
 		AVConfigGroup configGroup = AVConfigGroup.getOrCreate(config);
-		configGroup.getOperators();
+		configGroup.getOperatorConfigs();
 	}
 }

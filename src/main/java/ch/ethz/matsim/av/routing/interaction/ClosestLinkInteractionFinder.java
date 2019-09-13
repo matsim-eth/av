@@ -5,10 +5,16 @@ import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.router.LinkWrapperFacility;
 import org.matsim.facilities.Facility;
 
-public class ModeInteractionFinder implements AVInteractionFinder {
+import com.google.inject.Singleton;
+
+import ch.ethz.matsim.av.config.operator.OperatorConfig;
+
+public class ClosestLinkInteractionFinder implements AVInteractionFinder {
+	static public final String TYPE = "ClosestLink";
+
 	private final Network network;
 
-	public ModeInteractionFinder(Network network) {
+	public ClosestLinkInteractionFinder(Network network) {
 		this.network = network;
 	}
 
@@ -26,7 +32,15 @@ public class ModeInteractionFinder implements AVInteractionFinder {
 		if (baseFacility.getCoord() == null) {
 			throw new IllegalStateException("Trying to find closest interaction facility, but not coords are given.");
 		}
-		
+
 		return new LinkWrapperFacility(NetworkUtils.getNearestLink(network, baseFacility.getCoord()));
+	}
+
+	@Singleton
+	public static class Factory implements AVInteractionFinderFactory {
+		@Override
+		public AVInteractionFinder createInteractionFinder(OperatorConfig operatorConfig, Network network) {
+			return new ClosestLinkInteractionFinder(network);
+		}
 	}
 }

@@ -11,7 +11,6 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.network.NetworkUtils;
-import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.utils.collections.QuadTree;
 
@@ -36,7 +35,7 @@ import ch.ethz.matsim.av.schedule.AVTask;
 
 public class MultiODHeuristic implements AVDispatcher {
 	public final static String TYPE = "MultiOD";
-	
+
 	private boolean reoptimize = true;
 	private double nextReplanningTimestamp = 0.0;
 
@@ -233,39 +232,28 @@ public class MultiODHeuristic implements AVDispatcher {
 
 	static public class Factory implements AVDispatcherFactory {
 		@Inject
-		@Named(AVModule.AV_MODE)
-		private Network network;
-
-		@Inject
 		private EventsManager eventsManager;
-
-		@Inject
-		@Named(AVModule.AV_MODE)
-		private LeastCostPathCalculator router;
 
 		@Inject
 		@Named(AVModule.AV_MODE)
 		private TravelTime travelTime;
 
 		@Override
-		public AVDispatcher createDispatcher(OperatorConfig operatorConfig, AVRouter parallelRouter) {
+		public AVDispatcher createDispatcher(OperatorConfig operatorConfig, AVRouter parallelRouter, Network network) {
 			DispatcherConfig dispatcherConfig = operatorConfig.getDispatcherConfig();
 
 			double replanningInterval = Double
 					.parseDouble(dispatcherConfig.getParams().getOrDefault("replanningInterval", "10.0"));
 			double threshold = Double
 					.parseDouble(dispatcherConfig.getParams().getOrDefault("maximumTimeRadius", "600.0"));
-			boolean useParallelImplementation = Boolean
-					.parseBoolean(dispatcherConfig.getParams().getOrDefault("useParallelImplementation", "true"));
 			long numberOfSeats = Long
 					.parseLong(operatorConfig.getGeneratorConfig().getParams().getOrDefault("numberOfSeats", "4"));
 
 			FactorTravelTimeEstimator estimator = new FactorTravelTimeEstimator(threshold);
 
-			return new MultiODHeuristic(operatorConfig.getId(), eventsManager, network, useParallelImplementation
-					? new ParallelAggregateRideAppender(operatorConfig.getTimingConfig(), parallelRouter, travelTime,
-							estimator)
-					: new SerialAggregateRideAppender(operatorConfig.getTimingConfig(), router, travelTime, estimator),
+			return new MultiODHeuristic(operatorConfig.getId(), eventsManager, network,
+					new ParallelAggregateRideAppender(operatorConfig.getTimingConfig(), parallelRouter, travelTime,
+							estimator),
 					estimator, replanningInterval, numberOfSeats);
 		}
 	}

@@ -3,7 +3,6 @@ package ch.ethz.matsim.av;
 import java.util.Iterator;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
@@ -13,7 +12,6 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.contrib.dvrp.run.DvrpConfigGroup;
 import org.matsim.contrib.dvrp.run.DvrpModule;
-import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
@@ -23,13 +21,12 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.utils.geometry.CoordUtils;
 
 import ch.ethz.matsim.av.config.AVConfigGroup;
-import ch.ethz.matsim.av.config.AVConfigGroup.AccessEgressType;
 import ch.ethz.matsim.av.config.AVScoringParameterSet;
 import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
-import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.framework.AVQSimModule;
+import ch.ethz.matsim.av.routing.interaction.LinkAttributeInteractionFinder;
 import ch.ethz.matsim.av.scenario.TestScenarioAnalyzer;
 import ch.ethz.matsim.av.scenario.TestScenarioGenerator;
 
@@ -37,12 +34,12 @@ public class RunAVExampleTest {
 	@Test
 	public void testAVExample() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
-		
+
 		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
 		scoringParams.setSubpopulation(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
 		avConfigGroup.addScoringParameters(scoringParams);
-		
+
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);
 		operatorConfig.getPricingConfig().setPricePerKm(0.48);
@@ -74,12 +71,12 @@ public class RunAVExampleTest {
 	@Test
 	public void testStuckScoring() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
-		
+
 		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
 		scoringParams.setSubpopulation(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
 		avConfigGroup.addScoringParameters(scoringParams);
-		
+
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getGeneratorConfig().setNumberOfVehicles(0);
 		avConfigGroup.addOperator(operatorConfig);
@@ -104,12 +101,12 @@ public class RunAVExampleTest {
 	@Test
 	public void testMultiOD() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
-		
+
 		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
 		scoringParams.setSubpopulation(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
 		avConfigGroup.addScoringParameters(scoringParams);
-		
+
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getDispatcherConfig().setType(MultiODHeuristic.TYPE);
 		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);
@@ -142,19 +139,19 @@ public class RunAVExampleTest {
 	@Test
 	public void testAVExampleWithAccessEgress() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
-		
+
 		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
 		scoringParams.setSubpopulation(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
 		avConfigGroup.addScoringParameters(scoringParams);
-		
+
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);
 		operatorConfig.getPricingConfig().setPricePerKm(0.48);
 		operatorConfig.getPricingConfig().setSpatialBillingInterval(1000.0);
 		avConfigGroup.addOperator(operatorConfig);
-		
-		avConfigGroup.setAccessEgressType(AccessEgressType.MODE);
+
+		avConfigGroup.setUseAccessAgress(true);
 
 		Config config = ConfigUtils.createConfig(avConfigGroup, new DvrpConfigGroup());
 		Scenario scenario = TestScenarioGenerator.generateWithAVLegs(config);
@@ -198,20 +195,21 @@ public class RunAVExampleTest {
 	@Test
 	public void testAVExampleWithAccessEgressAttribute() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
-		
+
 		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
 		scoringParams.setSubpopulation(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
 		avConfigGroup.addScoringParameters(scoringParams);
-		
+
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);
 		operatorConfig.getPricingConfig().setPricePerKm(0.48);
 		operatorConfig.getPricingConfig().setSpatialBillingInterval(1000.0);
+		operatorConfig.getInteractionFinderConfig().setType(LinkAttributeInteractionFinder.TYPE);
+		operatorConfig.getInteractionFinderConfig().getParams().put("allowedLinkAttribute", "avflag");
 		avConfigGroup.addOperator(operatorConfig);
-		
-		avConfigGroup.setAccessEgressType(AccessEgressType.ATTRIBUTE);
-		avConfigGroup.setAccessEgressLinkFlag("avflag");
+
+		avConfigGroup.setUseAccessAgress(true);
 
 		Config config = ConfigUtils.createConfig(avConfigGroup, new DvrpConfigGroup());
 		Scenario scenario = TestScenarioGenerator.generateWithAVLegs(config);
@@ -230,7 +228,7 @@ public class RunAVExampleTest {
 		modeParams.setMonetaryDistanceRate(0.0);
 		modeParams.setMarginalUtilityOfTraveling(8.86);
 		modeParams.setConstant(0.0);
-		
+
 		config.qsim().setEndTime(40.0 * 3600.0);
 		config.qsim().setSimStarttimeInterpretation(StarttimeInterpretation.onlyUseStarttime);
 

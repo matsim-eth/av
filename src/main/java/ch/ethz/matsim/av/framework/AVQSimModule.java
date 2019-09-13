@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
 import org.matsim.contrib.dvrp.fleet.Fleet;
 import org.matsim.contrib.dvrp.optimizer.VrpOptimizer;
@@ -86,10 +87,11 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 	@Provides
 	@Singleton
 	Map<Id<AVOperator>, AVDispatcher> provideDispatchers(Map<String, AVDispatcher.AVDispatcherFactory> factories,
-			Map<Id<AVOperator>, AVRouter> routers, AVConfigGroup config, Map<Id<AVOperator>, List<AVVehicle>> vehicles) {
+			Map<Id<AVOperator>, AVRouter> routers, AVConfigGroup config, Map<Id<AVOperator>, List<AVVehicle>> vehicles,
+			Map<Id<AVOperator>, Network> networks) {
 		Map<Id<AVOperator>, AVDispatcher> dispatchers = new HashMap<>();
 
-		for (OperatorConfig oc : config.getOperators().values()) {
+		for (OperatorConfig oc : config.getOperatorConfigs().values()) {
 			DispatcherConfig dc = oc.getDispatcherConfig();
 			String strategy = dc.getType();
 
@@ -98,9 +100,10 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 			}
 
 			AVRouter router = routers.get(oc.getId());
+			Network network = networks.get(oc.getId());
 
 			AVDispatcher.AVDispatcherFactory factory = factories.get(strategy);
-			AVDispatcher dispatcher = factory.createDispatcher(oc, router);
+			AVDispatcher dispatcher = factory.createDispatcher(oc, router, network);
 
 			for (AVVehicle vehicle : vehicles.get(oc.getId())) {
 				dispatcher.addVehicle(vehicle);

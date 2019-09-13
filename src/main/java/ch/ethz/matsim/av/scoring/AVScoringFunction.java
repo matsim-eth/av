@@ -68,7 +68,7 @@ public class AVScoringFunction implements SumScoringFunction.ArbitraryEventScori
 	}
 
 	private PricingConfig getPricingConfig(Id<AVOperator> id) {
-		for (OperatorConfig oc : config.getOperators().values()) {
+		for (OperatorConfig oc : config.getOperatorConfigs().values()) {
 			if (oc.getId().equals(id)) {
 				return oc.getPricingConfig();
 			}
