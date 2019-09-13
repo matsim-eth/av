@@ -102,8 +102,6 @@ public class SerialAggregateRideAppender implements AggregateRideAppender {
             current = closestRequest.getToLink();
         }
 
-        Link finalLink = current;
-
         Link currentLink = stayTask.getLink();
         double currentTime = startTime;
         AVTask currentTask = stayTask;

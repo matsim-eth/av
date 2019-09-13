@@ -53,10 +53,6 @@ public class ParallelAggregateRideAppender implements AggregateRideAppender {
         public List<Future<Path>> dropoffPaths = new LinkedList<>();
 
         public double time;
-
-        public boolean isDone() {
-            return pickupPaths.stream().filter(p -> p != null && !p.isDone()).count() + dropoffPaths.stream().filter(p -> p != null && !p.isDone()).count() == 0;
-        }
     }
 
     private class OrderedRequest {
