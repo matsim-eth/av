@@ -23,6 +23,12 @@ public class OperatorConfig extends ReflectiveConfigGroup {
 
 	public OperatorConfig() {
 		super(GROUP_NAME);
+		
+		addParameterSet(dispatcherConfig);
+		addParameterSet(generatorConfig);
+		addParameterSet(timingConfig);
+		addParameterSet(pricingConfig);
+		addParameterSet(routerConfig);
 	}
 
 	@StringGetter(ID)
