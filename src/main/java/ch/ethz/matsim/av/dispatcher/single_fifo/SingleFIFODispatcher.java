@@ -3,6 +3,7 @@ package ch.ethz.matsim.av.dispatcher.single_fifo;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.router.util.TravelTime;
 
@@ -81,7 +82,7 @@ public class SingleFIFODispatcher implements AVDispatcher {
 		private EventsManager eventsManager;
 
 		@Override
-		public AVDispatcher createDispatcher(OperatorConfig operatorConfig, AVRouter router) {
+		public AVDispatcher createDispatcher(OperatorConfig operatorConfig, AVRouter router, Network network) {
 			return new SingleFIFODispatcher(eventsManager,
 					new SingleRideAppender(operatorConfig.getTimingConfig(), router, travelTime));
 		}

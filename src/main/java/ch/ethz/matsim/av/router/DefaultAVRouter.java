@@ -27,7 +27,7 @@ import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
  */
 public class DefaultAVRouter implements AVRouter {
 	public final static String TYPE = "Default";
-	
+
 	final private ParallelLeastCostPathCalculator delegate;
 
 	DefaultAVRouter(ParallelLeastCostPathCalculator delegate) {
@@ -48,17 +48,16 @@ public class DefaultAVRouter implements AVRouter {
 	public static class Factory implements AVRouter.Factory {
 		@Inject
 		AVConfigGroup config;
+
 		@Inject
 		@Named(AVModule.AV_MODE)
 		TravelTime travelTime;
-		@Inject
-		@Named(AVModule.AV_MODE)
-		Network network;
 
 		@Override
-		public AVRouter createRouter(RouterConfig routerConfig) {
-			return new DefaultAVRouter(DefaultParallelLeastCostPathCalculator.create((int) config.getNumberOfParallelRouters(),
-					new DijkstraFactory(), network, new OnlyTimeDependentTravelDisutility(travelTime), travelTime));
+		public AVRouter createRouter(RouterConfig routerConfig, Network network) {
+			return new DefaultAVRouter(DefaultParallelLeastCostPathCalculator.create(
+					(int) config.getNumberOfParallelRouters(), new DijkstraFactory(), network,
+					new OnlyTimeDependentTravelDisutility(travelTime), travelTime));
 		}
 	}
 }

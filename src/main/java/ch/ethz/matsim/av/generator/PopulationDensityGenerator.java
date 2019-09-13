@@ -16,16 +16,14 @@ import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
 import org.matsim.facilities.ActivityFacilities;
 
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
 
 import ch.ethz.matsim.av.config.operator.GeneratorConfig;
 import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.data.AVVehicle;
-import ch.ethz.matsim.av.framework.AVModule;
 
 public class PopulationDensityGenerator implements AVGenerator {
 	static public final String TYPE = "PopulationDensity";
-	
+
 	private final Random random;
 	private final long numberOfVehicles;
 	private final int numberOfSeats;
@@ -102,14 +100,12 @@ public class PopulationDensityGenerator implements AVGenerator {
 	static public class Factory implements AVGenerator.AVGeneratorFactory {
 		@Inject
 		private Population population;
-		@Inject
-		@Named(AVModule.AV_MODE)
-		private Network network;
+
 		@Inject
 		private ActivityFacilities facilities;
 
 		@Override
-		public AVGenerator createGenerator(OperatorConfig operatorConfig) {
+		public AVGenerator createGenerator(OperatorConfig operatorConfig, Network network) {
 			GeneratorConfig generatorConfig = operatorConfig.getGeneratorConfig();
 
 			String prefix = "av_" + operatorConfig.getId().toString() + "_";

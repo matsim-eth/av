@@ -2,6 +2,7 @@ package ch.ethz.matsim.av.routing;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Activity;
@@ -25,25 +26,34 @@ public class AVRoutingModule implements RoutingModule {
 
 	private final AVOperatorChoiceStrategy choiceStrategy;
 	private final AVRouteFactory routeFactory;
-	private final AVInteractionFinder interactionFinder;
 	private final RoutingModule walkRoutingModule;
 	private final PopulationFactory populationFactory;
+
+	private Map<Id<AVOperator>, AVInteractionFinder> interactionFinders;
 	private final boolean useAccessEgress;
 
 	public AVRoutingModule(AVOperatorChoiceStrategy choiceStrategy, AVRouteFactory routeFactory,
-			AVInteractionFinder interactionFinder, PopulationFactory populationFactory, RoutingModule walkRoutingModule,
-			boolean useAccessEgress) {
+			Map<Id<AVOperator>, AVInteractionFinder> interactionFinders, PopulationFactory populationFactory,
+			RoutingModule walkRoutingModule, boolean useAccessEgress) {
 		this.choiceStrategy = choiceStrategy;
 		this.routeFactory = routeFactory;
-		this.interactionFinder = interactionFinder;
+		this.interactionFinders = interactionFinders;
 		this.walkRoutingModule = walkRoutingModule;
 		this.populationFactory = populationFactory;
 		this.useAccessEgress = useAccessEgress;
 	}
-
+	
 	@Override
 	public List<? extends PlanElement> calcRoute(Facility fromFacility, Facility toFacility, double departureTime,
 			Person person) {
+		Id<AVOperator> operatorId = choiceStrategy.chooseRandomOperator();
+		return calcRoute(fromFacility, toFacility, departureTime, person, operatorId);
+	}
+
+	public List<? extends PlanElement> calcRoute(Facility fromFacility, Facility toFacility, double departureTime,
+			Person person, Id<AVOperator> operatorId) {
+		AVInteractionFinder interactionFinder = interactionFinders.get(operatorId);
+		
 		Facility pickupFacility = interactionFinder.findPickupFacility(fromFacility, departureTime);
 		Facility dropoffFacility = interactionFinder.findDropoffFacility(toFacility, departureTime);
 
@@ -78,8 +88,6 @@ public class AVRoutingModule implements RoutingModule {
 		}
 
 		AVRoute route = routeFactory.createRoute(pickupFacility.getLinkId(), dropoffFacility.getLinkId());
-
-		Id<AVOperator> operatorId = choiceStrategy.chooseRandomOperator();
 		route.setOperatorId(operatorId);
 		route.setDistance(Double.NaN);
 		route.setTravelTime(Double.NaN);

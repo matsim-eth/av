@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.contrib.dvrp.optimizer.Request;
 import org.matsim.contrib.dvrp.passenger.PassengerRequest;
@@ -30,6 +31,9 @@ public class AVRequestCreator implements PassengerRequestCreator {
 	@Inject
 	Map<Id<AVOperator>, AVDispatcher> dispatchers;
 
+	@Inject
+	Map<Id<AVOperator>, Network> networks;
+
 	@Override
 	public PassengerRequest createRequest(Id<Request> id, MobsimPassengerAgent passenger, Link pickupLink,
 			Link dropoffLink, double departureTime, double submissionTime) {
@@ -53,7 +57,21 @@ public class AVRequestCreator implements PassengerRequestCreator {
 			throw new IllegalStateException("Operator '" + route.getOperatorId().toString() + "' does not exist.");
 		}
 
-		return new AVRequest(id, passenger, pickupLink, dropoffLink, departureTime, submissionTime, route, operator,
-				dispatchers.get(route.getOperatorId()));
+		Network network = networks.get(route.getOperatorId());
+		Link operatorPickupLink = network.getLinks().get(pickupLink.getId());
+		Link operatorDropoffLink = network.getLinks().get(dropoffLink.getId());
+
+		if (operatorPickupLink == null) {
+			throw new IllegalStateException(String.format("Pickup link does not exist in network of operator %s: %s",
+					operator.getId(), pickupLink.getId()));
+		}
+
+		if (operatorDropoffLink == null) {
+			throw new IllegalStateException(String.format("Dropoff link does not exist in network of operator %s: %s",
+					operator.getId(), dropoffLink.getId()));
+		}
+
+		return new AVRequest(id, passenger, operatorPickupLink, operatorDropoffLink, departureTime, submissionTime,
+				route, operator, dispatchers.get(route.getOperatorId()));
 	}
 }

@@ -1,5 +1,7 @@
 package ch.ethz.matsim.av.dispatcher;
 
+import org.matsim.api.core.v01.network.Network;
+
 import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.passenger.AVRequest;
@@ -15,6 +17,6 @@ public interface AVDispatcher {
 	void addVehicle(AVVehicle vehicle);
 
 	interface AVDispatcherFactory {
-		AVDispatcher createDispatcher(OperatorConfig operatorConfig, AVRouter router);
+		AVDispatcher createDispatcher(OperatorConfig operatorConfig, AVRouter router, Network network);
 	}
 }

@@ -16,18 +16,13 @@ public class AVConfigGroup extends ReflectiveConfigGroup {
 	static final public String GROUP_NAME = "av";
 
 	static final public String NUMBER_OF_PARALLEL_ROUTERS = "numberOfParallelRouters";
-
-	static final public String ACCESS_EGRESS_TYPE = "accessEgressType";
-	static final public String ACCESS_EGRESS_LINK_FLAG = "accessEgressLinkFlag";
-
-	public enum AccessEgressType {
-		NONE, MODE, ATTRIBUTE
-	}
+	static final public String ALLOWED_LINK_MODE = "allowedLinkMode";
+	static final public String USE_ACCESS_EGRESS = "useAccessEgress";
 
 	private long parallelRouters = 4;
 
-	private AccessEgressType accessEgressType = AccessEgressType.NONE;
-	private String accessEgressLinkFlag = "avAccessEgress";
+	private boolean useAccessEgress = false;
+	private String allowedLinkMode = null;
 
 	public AVConfigGroup() {
 		super(GROUP_NAME);
@@ -45,7 +40,7 @@ public class AVConfigGroup extends ReflectiveConfigGroup {
 		throw new IllegalStateException("Unknown parameter set in AV config: " + type);
 	}
 
-	public Map<Id<AVOperator>, OperatorConfig> getOperators() {
+	public Map<Id<AVOperator>, OperatorConfig> getOperatorConfigs() {
 		Map<Id<AVOperator>, OperatorConfig> map = new HashMap<>();
 
 		for (ConfigGroup _operator : getParameterSets(OperatorConfig.GROUP_NAME)) {
@@ -62,7 +57,7 @@ public class AVConfigGroup extends ReflectiveConfigGroup {
 	}
 
 	public void addOperator(OperatorConfig operator) {
-		if (getOperators().containsKey(operator.getId())) {
+		if (getOperatorConfigs().containsKey(operator.getId())) {
 			throw new IllegalStateException("Another operator with this ID exists already: " + operator.getId());
 		}
 
@@ -75,7 +70,7 @@ public class AVConfigGroup extends ReflectiveConfigGroup {
 	}
 
 	public OperatorConfig getOperatorConfig(Id<AVOperator> id) {
-		OperatorConfig operator = getOperators().get(id);
+		OperatorConfig operator = getOperatorConfigs().get(id);
 
 		if (operator == null) {
 			throw new IllegalStateException("Operator does not exist: " + id);
@@ -142,24 +137,24 @@ public class AVConfigGroup extends ReflectiveConfigGroup {
 		this.parallelRouters = parallelRouters;
 	}
 
-	@StringGetter(ACCESS_EGRESS_TYPE)
-	public AccessEgressType getAccessEgressType() {
-		return accessEgressType;
+	@StringGetter(USE_ACCESS_EGRESS)
+	public boolean getUseAccessEgress() {
+		return useAccessEgress;
 	}
 
-	@StringSetter(ACCESS_EGRESS_TYPE)
-	public void setAccessEgressType(AccessEgressType accessEgressType) {
-		this.accessEgressType = accessEgressType;
+	@StringSetter(USE_ACCESS_EGRESS)
+	public void setUseAccessAgress(boolean useAccessEgress) {
+		this.useAccessEgress = useAccessEgress;
 	}
 
-	@StringGetter(ACCESS_EGRESS_LINK_FLAG)
-	public String getAccessEgressLinkFlag() {
-		return accessEgressLinkFlag;
+	@StringGetter(ALLOWED_LINK_MODE)
+	public String getAllowedLinkMode() {
+		return allowedLinkMode;
 	}
 
-	@StringSetter(ACCESS_EGRESS_LINK_FLAG)
-	public void setAccessEgressLinkFlag(String accessEgressLinkFlag) {
-		this.accessEgressLinkFlag = accessEgressLinkFlag;
+	@StringSetter(ALLOWED_LINK_MODE)
+	public void setAllowedLinkMode(String allowedLinkMode) {
+		this.allowedLinkMode = allowedLinkMode;
 	}
 
 	@Override
