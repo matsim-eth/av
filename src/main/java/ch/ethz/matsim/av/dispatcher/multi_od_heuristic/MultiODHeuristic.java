@@ -62,8 +62,6 @@ public class MultiODHeuristic implements AVDispatcher {
 	final private AggregateRideAppender appender;
 	final private FactorTravelTimeEstimator estimator;
 
-	private double now;
-
 	public MultiODHeuristic(Id<AVOperator> operatorId, EventsManager eventsManager, Network network,
 			AggregateRideAppender appender, FactorTravelTimeEstimator estimator, double replanningInterval,
 			long numberOfSeats) {
