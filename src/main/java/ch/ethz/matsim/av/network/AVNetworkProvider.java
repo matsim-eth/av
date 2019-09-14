@@ -82,6 +82,7 @@ public class AVNetworkProvider {
 			
 			WaitingTimeConfig waitingTimeConfig = operatorConfig.getWaitingTimeConfig();
 			attributes.add(waitingTimeConfig.getConstantWaitingTimeLinkAttribute());
+			attributes.add(waitingTimeConfig.getEstimationLinkAttribute());
 		}
 
 		for (Link link : filteredNetwork.getLinks().values()) {
