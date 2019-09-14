@@ -1,5 +1,6 @@
 package ch.ethz.matsim.av.framework;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,6 +29,7 @@ import com.google.inject.Singleton;
 
 import ch.ethz.matsim.av.config.AVConfigGroup;
 import ch.ethz.matsim.av.config.operator.DispatcherConfig;
+import ch.ethz.matsim.av.config.operator.GeneratorConfig;
 import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.data.AVData;
 import ch.ethz.matsim.av.data.AVOperator;
@@ -134,15 +136,12 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 		Map<Id<AVOperator>, List<AVVehicle>> vehicles = new HashMap<>();
 
 		for (AVOperator operator : operators.values()) {
-			LinkedList<AVVehicle> operatorList = new LinkedList<>();
-
 			AVGenerator generator = generators.get(operator.getId());
-
-			while (generator.hasNext()) {
-				AVVehicle vehicle = generator.next();
+			List<AVVehicle> operatorList = generator.generateVehicles();
+			
+			for (AVVehicle vehicle : operatorList) {
 				vehicle.setOperator(operator);
-				operatorList.add(vehicle);
-
+				
 				if (Double.isFinite(vehicle.getServiceEndTime())) {
 					throw new IllegalStateException("AV vehicles must have infinite service time");
 				}
@@ -152,6 +151,31 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 		}
 
 		return vehicles;
+	}
+	
+	@Provides
+	@Singleton
+	Map<Id<AVOperator>, AVGenerator> provideGenerators(Map<String, AVGenerator.AVGeneratorFactory> factories,
+			AVConfigGroup config, Map<Id<AVOperator>, Network> networks) {
+		Map<Id<AVOperator>, AVGenerator> generators = new HashMap<>();
+
+		for (OperatorConfig oc : config.getOperatorConfigs().values()) {
+			GeneratorConfig gc = oc.getGeneratorConfig();
+			String strategy = gc.getType();
+
+			if (!factories.containsKey(strategy)) {
+				throw new IllegalArgumentException("Generator strategy '" + strategy + "' is not registered.");
+			}
+
+			Network network = networks.get(oc.getId());
+
+			AVGenerator.AVGeneratorFactory factory = factories.get(strategy);
+			AVGenerator generator = factory.createGenerator(oc, network);
+
+			generators.put(oc.getId(), generator);
+		}
+
+		return generators;
 	}
 
 	@Provides

@@ -171,27 +171,19 @@ public class AVPickupDropoffTest {
 	static private class SingleVehicleGenerator implements AVGenerator {
 		private final int capacity;
 		private final Link link;
-		private boolean created = false;
 
 		public SingleVehicleGenerator(Link link, int capacity) {
 			this.link = link;
 			this.capacity = capacity;
 		}
-
+		
 		@Override
-		public boolean hasNext() {
-			return !created;
-		}
-
-		@Override
-		public AVVehicle next() {
-			created = true;
-
+		public List<AVVehicle> generateVehicles() {
 			VehicleType vehicleType = VehicleUtils.getDefaultVehicleType();
 			vehicleType.getCapacity().setSeats(capacity);
 
-			return new AVVehicle(Id.create("vehicle", DvrpVehicle.class), link, 0.0, Double.POSITIVE_INFINITY,
-					vehicleType);
+			return Collections.singletonList(new AVVehicle(Id.create("vehicle", DvrpVehicle.class), link, 0.0, Double.POSITIVE_INFINITY,
+					vehicleType));
 		}
 	}
 
