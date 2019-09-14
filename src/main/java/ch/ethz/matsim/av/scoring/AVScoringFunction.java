@@ -6,7 +6,7 @@ import org.matsim.api.core.v01.events.PersonDepartureEvent;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.core.scoring.SumScoringFunction;
 
-import ch.ethz.matsim.av.cost.PriceCalculator;
+import ch.ethz.matsim.av.financial.PriceCalculator;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.schedule.AVTransitEvent;
 
@@ -71,9 +71,13 @@ public class AVScoringFunction implements SumScoringFunction.ArbitraryEventScori
 	static int noPricingWarningCount = 100;
 
 	private double computePricingScoring(AVScoringTrip trip) {
-		double costs = priceCalculator.calculate_MU(trip.getOperatorId(), trip.getDistance(),
-				trip.getInVehicleTravelTime());
-		return -costs * marginalUtilityOfMoney;
+		if (!Double.isNaN(trip.getPrice())) {
+			return -trip.getPrice() * marginalUtilityOfMoney;
+		} else {
+			double price = priceCalculator.calculatePrice(trip.getOperatorId(), trip.getDistance(),
+					trip.getInVehicleTravelTime());
+			return -price * marginalUtilityOfMoney;
+		}
 	}
 
 	@Override

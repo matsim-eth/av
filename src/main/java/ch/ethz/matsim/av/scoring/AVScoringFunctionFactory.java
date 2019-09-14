@@ -12,7 +12,7 @@ import org.matsim.core.scoring.functions.ScoringParametersForPerson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import ch.ethz.matsim.av.cost.PriceCalculator;
+import ch.ethz.matsim.av.financial.PriceCalculator;
 import ch.ethz.matsim.av.framework.AVModule;
 
 @Singleton

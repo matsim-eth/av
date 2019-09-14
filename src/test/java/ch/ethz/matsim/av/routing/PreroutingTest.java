@@ -70,6 +70,7 @@ public class PreroutingTest {
 					Assert.assertTrue(Double.isFinite(route.getDistance()));
 					Assert.assertTrue(Double.isFinite(route.getWaitingTime()));
 					Assert.assertTrue(Double.isFinite(route.getInVehicleTime()));
+					Assert.assertTrue(Double.isFinite(route.getPrice()));
 				}
 			}
 		}

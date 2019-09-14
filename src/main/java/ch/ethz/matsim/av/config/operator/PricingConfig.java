@@ -28,7 +28,7 @@ public class PricingConfig extends ReflectiveConfigGroup {
 	}
 
 	@StringGetter(PRICE_PER_KM)
-	public double getStaticPricePerKm() {
+	public double getPricePerKm() {
 		return pricePerKm;
 	}
 
@@ -38,7 +38,7 @@ public class PricingConfig extends ReflectiveConfigGroup {
 	}
 
 	@StringGetter(PRICE_PER_MIN)
-	public double getStaticPricePerMin() {
+	public double getPricePerMin() {
 		return pricePerMin;
 	}
 
@@ -48,7 +48,7 @@ public class PricingConfig extends ReflectiveConfigGroup {
 	}
 
 	@StringGetter(PRICE_PER_TRIP)
-	public double getStaticPricePerTrip() {
+	public double getPricePerTrip() {
 		return pricePerTrip;
 	}
 

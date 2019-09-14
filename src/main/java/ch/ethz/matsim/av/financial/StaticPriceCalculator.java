@@ -1,4 +1,4 @@
-package ch.ethz.matsim.av.cost;
+package ch.ethz.matsim.av.financial;
 
 import java.util.Map;
 
@@ -15,7 +15,7 @@ public class StaticPriceCalculator implements PriceCalculator {
 	}
 
 	@Override
-	public double calculate_MU(Id<AVOperator> operatorId, double travelDistance_m, double traveTime_s) {
+	public double calculatePrice(Id<AVOperator> operatorId, double travelDistance_m, double traveTime_s) {
 		PricingConfig priceStructure = pricingConfigs.get(operatorId);
 
 		double billableDistance = Math.max(1, Math.ceil(travelDistance_m / priceStructure.getSpatialBillingInterval()))
@@ -26,9 +26,9 @@ public class StaticPriceCalculator implements PriceCalculator {
 
 		double price = 0.0;
 
-		price += (billableDistance / 1000.0) * priceStructure.getStaticPricePerKm();
-		price += (billableTravelTime / 60.0) * priceStructure.getStaticPricePerMin();
-		price += priceStructure.getStaticPricePerTrip();
+		price += (billableDistance / 1000.0) * priceStructure.getPricePerKm();
+		price += (billableTravelTime / 60.0) * priceStructure.getPricePerMin();
+		price += priceStructure.getPricePerTrip();
 
 		return price;
 	}

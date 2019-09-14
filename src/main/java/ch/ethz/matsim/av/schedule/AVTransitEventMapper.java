@@ -13,6 +13,7 @@ public class AVTransitEventMapper implements CustomEventMapper<AVTransitEvent> {
 		Id<Person> personId = Id.create(event.getAttributes().get("person"), Person.class);
 		Id<AVOperator> operatorId = Id.create(event.getAttributes().get("operator"), AVOperator.class);
 		double distance = Double.parseDouble(event.getAttributes().get("distance"));
-		return new AVTransitEvent(personId, operatorId, distance, event.getTime());
+		double price = Double.parseDouble(event.getAttributes().getOrDefault("price", "NaN"));
+		return new AVTransitEvent(personId, operatorId, distance, price, event.getTime());
 	}
 }

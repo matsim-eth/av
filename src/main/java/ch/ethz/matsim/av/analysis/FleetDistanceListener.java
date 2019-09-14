@@ -1,5 +1,7 @@
-package ch.ethz.matsim.av.cost;
+package ch.ethz.matsim.av.analysis;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -23,13 +25,13 @@ public class FleetDistanceListener
 	private final Map<Id<Vehicle>, Integer> passengers = new HashMap<>();
 	private final Map<Id<AVOperator>, OperatorData> data = new HashMap<>();
 
-	class OperatorData {
+	static public class OperatorData {
 		public int numberOfVehicles;
 		public double vehicleDistance_m;
 		public double passengerDistance_m;
 	}
 
-	public FleetDistanceListener(Set<Id<AVOperator>> operatorIds, Map<Id<AVOperator>, Network> networks) {
+	public FleetDistanceListener(Collection<Id<AVOperator>> operatorIds, Map<Id<AVOperator>, Network> networks) {
 		this.networks = networks;
 
 		for (Id<AVOperator> operatorId : operatorIds) {
@@ -102,6 +104,14 @@ public class FleetDistanceListener
 				operator.vehicleDistance_m += linkLength;
 			}
 		}
+	}
+
+	public Map<Id<AVOperator>, OperatorData> getData() {
+		return Collections.unmodifiableMap(data);
+	}
+
+	public OperatorData getData(Id<AVOperator> operatorId) {
+		return data.get(operatorId);
 	}
 
 	@Override
