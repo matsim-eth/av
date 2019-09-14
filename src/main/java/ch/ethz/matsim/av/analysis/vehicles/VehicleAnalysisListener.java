@@ -65,7 +65,7 @@ public class VehicleAnalysisListener implements PersonDepartureEventHandler, Per
 	@Override
 	public void handleEvent(LinkLeaveEvent event) {
 		if (event.getVehicleId().toString().startsWith("av:")) {
-			VehicleMovementItem movement = currentMovements.remove(event.getVehicleId());
+			VehicleMovementItem movement = currentMovements.get(event.getVehicleId());
 
 			if (movement == null) {
 				throw new IllegalStateException("Found link enter event without departure");
@@ -79,15 +79,7 @@ public class VehicleAnalysisListener implements PersonDepartureEventHandler, Per
 	public void handleEvent(PersonEntersVehicleEvent event) {
 		if (!event.getPersonId().toString().startsWith("av:")) {
 			if (event.getVehicleId().toString().startsWith("av:")) {
-				VehicleMovementItem movement = currentMovements.remove(event.getVehicleId());
-
-				if (movement == null) {
-					throw new IllegalStateException("Found person enter event without departure");
-				}
-
 				passengers.addPassenger(event.getVehicleId(), event.getPersonId());
-				movement.numberOfPassengers = Math.max(passengers.getNumberOfPassengers(event.getVehicleId()),
-						movement.numberOfPassengers);
 			}
 		}
 	}
@@ -96,12 +88,6 @@ public class VehicleAnalysisListener implements PersonDepartureEventHandler, Per
 	public void handleEvent(PersonLeavesVehicleEvent event) {
 		if (!event.getPersonId().toString().startsWith("av:")) {
 			if (event.getVehicleId().toString().startsWith("av:")) {
-				VehicleMovementItem movement = currentMovements.remove(event.getVehicleId());
-
-				if (movement == null) {
-					throw new IllegalStateException("Found person leave event without departure");
-				}
-
 				passengers.removePassenger(event.getVehicleId(), event.getPersonId());
 			}
 		}
@@ -120,6 +106,8 @@ public class VehicleAnalysisListener implements PersonDepartureEventHandler, Per
 
 			movement.destinationLink = linkFinder.getLink(event.getLinkId());
 			movement.arrivalTime = event.getTime();
+
+			movement.numberOfPassengers = passengers.getNumberOfPassengers(vehicleId);
 		}
 	}
 

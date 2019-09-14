@@ -42,13 +42,13 @@ public class PassengerAnalysisWriter {
 					String.valueOf(ride.operatorId), //
 					String.valueOf(ride.vehicleId), //
 
-					String.valueOf(ride.originLink.getId()), //
-					String.valueOf(ride.originLink.getCoord().getX()), //
-					String.valueOf(ride.originLink.getCoord().getY()), //
+					ride.originLink == null ? "null" : String.valueOf(ride.originLink.getId()), //
+					ride.originLink == null ? "NaN" : String.valueOf(ride.originLink.getCoord().getX()), //
+					ride.originLink == null ? "NaN" : String.valueOf(ride.originLink.getCoord().getY()), //
 
-					String.valueOf(ride.destinationLink.getId()), //
-					String.valueOf(ride.destinationLink.getCoord().getX()), //
-					String.valueOf(ride.destinationLink.getCoord().getY()), //
+					ride.destinationLink == null ? "null" : String.valueOf(ride.destinationLink.getId()), //
+					ride.destinationLink == null ? "NaN" : String.valueOf(ride.destinationLink.getCoord().getX()), //
+					ride.destinationLink == null ? "NaN" : String.valueOf(ride.destinationLink.getCoord().getY()), //
 
 					String.valueOf(ride.departureTime), //
 					String.valueOf(ride.arrivalTime), //

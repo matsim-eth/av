@@ -26,6 +26,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
+import ch.ethz.matsim.av.analysis.simulation.AnalysisOutputListener;
 import ch.ethz.matsim.av.config.AVConfigGroup;
 import ch.ethz.matsim.av.config.operator.GeneratorConfig;
 import ch.ethz.matsim.av.config.operator.InteractionFinderConfig;
@@ -112,6 +113,7 @@ public class AVModule extends AbstractModule {
 		install(new WaitingTimeModule());
 
 		bind(PriceCalculator.class).to(StaticPriceCalculator.class);
+		addControlerListenerBinding().to(AnalysisOutputListener.class);
 	}
 
 	private void configureDispatchmentStrategies() {

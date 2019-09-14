@@ -48,6 +48,7 @@ public class PassengerTracker {
 	}
 
 	public Collection<Id<Person>> getPassengerIds(Id<Vehicle> vehicleId) {
+		ensurePassengers(vehicleId);
 		return passengers.get(vehicleId);
 	}
 

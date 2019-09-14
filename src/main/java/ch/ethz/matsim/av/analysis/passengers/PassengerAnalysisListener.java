@@ -45,6 +45,8 @@ public class PassengerAnalysisListener implements PersonDepartureEventHandler, P
 
 				ride.departureTime = event.getTime();
 				ride.originLink = linkFinder.getLink(event.getLinkId());
+
+				currentRides.put(event.getPersonId(), ride);
 			}
 		}
 	}
@@ -76,8 +78,8 @@ public class PassengerAnalysisListener implements PersonDepartureEventHandler, P
 					throw new IllegalStateException("Found vehicle enter event without departure");
 				}
 
-				ride.operatorId = AVUtils.getOperatorId(event.getPersonId());
-				ride.vehicleId = Id.createVehicleId(event.getPersonId());
+				ride.operatorId = AVUtils.getOperatorId(event.getVehicleId());
+				ride.vehicleId = event.getVehicleId();
 
 				ride.waitingTime = event.getTime() - ride.departureTime;
 
@@ -102,6 +104,7 @@ public class PassengerAnalysisListener implements PersonDepartureEventHandler, P
 
 			if (ride != null) {
 				ride.arrivalTime = event.getTime();
+				ride.destinationLink = linkFinder.getLink(event.getLinkId());
 			}
 		}
 	}
