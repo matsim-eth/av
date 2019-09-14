@@ -29,15 +29,17 @@ public class AVRoutingModule implements RoutingModule {
 	private final AVRouteFactory routeFactory;
 	private final RoutingModule walkRoutingModule;
 	private final PopulationFactory populationFactory;
+	private final RoutingModule roadRoutingModule;
 
 	private Map<Id<AVOperator>, AVInteractionFinder> interactionFinders;
 	private Map<Id<AVOperator>, WaitingTime> waitingTimes;
 	private final boolean useAccessEgress;
+	private final Map<Id<AVOperator>, Boolean> predictRouteTravelTime;
 
 	public AVRoutingModule(AVOperatorChoiceStrategy choiceStrategy, AVRouteFactory routeFactory,
-			Map<Id<AVOperator>, AVInteractionFinder> interactionFinders,
-			Map<Id<AVOperator>, WaitingTime> waitingTimes, PopulationFactory populationFactory,
-			RoutingModule walkRoutingModule, boolean useAccessEgress) {
+			Map<Id<AVOperator>, AVInteractionFinder> interactionFinders, Map<Id<AVOperator>, WaitingTime> waitingTimes,
+			PopulationFactory populationFactory, RoutingModule walkRoutingModule, boolean useAccessEgress,
+			Map<Id<AVOperator>, Boolean> predictRouteTravelTime, RoutingModule roadRoutingModule) {
 		this.choiceStrategy = choiceStrategy;
 		this.routeFactory = routeFactory;
 		this.interactionFinders = interactionFinders;
@@ -45,6 +47,8 @@ public class AVRoutingModule implements RoutingModule {
 		this.walkRoutingModule = walkRoutingModule;
 		this.populationFactory = populationFactory;
 		this.useAccessEgress = useAccessEgress;
+		this.predictRouteTravelTime = predictRouteTravelTime;
+		this.roadRoutingModule = roadRoutingModule;
 	}
 
 	@Override
@@ -105,8 +109,25 @@ public class AVRoutingModule implements RoutingModule {
 		double vehicleDepartureTime = requestSendTime + vehicleWaitingTime;
 
 		// Here we can optionally already route the AV leg to estimate travel time
+		// TODO: Maybe we can hide this behind a AVTravelTimePredictor interface or
+		// something like that
+		boolean doPredictTravelTime = predictRouteTravelTime.get(operatorId);
+
 		double vehicleDistance = Double.NaN;
 		double vehicleTravelTime = Double.NaN;
+
+		if (doPredictTravelTime) {
+			List<? extends PlanElement> transitElements = roadRoutingModule.calcRoute(pickupFacility, dropoffFacility,
+					vehicleDepartureTime, null);
+
+			if (transitElements.size() != 1) {
+				throw new IllegalStateException("Expected one element in downstream routing module");
+			}
+
+			Leg leg = (Leg) transitElements.get(0);
+			vehicleDistance = leg.getRoute().getDistance();
+			vehicleTravelTime = leg.getRoute().getTravelTime();
+		}
 
 		double totalTravelTime = vehicleTravelTime + vehicleWaitingTime;
 
