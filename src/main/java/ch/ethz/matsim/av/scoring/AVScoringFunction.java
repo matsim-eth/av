@@ -1,137 +1,94 @@
 package ch.ethz.matsim.av.scoring;
 
-import ch.ethz.matsim.av.config.AVConfig;
-import ch.ethz.matsim.av.config.AVOperatorConfig;
-import ch.ethz.matsim.av.config.AVPriceStructureConfig;
-import ch.ethz.matsim.av.data.AVOperator;
-import ch.ethz.matsim.av.framework.AVModule;
-import ch.ethz.matsim.av.schedule.AVTransitEvent;
 import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.Event;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
-import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.scoring.SumScoringFunction;
 
-import java.util.HashSet;
-import java.util.Set;
+import ch.ethz.matsim.av.financial.PriceCalculator;
+import ch.ethz.matsim.av.framework.AVModule;
+import ch.ethz.matsim.av.schedule.AVTransitEvent;
 
 public class AVScoringFunction implements SumScoringFunction.ArbitraryEventScoring {
-    final static Logger log = Logger.getLogger(AVScoringFunction.class);
+	final static Logger log = Logger.getLogger(AVScoringFunction.class);
 
-    final private AVConfig config;
-    final private double marginalUtilityOfWaiting;
-    final private double marginalUtilityOfTraveling;
-    final private double marginalUtilityOfMoney;
-    final private double stuckUtility;
+	private final PriceCalculator priceCalculator;
+	final private double marginalUtilityOfWaiting;
+	final private double marginalUtilityOfTraveling;
+	final private double marginalUtilityOfMoney;
+	final private double stuckUtility;
 
-    final private Set<Id<AVOperator>> subscriptions = new HashSet<>();
+	private AVScoringTrip scoringTrip = null;
+	private double score = 0.0;
 
-    private AVScoringTrip scoringTrip = null;
-    private double score = 0.0;
+	public AVScoringFunction(double marginalUtilityOfMoney, double marginalUtilityOfTraveling,
+			double marginalUtilityOfWaiting, double stuckUtility, PriceCalculator priceCalculator) {
+		this.marginalUtilityOfWaiting = marginalUtilityOfWaiting;
+		this.marginalUtilityOfTraveling = marginalUtilityOfTraveling;
+		this.marginalUtilityOfMoney = marginalUtilityOfMoney;
+		this.stuckUtility = stuckUtility;
+		this.priceCalculator = priceCalculator;
+	}
 
-    final private Person person;
+	@Override
+	public void handleEvent(Event event) {
+		if (event instanceof PersonDepartureEvent) {
+			if (((PersonDepartureEvent) event).getLegMode().equals(AVModule.AV_MODE)) {
+				if (scoringTrip != null) {
+					throw new IllegalStateException();
+				}
 
-    public AVScoringFunction(AVConfig config, Person person, double marginalUtilityOfMoney, double marginalUtilityOfTraveling) {
-        this.marginalUtilityOfWaiting = config.getMarginalUtilityOfWaitingTime() / 3600.0;
-        this.marginalUtilityOfTraveling = marginalUtilityOfTraveling;
-        this.marginalUtilityOfMoney = marginalUtilityOfMoney;
-        this.stuckUtility = config.getStuckUtility();
-        this.config = config;
-        this.person = person;
-    }
-    
-    @Override
-    public void handleEvent(Event event) {
-        if (event instanceof PersonDepartureEvent) {
-            if (((PersonDepartureEvent) event).getLegMode().equals(AVModule.AV_MODE)) {
-                if (scoringTrip != null) {
-                    throw new IllegalStateException();
-                }
+				scoringTrip = new AVScoringTrip();
+				scoringTrip.processDeparture((PersonDepartureEvent) event);
+			}
+		} else if (event instanceof PersonEntersVehicleEvent) {
+			if (scoringTrip != null) {
+				scoringTrip.processEnterVehicle((PersonEntersVehicleEvent) event);
+			}
+		} else if (event instanceof AVTransitEvent) {
+			if (scoringTrip != null) {
+				scoringTrip.processTransit((AVTransitEvent) event);
+			}
+		}
 
-                scoringTrip = new AVScoringTrip();
-                scoringTrip.processDeparture((PersonDepartureEvent) event);
-            }
-        } else if (event instanceof PersonEntersVehicleEvent) {
-            if (scoringTrip != null) {
-                scoringTrip.processEnterVehicle((PersonEntersVehicleEvent) event);
-            }
-        } else if (event instanceof AVTransitEvent) {
-            if (scoringTrip != null) {
-                scoringTrip.processTransit((AVTransitEvent) event);
-            }
-        }
+		if (scoringTrip != null && scoringTrip.isFinished()) {
+			handleScoringTrip(scoringTrip);
+			scoringTrip = null;
+		}
+	}
 
-        if (scoringTrip != null && scoringTrip.isFinished()) {
-            handleScoringTrip(scoringTrip);
-            scoringTrip = null;
-        }
-    }
+	private void handleScoringTrip(AVScoringTrip trip) {
+		score += computeWaitingTimeScoring(trip);
+		score += computePricingScoring(trip);
+	}
 
-    private AVPriceStructureConfig getPriceStructure(Id<AVOperator> id) {
-        for (AVOperatorConfig oc : config.getOperatorConfigs()) {
-            if (oc.getId().equals(id)) {
-                return oc.getPriceStructureConfig();
-            }
-        }
+	private double computeWaitingTimeScoring(AVScoringTrip trip) {
+		// Compensate for the travel disutility
+		return (marginalUtilityOfWaiting - marginalUtilityOfTraveling) * trip.getWaitingTime();
+	}
 
-        return null;
-    }
+	static int noPricingWarningCount = 100;
 
-    private void handleScoringTrip(AVScoringTrip trip) {
-        score += computeWaitingTimeScoring(trip);
-        score += computePricingScoring(trip);
-    }
+	private double computePricingScoring(AVScoringTrip trip) {
+		if (!Double.isNaN(trip.getPrice())) {
+			return -trip.getPrice() * marginalUtilityOfMoney;
+		} else {
+			double price = priceCalculator.calculatePrice(trip.getOperatorId(), trip.getDistance(),
+					trip.getInVehicleTravelTime());
+			return -price * marginalUtilityOfMoney;
+		}
+	}
 
-    private double computeWaitingTimeScoring(AVScoringTrip trip) {
-        // Compensate for the travel disutility
-        return (marginalUtilityOfWaiting - marginalUtilityOfTraveling) * trip.getWaitingTime();
-    }
+	@Override
+	public void finish() {
+		if (scoringTrip != null) {
+			score += stuckUtility;
+		}
+	}
 
-    static int noPricingWarningCount = 100;
-
-    private double computePricingScoring(AVScoringTrip trip) {
-        AVPriceStructureConfig priceStructure = getPriceStructure(trip.getOperatorId());
-
-        double costs = 0.0;
-
-        if (priceStructure != null) {
-            double billableDistance = Math.max(1, Math.ceil(
-                    trip.getDistance() / priceStructure.getSpatialBillingInterval()))
-                    * priceStructure.getSpatialBillingInterval();
-
-            double billableTravelTime = Math.max(1, Math.ceil(
-                    trip.getInVehicleTravelTime() / priceStructure.getTemporalBillingInterval()))
-                    * priceStructure.getTemporalBillingInterval();
-
-            costs += (billableDistance / 1000.0) * priceStructure.getPricePerKm();
-            costs += (billableTravelTime / 60.0) * priceStructure.getPricePerMin();
-            costs += priceStructure.getPricePerTrip();
-
-            if (priceStructure.getDailySubscriptionFee() > 0.0) {
-                if (!subscriptions.contains(trip.getOperatorId())) {
-                    costs += priceStructure.getDailySubscriptionFee();
-                    subscriptions.add(trip.getOperatorId());
-                }
-            }
-        } else if (noPricingWarningCount > 0) {
-            log.warn("No pricing strategy defined for operator " + trip.getOperatorId().toString());
-            noPricingWarningCount--;
-        }
-
-        return -costs * marginalUtilityOfMoney;
-    }
-    
-    @Override
-    public void finish() {
-    	if (scoringTrip != null) {
-    		score += stuckUtility;
-    	}
-    }
-
-    @Override
-    public double getScore() {
-        return score;
-    }
+	@Override
+	public double getScore() {
+		return score;
+	}
 }

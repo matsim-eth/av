@@ -1,9 +1,7 @@
 package ch.ethz.matsim.av.schedule;
 
 import java.util.List;
-import java.util.Map;
 
-import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
 import org.matsim.contrib.dvrp.optimizer.Request;
@@ -19,7 +17,6 @@ import org.matsim.core.mobsim.framework.listeners.MobsimBeforeSimStepListener;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.passenger.AVRequest;
@@ -33,8 +30,6 @@ import ch.ethz.matsim.av.passenger.AVRequest;
 public class AVOptimizer implements VrpOptimizer, OnlineTrackerListener, MobsimBeforeSimStepListener {
 	private double now;
 
-	@Inject
-	private Map<Id<AVOperator>, AVDispatcher> dispatchers;
 	@Inject
 	private EventsManager eventsManager;
 
@@ -117,7 +112,7 @@ public class AVOptimizer implements VrpOptimizer, OnlineTrackerListener, MobsimB
 	}
 
 	@Override
-	public void notifyMobsimBeforeSimStep(MobsimBeforeSimStepEvent e) {
+	public void notifyMobsimBeforeSimStep(@SuppressWarnings("rawtypes") MobsimBeforeSimStepEvent e) {
 		now = e.getSimulationTime();
 	}
 

@@ -17,7 +17,7 @@ import org.matsim.core.utils.collections.QuadTree;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
-import ch.ethz.matsim.av.config.AVDispatcherConfig;
+import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
@@ -25,12 +25,13 @@ import ch.ethz.matsim.av.dispatcher.AVVehicleAssignmentEvent;
 import ch.ethz.matsim.av.dispatcher.utils.SingleRideAppender;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.passenger.AVRequest;
-import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
 import ch.ethz.matsim.av.router.AVRouter;
 import ch.ethz.matsim.av.schedule.AVStayTask;
 import ch.ethz.matsim.av.schedule.AVTask;
 
 public class SingleHeuristicDispatcher implements AVDispatcher {
+	public final static String TYPE = "SingleHeuristic";
+	
 	private boolean reoptimize = true;
 	private double nextReplanningTimestamp = 0.0;
 
@@ -130,7 +131,7 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
 		pendingRequests.add(request);
 		pendingRequestsTree.put(link.getCoord().getX(), link.getCoord().getY(), request);
 		requestLinks.put(request, link);
-		//reoptimize = true;
+		// reoptimize = true;
 	}
 
 	private AVRequest findRequest() {
@@ -161,7 +162,7 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
 		availableVehicles.add(vehicle);
 		availableVehiclesTree.put(link.getCoord().getX(), link.getCoord().getY(), vehicle);
 		vehicleLinks.put(vehicle, link);
-		//reoptimize = true;
+		// reoptimize = true;
 	}
 
 	private void removeVehicle(AVVehicle vehicle) {
@@ -186,10 +187,6 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
 
 	static public class Factory implements AVDispatcherFactory {
 		@Inject
-		@Named(AVModule.AV_MODE)
-		private Network network;
-
-		@Inject
 		private EventsManager eventsManager;
 
 		@Inject
@@ -197,12 +194,12 @@ public class SingleHeuristicDispatcher implements AVDispatcher {
 		private TravelTime travelTime;
 
 		@Override
-		public AVDispatcher createDispatcher(AVDispatcherConfig config, AVRouter router) {
-			double replanningInterval = Double
-					.parseDouble(config.getParams().getOrDefault("replanningInterval", "10.0"));
+		public AVDispatcher createDispatcher(OperatorConfig operatorConfig, AVRouter router, Network network) {
+			double replanningInterval = Double.parseDouble(
+					operatorConfig.getDispatcherConfig().getParams().getOrDefault("replanningInterval", "10.0"));
 
-			return new SingleHeuristicDispatcher(config.getParent().getId(), eventsManager, network,
-					new SingleRideAppender(config, router, travelTime), replanningInterval);
+			return new SingleHeuristicDispatcher(operatorConfig.getId(), eventsManager, network,
+					new SingleRideAppender(operatorConfig.getTimingConfig(), router, travelTime), replanningInterval);
 		}
 	}
 }

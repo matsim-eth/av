@@ -1,7 +1,7 @@
 language: java
-jdk: openjdk10
+jdk: openjdk8
 script:
-  - mvn test -B -Dmatsim.preferLocalDtds=true
+  - mvn test -B -Dmaven.test.redirectTestOutputToFile -Dmatsim.preferLocalDtds=true
 #  - if [[ $TRAVIS_BRANCH == "releases" && $TRAVIS_PULL_REQUEST = "false" ]]; then if [[ $( cat pom.xml | grep SNAPSHOT ) ]]; then exit 1; else mvn deploy -DskipTests=true --settings=settings.xml; fi; fi
 #  - if [[ $TRAVIS_BRANCH == "master" && $TRAVIS_PULL_REQUEST = "false" ]]; then if ! [[ $( cat pom.xml | grep SNAPSHOT ) ]]; then exit 1; else mvn deploy -DskipTests=true --settings=settings.xml; fi; fi
 env:
