@@ -8,7 +8,6 @@ public class PricingConfig extends ReflectiveConfigGroup {
 	static public final String PRICE_PER_KM = "pricePerKm";
 	static public final String PRICE_PER_MIN = "pricePerMin";
 	static public final String PRICE_PER_TRIP = "pricePerTrip";
-	static public final String PRICE_PER_DAY = "pricePerDay";
 
 	static public final String TEMPORAL_BILLING_INTERVAL = "temporalBillingInterval";
 	static public final String SPATIAL_BILLING_INTERVAL = "spatialBillingInterval";
@@ -16,7 +15,6 @@ public class PricingConfig extends ReflectiveConfigGroup {
 	private double pricePerKm = 0.0;
 	private double pricePerMin = 0.0;
 	private double pricePerTrip = 0.0;
-	private double pricePerDay = 0.0;
 
 	private double temporalBillingInterval = 1.0;
 	private double spatialBillingInterval = 1.0;
@@ -30,7 +28,7 @@ public class PricingConfig extends ReflectiveConfigGroup {
 	}
 
 	@StringGetter(PRICE_PER_KM)
-	public double getPricePerKm() {
+	public double getStaticPricePerKm() {
 		return pricePerKm;
 	}
 
@@ -40,7 +38,7 @@ public class PricingConfig extends ReflectiveConfigGroup {
 	}
 
 	@StringGetter(PRICE_PER_MIN)
-	public double getPricePerMin() {
+	public double getStaticPricePerMin() {
 		return pricePerMin;
 	}
 
@@ -50,23 +48,13 @@ public class PricingConfig extends ReflectiveConfigGroup {
 	}
 
 	@StringGetter(PRICE_PER_TRIP)
-	public double getPricePerTrip() {
+	public double getStaticPricePerTrip() {
 		return pricePerTrip;
 	}
 
 	@StringSetter(PRICE_PER_TRIP)
 	public void setPricePerTrip(double pricePerTrip) {
 		this.pricePerTrip = pricePerTrip;
-	}
-
-	@StringGetter(PRICE_PER_DAY)
-	public double getPricePerDay() {
-		return pricePerDay;
-	}
-
-	@StringSetter(PRICE_PER_DAY)
-	public void setPricePerDay(double pricePerDay) {
-		this.pricePerDay = pricePerDay;
 	}
 
 	@StringGetter(TEMPORAL_BILLING_INTERVAL)

@@ -30,6 +30,9 @@ import ch.ethz.matsim.av.config.AVConfigGroup;
 import ch.ethz.matsim.av.config.operator.GeneratorConfig;
 import ch.ethz.matsim.av.config.operator.InteractionFinderConfig;
 import ch.ethz.matsim.av.config.operator.OperatorConfig;
+import ch.ethz.matsim.av.config.operator.PricingConfig;
+import ch.ethz.matsim.av.cost.PriceCalculator;
+import ch.ethz.matsim.av.cost.StaticPriceCalculator;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVOperatorFactory;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
@@ -107,6 +110,8 @@ public class AVModule extends AbstractModule {
 		bind(AVNetworkFilter.class).to(NullNetworkFilter.class);
 
 		install(new WaitingTimeModule());
+
+		bind(PriceCalculator.class).to(StaticPriceCalculator.class);
 	}
 
 	private void configureDispatchmentStrategies() {
@@ -267,5 +272,17 @@ public class AVModule extends AbstractModule {
 		}
 
 		return finders;
+	}
+
+	@Provides
+	@Singleton
+	public StaticPriceCalculator provideStaticPriceCalculator(AVConfigGroup config) {
+		Map<Id<AVOperator>, PricingConfig> pricingConfigs = new HashMap<>();
+
+		for (OperatorConfig operatorConfig : config.getOperatorConfigs().values()) {
+			pricingConfigs.put(operatorConfig.getId(), operatorConfig.getPricingConfig());
+		}
+
+		return new StaticPriceCalculator(pricingConfigs);
 	}
 }
