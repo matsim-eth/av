@@ -17,6 +17,7 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.facilities.Facility;
 
 import ch.ethz.matsim.av.data.AVOperator;
+import ch.ethz.matsim.av.financial.PriceCalculator;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
 import ch.ethz.matsim.av.routing.interaction.AVInteractionFinder;
@@ -30,6 +31,7 @@ public class AVRoutingModule implements RoutingModule {
 	private final RoutingModule walkRoutingModule;
 	private final PopulationFactory populationFactory;
 	private final RoutingModule roadRoutingModule;
+	private final PriceCalculator priceCalculator;
 
 	private Map<Id<AVOperator>, AVInteractionFinder> interactionFinders;
 	private Map<Id<AVOperator>, WaitingTime> waitingTimes;
@@ -39,7 +41,8 @@ public class AVRoutingModule implements RoutingModule {
 	public AVRoutingModule(AVOperatorChoiceStrategy choiceStrategy, AVRouteFactory routeFactory,
 			Map<Id<AVOperator>, AVInteractionFinder> interactionFinders, Map<Id<AVOperator>, WaitingTime> waitingTimes,
 			PopulationFactory populationFactory, RoutingModule walkRoutingModule, boolean useAccessEgress,
-			Map<Id<AVOperator>, Boolean> predictRouteTravelTime, RoutingModule roadRoutingModule) {
+			Map<Id<AVOperator>, Boolean> predictRouteTravelTime, RoutingModule roadRoutingModule,
+			PriceCalculator priceCalculator) {
 		this.choiceStrategy = choiceStrategy;
 		this.routeFactory = routeFactory;
 		this.interactionFinders = interactionFinders;
@@ -49,6 +52,7 @@ public class AVRoutingModule implements RoutingModule {
 		this.useAccessEgress = useAccessEgress;
 		this.predictRouteTravelTime = predictRouteTravelTime;
 		this.roadRoutingModule = roadRoutingModule;
+		this.priceCalculator = priceCalculator;
 	}
 
 	@Override
@@ -115,6 +119,7 @@ public class AVRoutingModule implements RoutingModule {
 
 		double vehicleDistance = Double.NaN;
 		double vehicleTravelTime = Double.NaN;
+		double price = Double.NaN;
 
 		if (doPredictTravelTime) {
 			List<? extends PlanElement> transitElements = roadRoutingModule.calcRoute(pickupFacility, dropoffFacility,
@@ -127,6 +132,7 @@ public class AVRoutingModule implements RoutingModule {
 			Leg leg = (Leg) transitElements.get(0);
 			vehicleDistance = leg.getRoute().getDistance();
 			vehicleTravelTime = leg.getRoute().getTravelTime();
+			price = priceCalculator.calculatePrice(operatorId, vehicleDistance, vehicleTravelTime);
 		}
 
 		double totalTravelTime = vehicleTravelTime + vehicleWaitingTime;
@@ -138,6 +144,7 @@ public class AVRoutingModule implements RoutingModule {
 		route.setTravelTime(totalTravelTime);
 		route.setWaitingTime(vehicleWaitingTime);
 		route.setInVehicleTime(vehicleTravelTime);
+		route.setPrice(price);
 
 		Leg leg = populationFactory.createLeg(AVModule.AV_MODE);
 		leg.setDepartureTime(requestSendTime);

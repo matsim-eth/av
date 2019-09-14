@@ -12,22 +12,22 @@ import org.matsim.core.scoring.functions.ScoringParametersForPerson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import ch.ethz.matsim.av.config.AVConfigGroup;
+import ch.ethz.matsim.av.financial.PriceCalculator;
 import ch.ethz.matsim.av.framework.AVModule;
 
 @Singleton
 public class AVScoringFunctionFactory implements ScoringFunctionFactory {
-	final private AVConfigGroup config;
 	final private ScoringFunctionFactory delegate;
 	final private ScoringParametersForPerson defaultParameters;
 	final private AVSubpopulationScoringParameters avParameters;
+	private final PriceCalculator priceCalculator;
 
 	@Inject
 	public AVScoringFunctionFactory(Scenario scenario, ScoringParametersForPerson defaultParameters,
-			AVSubpopulationScoringParameters avParameters, AVConfigGroup config) {
-		this.config = config;
+			AVSubpopulationScoringParameters avParameters, PriceCalculator priceCalculator) {
 		this.defaultParameters = defaultParameters;
 		this.avParameters = avParameters;
+		this.priceCalculator = priceCalculator;
 
 		delegate = new CharyparNagelScoringFunctionFactory(scenario);
 	}
@@ -45,8 +45,8 @@ public class AVScoringFunctionFactory implements ScoringFunctionFactory {
 		double marginalUtilityOfWaiting = personAvParameters.marginalUtilityOfWaiting_s;
 		double stuckUtility = personAvParameters.stuckUtility;
 
-		sf.addScoringFunction(new AVScoringFunction(config, marginalUtilityOfMoney, marginalUtilityOfTraveling,
-				marginalUtilityOfWaiting, stuckUtility));
+		sf.addScoringFunction(new AVScoringFunction(marginalUtilityOfMoney, marginalUtilityOfTraveling,
+				marginalUtilityOfWaiting, stuckUtility, priceCalculator));
 
 		return sf;
 	}

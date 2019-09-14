@@ -30,11 +30,14 @@ import ch.ethz.matsim.av.config.AVConfigGroup;
 import ch.ethz.matsim.av.config.operator.GeneratorConfig;
 import ch.ethz.matsim.av.config.operator.InteractionFinderConfig;
 import ch.ethz.matsim.av.config.operator.OperatorConfig;
+import ch.ethz.matsim.av.config.operator.PricingConfig;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVOperatorFactory;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
 import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
+import ch.ethz.matsim.av.financial.PriceCalculator;
+import ch.ethz.matsim.av.financial.StaticPriceCalculator;
 import ch.ethz.matsim.av.generator.AVGenerator;
 import ch.ethz.matsim.av.generator.PopulationDensityGenerator;
 import ch.ethz.matsim.av.network.AVNetworkFilter;
@@ -107,6 +110,8 @@ public class AVModule extends AbstractModule {
 		bind(AVNetworkFilter.class).to(NullNetworkFilter.class);
 
 		install(new WaitingTimeModule());
+
+		bind(PriceCalculator.class).to(StaticPriceCalculator.class);
 	}
 
 	private void configureDispatchmentStrategies() {
@@ -206,7 +211,7 @@ public class AVModule extends AbstractModule {
 	public AVRoutingModule provideAVRoutingModule(AVOperatorChoiceStrategy choiceStrategy, AVRouteFactory routeFactory,
 			Map<Id<AVOperator>, AVInteractionFinder> interactionFinders, Map<Id<AVOperator>, WaitingTime> waitingTimes,
 			PopulationFactory populationFactory, @Named("walk") RoutingModule walkRoutingModule, AVConfigGroup config,
-			@Named("car") Provider<RoutingModule> roadRoutingModuleProvider) {
+			@Named("car") Provider<RoutingModule> roadRoutingModuleProvider, PriceCalculator priceCalculator) {
 		Map<Id<AVOperator>, Boolean> predictRouteTravelTime = new HashMap<>();
 		boolean needsRoutingModule = false;
 
@@ -217,7 +222,7 @@ public class AVModule extends AbstractModule {
 
 		return new AVRoutingModule(choiceStrategy, routeFactory, interactionFinders, waitingTimes, populationFactory,
 				walkRoutingModule, config.getUseAccessEgress(), predictRouteTravelTime,
-				needsRoutingModule ? roadRoutingModuleProvider.get() : null);
+				needsRoutingModule ? roadRoutingModuleProvider.get() : null, priceCalculator);
 	}
 
 	@Provides
@@ -267,5 +272,17 @@ public class AVModule extends AbstractModule {
 		}
 
 		return finders;
+	}
+
+	@Provides
+	@Singleton
+	public StaticPriceCalculator provideStaticPriceCalculator(AVConfigGroup config) {
+		Map<Id<AVOperator>, PricingConfig> pricingConfigs = new HashMap<>();
+
+		for (OperatorConfig operatorConfig : config.getOperatorConfigs().values()) {
+			pricingConfigs.put(operatorConfig.getId(), operatorConfig.getPricingConfig());
+		}
+
+		return new StaticPriceCalculator(pricingConfigs);
 	}
 }
