@@ -1,24 +1,37 @@
 # CHANGELOG
 
+**1.0.0**
+
+- Fix fleet size bug after MATSim 12 upgrade
+- Added analysis tools
+- Include price calculation in routing
+- Optionally preroute any AV trip to predict travel times
+- BC: Make vehicle type configurable per operator
+- BC: Add waiting time estimation functionality
+- BC: Add filters for operating areas and use distinct network for each operator
+- BC: Streamline config (no separate config file anymore, everything included in MATSim config)
+
+**0.3.9**
+
 - Update repository structure to GitFlow
 - Compatibility with MATSim 12
 - Fix & test pickup/dropoff duration by stop and passenger
 - Add access/egress walk functionality (off / by network mode / by link attribute)
 - Add earliestDepartureTime to pickup activities
 
-### 0.3.8
+**0.3.8**
 
 - Compatibility with MATSim 11.0
 
-### 0.3.7
+**0.3.7**
 
 - Fix submission time for AVRequest
 
-### 0.1.6
+**0.1.6**
 
 - Add router customization
 
-### 0.1.5
+**0.1.5**
 
 - Send aggregation events in MultiOD at correct time
 - Make number of seats configurable (and use in MultiODHeuristic)
@@ -28,17 +41,17 @@
 - Bugfix PopulationDensityGenerator: Use proper random number generator
 - Bugfix SingleHeuristicDispatcher: Reoptimization was only triggered if vehicle/request was added in previous period
 
-### 0.1.4
+**0.1.4**
 
 - Added test jars to deployment
 - BC: Switch from the custom QSim to a proper AbstractQSimPlugin. Make sure to register the plugin when using the AV package!
 
-### 0.1.3
+**0.1.3**
 
 - Add replanning interval parameter for SingleHeuristicDispatcher
 - Bugfix: Close threads of parallel least cost path calculator
 
-### 0.1.2
+**0.1.2**
 
 - BC: Re-implementation of LeastCostPathCalculator component for better stability, potential fix of delayed routing issues
 - AV schedules (must) have infinite end time now

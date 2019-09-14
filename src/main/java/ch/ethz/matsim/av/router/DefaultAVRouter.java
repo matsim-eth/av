@@ -15,7 +15,8 @@ import org.matsim.vehicles.Vehicle;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
-import ch.ethz.matsim.av.framework.AVConfigGroup;
+import ch.ethz.matsim.av.config.AVConfigGroup;
+import ch.ethz.matsim.av.config.operator.RouterConfig;
 import ch.ethz.matsim.av.framework.AVModule;
 import ch.ethz.matsim.av.plcpc.DefaultParallelLeastCostPathCalculator;
 import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
@@ -25,6 +26,8 @@ import ch.ethz.matsim.av.plcpc.ParallelLeastCostPathCalculator;
  * Djikstra's algorithm.
  */
 public class DefaultAVRouter implements AVRouter {
+	public final static String TYPE = "Default";
+
 	final private ParallelLeastCostPathCalculator delegate;
 
 	DefaultAVRouter(ParallelLeastCostPathCalculator delegate) {
@@ -45,17 +48,16 @@ public class DefaultAVRouter implements AVRouter {
 	public static class Factory implements AVRouter.Factory {
 		@Inject
 		AVConfigGroup config;
+
 		@Inject
 		@Named(AVModule.AV_MODE)
 		TravelTime travelTime;
-		@Inject
-		@Named(AVModule.AV_MODE)
-		Network network;
 
 		@Override
-		public AVRouter createRouter() {
-			return new DefaultAVRouter(DefaultParallelLeastCostPathCalculator.create((int) config.getParallelRouters(),
-					new DijkstraFactory(), network, new OnlyTimeDependentTravelDisutility(travelTime), travelTime));
+		public AVRouter createRouter(RouterConfig routerConfig, Network network) {
+			return new DefaultAVRouter(DefaultParallelLeastCostPathCalculator.create(
+					(int) config.getNumberOfParallelRouters(), new DijkstraFactory(), network,
+					new OnlyTimeDependentTravelDisutility(travelTime), travelTime));
 		}
 	}
 }
