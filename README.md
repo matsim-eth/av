@@ -8,9 +8,9 @@ The AV extension is currently kept compatible with the following MATSim versions
 
 |MATSim              |AV version      |               |
 |--------------------|-----------------|---------------|
-| Weekly SNAPSHOT `12.0-2019w20`            | `0.3.9`           | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master)](https://travis-ci.org/matsim-eth/av) |
-| Release `11.0`       | `0.3.9-matsim11`  | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master-11)](https://travis-ci.org/matsim-eth/av) |
-| Release `0.10.1`     | `0.3.9-matsim10`  | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master-10)](https://travis-ci.org/matsim-eth/av) |
+| Weekly SNAPSHOT `12.0-2019w20`            | `1.0.0`           | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master)](https://travis-ci.org/matsim-eth/av) |
+| Release `11.0`       | `1.0.0-matsim11`  | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master-11)](https://travis-ci.org/matsim-eth/av) |
+| Release `0.10.1`     | `1.0.0-matsim10`  | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master-10)](https://travis-ci.org/matsim-eth/av) |
 
 Since we have to react to changes in the `master` branch of the [MATSim main repository](https://github.com/matsim-org/matsim) "on demand", compatibility may be "out-of-synch" for a short time until we updated to the next weekly SNAPSHOT. We recommend using the AV extension with a stable version of MATSim.
 
@@ -23,13 +23,13 @@ To use the AV extension you first need to add the ETH MATSim Bintray repository 
 </repository>
 ```
 
-Add the following to your `pom.xml` dependencies to use the extension with version `0.3.9` and MATSim 11, for instance:
+Add the following to your `pom.xml` dependencies to use the extension with version `1.0.0` and MATSim 11, for instance:
 
 ```xml
 <dependency>
     <groupId>ch.ethz.matsim</groupId>
     <artifactId>av</artifactId>
-    <version>0.3.9-matsim11</version>
+    <version>1.0.0-matsim11</version>
 </dependency>
 ```
 

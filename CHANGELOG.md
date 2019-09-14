@@ -1,5 +1,7 @@
 # CHANGELOG
 
+**1.0.0**
+
 - Fix bug when using fallback value for dynamic waiting time
 - Fix fleet size bug after MATSim 12 upgrade
 - Added analysis tools
