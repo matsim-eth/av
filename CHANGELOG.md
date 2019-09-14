@@ -2,6 +2,8 @@
 
 **1.0.0**
 
+- Fix fleet size bug after MATSim 12 upgrade
+- Added analysis tools
 - Include price calculation in routing
 - Optionally preroute any AV trip to predict travel times
 - BC: Make vehicle type configurable per operator

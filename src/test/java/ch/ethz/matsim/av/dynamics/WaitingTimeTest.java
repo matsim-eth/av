@@ -195,6 +195,6 @@ public class WaitingTimeTest {
 
 		Assert.assertEquals(456.0, waitingTimes.get(0), 1e-3);
 		Assert.assertEquals(144.5, waitingTimes.get(1), 1e-3);
-		Assert.assertEquals(362.55, waitingTimes.get(2), 1e-3);
+		Assert.assertEquals(51.05, waitingTimes.get(2), 1e-3);
 	}
 }

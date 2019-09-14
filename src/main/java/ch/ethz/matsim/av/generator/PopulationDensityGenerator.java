@@ -28,10 +28,9 @@ import ch.ethz.matsim.av.data.AVVehicle;
 public class PopulationDensityGenerator implements AVGenerator {
 	static public final String TYPE = "PopulationDensity";
 
-	private final Random random;
+	private final int randomSeed;
 	private final long numberOfVehicles;
 	private final VehicleType vehicleType;
-	private long generatedNumberOfVehicles = 0;
 
 	private final Id<AVOperator> operatorId;
 
@@ -40,7 +39,7 @@ public class PopulationDensityGenerator implements AVGenerator {
 
 	public PopulationDensityGenerator(Id<AVOperator> operatorId, int numberOfVehicles, Network network,
 			Population population, ActivityFacilities facilities, int randomSeed, VehicleType vehicleType) {
-		this.random = new Random(randomSeed);
+		this.randomSeed = randomSeed;
 		this.numberOfVehicles = numberOfVehicles;
 		this.vehicleType = vehicleType;
 		this.operatorId = operatorId;
@@ -76,29 +75,32 @@ public class PopulationDensityGenerator implements AVGenerator {
 			cumulativeDensity.put(link, cumsum);
 		}
 	}
-
+	
 	@Override
-	public boolean hasNext() {
-		return generatedNumberOfVehicles < numberOfVehicles;
-	}
+	public List<AVVehicle> generateVehicles() {
+		List<AVVehicle> vehicles = new LinkedList<>();
+		Random random = new Random(randomSeed);
+		
+		int generatedNumberOfVehicles = 0;
+		while (generatedNumberOfVehicles < numberOfVehicles) {
+			generatedNumberOfVehicles++;
 
-	@Override
-	public AVVehicle next() {
-		generatedNumberOfVehicles++;
+			// Multinomial selection
+			double r = random.nextDouble();
+			Link selectedLink = linkList.get(0);
 
-		// Multinomial selection
-		double r = random.nextDouble();
-		Link selectedLink = linkList.get(0);
-
-		for (Link link : linkList) {
-			if (r <= cumulativeDensity.get(link)) {
-				selectedLink = link;
-				break;
+			for (Link link : linkList) {
+				if (r <= cumulativeDensity.get(link)) {
+					selectedLink = link;
+					break;
+				}
 			}
+			
+			Id<DvrpVehicle> id = AVUtils.createId(operatorId, generatedNumberOfVehicles);
+			vehicles.add(new AVVehicle(id, selectedLink, 0.0, Double.POSITIVE_INFINITY, vehicleType));
 		}
-
-		Id<DvrpVehicle> id = AVUtils.createId(operatorId, generatedNumberOfVehicles);
-		return new AVVehicle(id, selectedLink, 0.0, Double.POSITIVE_INFINITY, vehicleType);
+		
+		return vehicles;
 	}
 
 	static public class Factory implements AVGenerator.AVGeneratorFactory {

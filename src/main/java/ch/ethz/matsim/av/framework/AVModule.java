@@ -1,6 +1,8 @@
 package ch.ethz.matsim.av.framework;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -34,6 +36,7 @@ import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.config.operator.PricingConfig;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVOperatorFactory;
+import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
 import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
@@ -160,31 +163,6 @@ public class AVModule extends AbstractModule {
 		}
 
 		return operators;
-	}
-
-	@Provides
-	@Singleton
-	Map<Id<AVOperator>, AVGenerator> provideGenerators(Map<String, AVGenerator.AVGeneratorFactory> factories,
-			AVConfigGroup config, Map<Id<AVOperator>, Network> networks) {
-		Map<Id<AVOperator>, AVGenerator> generators = new HashMap<>();
-
-		for (OperatorConfig oc : config.getOperatorConfigs().values()) {
-			GeneratorConfig gc = oc.getGeneratorConfig();
-			String strategy = gc.getType();
-
-			if (!factories.containsKey(strategy)) {
-				throw new IllegalArgumentException("Generator strategy '" + strategy + "' is not registered.");
-			}
-
-			Network network = networks.get(oc.getId());
-
-			AVGenerator.AVGeneratorFactory factory = factories.get(strategy);
-			AVGenerator generator = factory.createGenerator(oc, network);
-
-			generators.put(oc.getId(), generator);
-		}
-
-		return generators;
 	}
 
 	@Provides

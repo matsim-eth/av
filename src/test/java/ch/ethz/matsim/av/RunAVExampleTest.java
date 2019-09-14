@@ -73,7 +73,7 @@ public class RunAVExampleTest {
 
 		controler.run();
 
-		Assert.assertEquals(200, analyzer.numberOfDepartures - analyzer.numberOfArrivals);
+		Assert.assertEquals(0, analyzer.numberOfDepartures - analyzer.numberOfArrivals);
 	}
 
 	@Test
