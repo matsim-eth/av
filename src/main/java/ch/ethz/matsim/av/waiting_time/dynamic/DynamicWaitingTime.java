@@ -83,8 +83,10 @@ public class DynamicWaitingTime implements WaitingTimeCollector, WaitingTime {
 		int groupIndex = linkGroupDefinition.getGroup(linkId);
 		int timeIndex = getTimeIndex(time);
 
-		cumulativeValues[groupIndex][timeIndex] += waitingTime;
-		observationCounts[groupIndex][timeIndex] += 1;
+		if (groupIndex != -1) {
+			cumulativeValues[groupIndex][timeIndex] += waitingTime;
+			observationCounts[groupIndex][timeIndex] += 1;
+		}
 	}
 
 	private double getWaitingTime(double time, Id<Link> linkId, double alternativeWaitingTime) {
@@ -92,7 +94,7 @@ public class DynamicWaitingTime implements WaitingTimeCollector, WaitingTime {
 
 		if (groupIndex == -1) {
 			return alternativeWaitingTime;
-		} else {			
+		} else {
 			return estimates[groupIndex][getTimeIndex(time)];
 		}
 	}
