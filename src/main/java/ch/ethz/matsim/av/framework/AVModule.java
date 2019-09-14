@@ -39,7 +39,6 @@ import ch.ethz.matsim.av.config.AVConfigGroup;
 import ch.ethz.matsim.av.config.operator.InteractionFinderConfig;
 import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.config.operator.PricingConfig;
-import ch.ethz.matsim.av.data.AVLoader;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVOperatorFactory;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
@@ -205,7 +204,7 @@ public class AVModule extends AbstractModule {
 
 		for (OperatorConfig operatorConfig : config.getOperatorConfigs().values()) {
 			String allowedLinkAttribute = operatorConfig.getAllowedLinkAttribute();
-			AVNetworkProvider provider = new AVNetworkProvider(allowedLinkMode, allowedLinkAttribute);
+			AVNetworkProvider provider = new AVNetworkProvider(allowedLinkMode, allowedLinkAttribute, config);
 
 			Network operatorNetwork = provider.apply(operatorConfig.getId(), fullNetwork, customFilter);
 			networks.put(operatorConfig.getId(), operatorNetwork);
