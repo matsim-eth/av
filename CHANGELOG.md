@@ -1,5 +1,7 @@
 # CHANGELOG
 
+**1.0.0**
+
 - Include price calculation in routing
 - Optionally preroute any AV trip to predict travel times
 - BC: Make vehicle type configurable per operator
