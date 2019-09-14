@@ -25,7 +25,6 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.contrib.dvrp.data.Vehicle;
 import org.matsim.contrib.dvrp.run.DvrpConfigGroup;
-import org.matsim.contrib.dvrp.run.DvrpModule;
 import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -38,18 +37,18 @@ import org.matsim.core.controler.OutputDirectoryHierarchy.OverwriteFileSetting;
 import org.matsim.core.events.handler.EventHandler;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
+import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.VehicleUtils;
 
 import com.google.inject.Provides;
-import com.google.inject.name.Named;
 
-import ch.ethz.matsim.av.config.AVConfig;
-import ch.ethz.matsim.av.config.AVGeneratorConfig;
-import ch.ethz.matsim.av.config.AVOperatorConfig;
+import ch.ethz.matsim.av.config.AVConfigGroup;
+import ch.ethz.matsim.av.config.AVScoringParameterSet;
+import ch.ethz.matsim.av.config.operator.OperatorConfig;
+import ch.ethz.matsim.av.config.operator.TimingConfig;
 import ch.ethz.matsim.av.data.AVVehicle;
-import ch.ethz.matsim.av.framework.AVConfigGroup;
-import ch.ethz.matsim.av.framework.AVConfigGroup.AccessEgressType;
+import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
 import ch.ethz.matsim.av.framework.AVModule;
-import ch.ethz.matsim.av.framework.AVQSimModule;
 import ch.ethz.matsim.av.framework.AVUtils;
 import ch.ethz.matsim.av.generator.AVGenerator;
 
@@ -64,10 +63,7 @@ public class AVPickupDropoffTest {
 		}
 	}
 
-	static private Scenario createScenario(Collection<TestRequest> requests) {
-		AVConfigGroup avConfig = new AVConfigGroup();
-		avConfig.setAccessEgressType(AccessEgressType.MODE);
-
+	static private Scenario createScenario(AVConfigGroup avConfig, Collection<TestRequest> requests) {
 		DvrpConfigGroup dvrpConfigGroup = new DvrpConfigGroup();
 		dvrpConfigGroup.setNetworkMode("av");
 
@@ -172,53 +168,61 @@ public class AVPickupDropoffTest {
 	static private class SingleVehicleGenerator implements AVGenerator {
 		private final int capacity;
 		private final Link link;
-		private boolean created = false;
 
 		public SingleVehicleGenerator(Link link, int capacity) {
 			this.link = link;
 			this.capacity = capacity;
 		}
-
+		
 		@Override
-		public boolean hasNext() {
-			return !created;
-		}
+		public List<AVVehicle> generateVehicles() {
+			VehicleType vehicleType = VehicleUtils.getDefaultVehicleType();
+			vehicleType.getCapacity().setSeats(capacity);
 
-		@Override
-		public AVVehicle next() {
-			created = true;
-			return new AVVehicle(Id.create("vehicle", Vehicle.class), link, capacity, 0.0,
-					Double.POSITIVE_INFINITY);
+			return Collections.singletonList(new AVVehicle(Id.create("vehicle", Vehicle.class), link, vehicleType, 0.0, Double.POSITIVE_INFINITY));
 		}
 	}
 
 	static private class SingleVehicleGeneratorFactory implements AVGenerator.AVGeneratorFactory {
 		private final int capacity;
-		private final Link link;
+		private final Id<Link> linkId;
 
-		public SingleVehicleGeneratorFactory(int capacity, Link link) {
+		public SingleVehicleGeneratorFactory(int capacity, Id<Link> linkId) {
 			this.capacity = capacity;
-			this.link = link;
+			this.linkId = linkId;
 		}
 
 		@Override
-		public AVGenerator createGenerator(AVGeneratorConfig generatorConfig) {
+		public AVGenerator createGenerator(OperatorConfig operatorConfig, Network network) {
+			Link link = network.getLinks().get(linkId);
 			return new SingleVehicleGenerator(link, capacity);
 		}
 	}
 
-	static private AVConfig createConfig() {
-		AVConfig config = new AVConfig();
+	static private AVConfigGroup createConfig() {
+		AVConfigGroup config = new AVConfigGroup();
 
-		AVOperatorConfig operatorConfig = config.createOperatorConfig("op1");
-		operatorConfig.createDispatcherConfig("MultiOD");
-		operatorConfig.createGeneratorConfig("Single");
+		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
+		scoringParams.setSubpopulation(null);
+		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
+		config.addScoringParameters(scoringParams);
+
+		OperatorConfig operatorConfig = new OperatorConfig();
+		operatorConfig.getDispatcherConfig().setType(MultiODHeuristic.TYPE);
+		operatorConfig.getGeneratorConfig().setType("Single");
+		config.addOperator(operatorConfig);
+
+		operatorConfig.getTimingConfig().setPickupDurationPerPassenger(0.0);
+		operatorConfig.getTimingConfig().setPickupDurationPerStop(0.0);
+		operatorConfig.getTimingConfig().setDropoffDurationPerPassenger(0.0);
+		operatorConfig.getTimingConfig().setDropoffDurationPerStop(0.0);
+
+		config.setUseAccessAgress(true);
 
 		return config;
 	}
 
-	static private Controler createController(Scenario scenario, EventHandler handler, AVConfig config,
-			int vehicleCapacity) {
+	static private Controler createController(Scenario scenario, EventHandler handler, int vehicleCapacity) {
 		Controler controller = new Controler(scenario);
 
 		controller.addOverridingModule(new DvrpTravelTimeModule());
@@ -228,14 +232,12 @@ public class AVPickupDropoffTest {
 			@Override
 			public void install() {
 				AVUtils.registerGeneratorFactory(binder(), "Single", SingleVehicleGeneratorFactory.class);
-				bind(AVConfig.class).toInstance(config);
 				addEventHandlerBinding().toInstance(handler);
 			}
 
 			@Provides
-			public SingleVehicleGeneratorFactory provideFactory(@Named("av") Network network) {
-				return new SingleVehicleGeneratorFactory(vehicleCapacity,
-						network.getLinks().get(Id.createLinkId("link1")));
+			public SingleVehicleGeneratorFactory provideFactory() {
+				return new SingleVehicleGeneratorFactory(vehicleCapacity, Id.createLinkId("link1"));
 			}
 		});
 
@@ -256,16 +258,11 @@ public class AVPickupDropoffTest {
 	@Test
 	public void testNoPickupTime() {
 		{ // One agent, no pickup time
-			Scenario scenario = createScenario(Arrays.asList(new TestRequest(0.0, 0.0)));
-			AVConfig config = createConfig();
-
-			config.getTimingParameters().setPickupDurationPerPassenger(0.0);
-			config.getTimingParameters().setPickupDurationPerStop(0.0);
-			config.getTimingParameters().setDropoffDurationPerPassenger(0.0);
-			config.getTimingParameters().setDropoffDurationPerStop(0.0);
+			AVConfigGroup config = createConfig();
+			Scenario scenario = createScenario(config, Arrays.asList(new TestRequest(0.0, 0.0)));
 
 			ArrivalListener listener = new ArrivalListener();
-			Controler controller = createController(scenario, listener, config, 1);
+			Controler controller = createController(scenario, listener, 1);
 			controller.run();
 
 			Assert.assertEquals(1, listener.times.size());
@@ -273,20 +270,15 @@ public class AVPickupDropoffTest {
 		}
 
 		{ // Three agents, no pickup time
-			Scenario scenario = createScenario(Arrays.asList( //
+			AVConfigGroup config = createConfig();
+			Scenario scenario = createScenario(config, Arrays.asList( //
 					new TestRequest(0.0, 0.0), //
 					new TestRequest(0.0, 0.0), //
 					new TestRequest(0.0, 0.0) //
 			));
-			AVConfig config = createConfig();
-
-			config.getTimingParameters().setPickupDurationPerPassenger(0.0);
-			config.getTimingParameters().setPickupDurationPerStop(0.0);
-			config.getTimingParameters().setDropoffDurationPerPassenger(0.0);
-			config.getTimingParameters().setDropoffDurationPerStop(0.0);
 
 			ArrivalListener listener = new ArrivalListener();
-			Controler controller = createController(scenario, listener, config, 4);
+			Controler controller = createController(scenario, listener, 4);
 			controller.run();
 
 			Assert.assertEquals(3, listener.times.size());
@@ -299,16 +291,15 @@ public class AVPickupDropoffTest {
 	@Test
 	public void testPickupTimePerStop() {
 		{ // One agent, 15s pickup time per stop
-			Scenario scenario = createScenario(Arrays.asList(new TestRequest(0.0, 0.0)));
-			AVConfig config = createConfig();
+			AVConfigGroup config = createConfig();
+			OperatorConfig operatorConfig = config.getOperatorConfigs().values().iterator().next();
+			TimingConfig timingConfig = operatorConfig.getTimingConfig();
+			timingConfig.setPickupDurationPerStop(15.0);
 
-			config.getTimingParameters().setPickupDurationPerPassenger(0.0);
-			config.getTimingParameters().setPickupDurationPerStop(15.0);
-			config.getTimingParameters().setDropoffDurationPerPassenger(0.0);
-			config.getTimingParameters().setDropoffDurationPerStop(0.0);
+			Scenario scenario = createScenario(config, Arrays.asList(new TestRequest(0.0, 0.0)));
 
 			ArrivalListener listener = new ArrivalListener();
-			Controler controller = createController(scenario, listener, config, 1);
+			Controler controller = createController(scenario, listener, 1);
 			controller.run();
 
 			Assert.assertEquals(1, listener.times.size());
@@ -316,20 +307,19 @@ public class AVPickupDropoffTest {
 		}
 
 		{ // Three agents, 15s pickup time per stop
-			Scenario scenario = createScenario(Arrays.asList( //
+			AVConfigGroup config = createConfig();
+			OperatorConfig operatorConfig = config.getOperatorConfigs().values().iterator().next();
+			TimingConfig timingConfig = operatorConfig.getTimingConfig();
+			timingConfig.setPickupDurationPerStop(15.0);
+
+			Scenario scenario = createScenario(config, Arrays.asList( //
 					new TestRequest(0.0, 0.0), //
 					new TestRequest(0.0, 0.0), //
 					new TestRequest(0.0, 0.0) //
 			));
-			AVConfig config = createConfig();
-
-			config.getTimingParameters().setPickupDurationPerPassenger(0.0);
-			config.getTimingParameters().setPickupDurationPerStop(15.0);
-			config.getTimingParameters().setDropoffDurationPerPassenger(0.0);
-			config.getTimingParameters().setDropoffDurationPerStop(0.0);
 
 			ArrivalListener listener = new ArrivalListener();
-			Controler controller = createController(scenario, listener, config, 4);
+			Controler controller = createController(scenario, listener, 4);
 			controller.run();
 
 			Assert.assertEquals(3, listener.times.size());
@@ -342,16 +332,15 @@ public class AVPickupDropoffTest {
 	@Test
 	public void testPickupTimePerPerson() {
 		{ // One agent, 15s pickup time per person
-			Scenario scenario = createScenario(Arrays.asList(new TestRequest(0.0, 0.0)));
-			AVConfig config = createConfig();
+			AVConfigGroup config = createConfig();
+			OperatorConfig operatorConfig = config.getOperatorConfigs().values().iterator().next();
+			TimingConfig timingConfig = operatorConfig.getTimingConfig();
+			timingConfig.setPickupDurationPerPassenger(15.0);
 
-			config.getTimingParameters().setPickupDurationPerPassenger(15.0);
-			config.getTimingParameters().setPickupDurationPerStop(0.0);
-			config.getTimingParameters().setDropoffDurationPerPassenger(0.0);
-			config.getTimingParameters().setDropoffDurationPerStop(0.0);
+			Scenario scenario = createScenario(config, Arrays.asList(new TestRequest(0.0, 0.0)));
 
 			ArrivalListener listener = new ArrivalListener();
-			Controler controller = createController(scenario, listener, config, 1);
+			Controler controller = createController(scenario, listener, 1);
 			controller.run();
 
 			Assert.assertEquals(1, listener.times.size());
@@ -359,20 +348,19 @@ public class AVPickupDropoffTest {
 		}
 
 		{ // Three agents, 15s pickup time per person
-			Scenario scenario = createScenario(Arrays.asList( //
+			AVConfigGroup config = createConfig();
+			OperatorConfig operatorConfig = config.getOperatorConfigs().values().iterator().next();
+			TimingConfig timingConfig = operatorConfig.getTimingConfig();
+			timingConfig.setPickupDurationPerPassenger(15.0);
+
+			Scenario scenario = createScenario(config, Arrays.asList( //
 					new TestRequest(0.0, 0.0), //
 					new TestRequest(0.0, 0.0), //
 					new TestRequest(0.0, 0.0) //
 			));
-			AVConfig config = createConfig();
-
-			config.getTimingParameters().setPickupDurationPerPassenger(15.0);
-			config.getTimingParameters().setPickupDurationPerStop(0.0);
-			config.getTimingParameters().setDropoffDurationPerPassenger(0.0);
-			config.getTimingParameters().setDropoffDurationPerStop(0.0);
 
 			ArrivalListener listener = new ArrivalListener();
-			Controler controller = createController(scenario, listener, config, 4);
+			Controler controller = createController(scenario, listener, 4);
 			controller.run();
 
 			Assert.assertEquals(3, listener.times.size());
@@ -384,39 +372,29 @@ public class AVPickupDropoffTest {
 
 	@Test
 	public void testWaitEmptyForPerson() {
-		Scenario scenario = createScenario(Arrays.asList(new TestRequest(0.0, 100.0)));
-		AVConfig config = createConfig();
-
-		config.getTimingParameters().setPickupDurationPerPassenger(0.0);
-		config.getTimingParameters().setPickupDurationPerStop(0.0);
-		config.getTimingParameters().setDropoffDurationPerPassenger(0.0);
-		config.getTimingParameters().setDropoffDurationPerStop(0.0);
+		AVConfigGroup config = createConfig();
+		Scenario scenario = createScenario(config, Arrays.asList(new TestRequest(0.0, 100.0)));
 
 		ArrivalListener listener = new ArrivalListener();
-		Controler controller = createController(scenario, listener, config, 1);
+		Controler controller = createController(scenario, listener, 1);
 		controller.run();
 
 		Assert.assertEquals(1, listener.times.size());
 		Assert.assertEquals(1012.0 + 100.0, listener.times.get(0), 1e-3);
 	}
-	
+
 	@Test
 	public void testDropoffTime() {
 		{ // Three agents, no dropoff time
-			Scenario scenario = createScenario(Arrays.asList( //
+			AVConfigGroup config = createConfig();
+			Scenario scenario = createScenario(config, Arrays.asList( //
 					new TestRequest(0.0, 0.0), //
 					new TestRequest(0.0, 0.0), //
 					new TestRequest(0.0, 0.0) //
 			));
-			AVConfig config = createConfig();
-
-			config.getTimingParameters().setPickupDurationPerPassenger(0.0);
-			config.getTimingParameters().setPickupDurationPerStop(0.0);
-			config.getTimingParameters().setDropoffDurationPerPassenger(0.0);
-			config.getTimingParameters().setDropoffDurationPerStop(0.0);
 
 			ArrivalListener listener = new ArrivalListener();
-			Controler controller = createController(scenario, listener, config, 4);
+			Controler controller = createController(scenario, listener, 4);
 			controller.run();
 
 			Assert.assertEquals(3, listener.times.size());
@@ -424,22 +402,21 @@ public class AVPickupDropoffTest {
 			Assert.assertEquals(1012.0, listener.times.get(1), 1e-3);
 			Assert.assertEquals(1012.0, listener.times.get(2), 1e-3);
 		}
-		
+
 		{ // Three agents, 15s dropoff time per stop
-			Scenario scenario = createScenario(Arrays.asList( //
+			AVConfigGroup config = createConfig();
+			OperatorConfig operatorConfig = config.getOperatorConfigs().values().iterator().next();
+			TimingConfig timingConfig = operatorConfig.getTimingConfig();
+			timingConfig.setDropoffDurationPerStop(15.0);
+
+			Scenario scenario = createScenario(config, Arrays.asList( //
 					new TestRequest(0.0, 0.0), //
 					new TestRequest(0.0, 0.0), //
 					new TestRequest(0.0, 0.0) //
 			));
-			AVConfig config = createConfig();
-
-			config.getTimingParameters().setPickupDurationPerPassenger(0.0);
-			config.getTimingParameters().setPickupDurationPerStop(0.0);
-			config.getTimingParameters().setDropoffDurationPerPassenger(0.0);
-			config.getTimingParameters().setDropoffDurationPerStop(15.0);
 
 			ArrivalListener listener = new ArrivalListener();
-			Controler controller = createController(scenario, listener, config, 4);
+			Controler controller = createController(scenario, listener, 4);
 			controller.run();
 
 			Assert.assertEquals(3, listener.times.size());
@@ -447,22 +424,21 @@ public class AVPickupDropoffTest {
 			Assert.assertEquals(1012.0 + 15.0, listener.times.get(1), 1e-3);
 			Assert.assertEquals(1012.0 + 15.0, listener.times.get(2), 1e-3);
 		}
-		
+
 		{ // Three agents, 15s dropoff time per passenger
-			Scenario scenario = createScenario(Arrays.asList( //
+			AVConfigGroup config = createConfig();
+			OperatorConfig operatorConfig = config.getOperatorConfigs().values().iterator().next();
+			TimingConfig timingConfig = operatorConfig.getTimingConfig();
+			timingConfig.setDropoffDurationPerPassenger(15.0);
+
+			Scenario scenario = createScenario(config, Arrays.asList( //
 					new TestRequest(0.0, 0.0), //
 					new TestRequest(0.0, 0.0), //
 					new TestRequest(0.0, 0.0) //
 			));
-			AVConfig config = createConfig();
-
-			config.getTimingParameters().setPickupDurationPerPassenger(0.0);
-			config.getTimingParameters().setPickupDurationPerStop(0.0);
-			config.getTimingParameters().setDropoffDurationPerPassenger(15.0);
-			config.getTimingParameters().setDropoffDurationPerStop(0.0);
 
 			ArrivalListener listener = new ArrivalListener();
-			Controler controller = createController(scenario, listener, config, 4);
+			Controler controller = createController(scenario, listener, 4);
 			controller.run();
 
 			Assert.assertEquals(3, listener.times.size());

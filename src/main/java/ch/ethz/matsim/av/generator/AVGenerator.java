@@ -1,13 +1,16 @@
 package ch.ethz.matsim.av.generator;
 
+import java.util.List;
 
-import ch.ethz.matsim.av.config.AVGeneratorConfig;
+import org.matsim.api.core.v01.network.Network;
+
+import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.data.AVVehicle;
 
-import java.util.Iterator;
+public interface AVGenerator {
+	List<AVVehicle> generateVehicles();
 
-public interface AVGenerator extends Iterator<AVVehicle> {
-    interface AVGeneratorFactory {
-        AVGenerator createGenerator(AVGeneratorConfig generatorConfig);
-    }
+	interface AVGeneratorFactory {
+		AVGenerator createGenerator(OperatorConfig operatorConfig, Network network);
+	}
 }

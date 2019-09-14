@@ -7,17 +7,22 @@ import org.matsim.contrib.dvrp.data.VehicleImpl;
 
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 
-public class AVVehicle extends VehicleImpl {
-	private AVOperator operator;
-	private AVDispatcher dispatcher;
+import org.matsim.vehicles.VehicleType;
+import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 
-	public AVVehicle(Id<Vehicle> id, Link startLink, int capacity, double t0, double t1, AVOperator operator) {
-		super(id, startLink, capacity, t0, t1);
+public class AVVehicle extends VehicleImpl {
+	private AVOperator operator = null;
+	private AVDispatcher dispatcher;
+	private VehicleType vehicleType;
+
+	public AVVehicle(Id<Vehicle> id, Link startLink, VehicleType vehicleType, double t0, double t1, AVOperator operator) {
+		super(id, startLink, vehicleType.getCapacity().getSeats(), t0, t1);
 		this.operator = operator;
+		this.vehicleType = vehicleType;
 	}
 
-	public AVVehicle(Id<Vehicle> id, Link startLink, int capacity, double t0, double t1) {
-		this(id, startLink, capacity, t0, t1, null);
+	public AVVehicle(Id<Vehicle> id, Link startLink, VehicleType vehicleType, double t0, double t1) {
+		this(id, startLink, vehicleType, t0, t1, null);
 	}
 
 	public AVOperator getOperator() {
@@ -28,11 +33,15 @@ public class AVVehicle extends VehicleImpl {
 		return dispatcher;
 	}
 
-	public void setOpeartor(AVOperator operator) {
+	public void setOperator(AVOperator operator) {
 		this.operator = operator;
 	}
 
 	public void setDispatcher(AVDispatcher dispatcher) {
 		this.dispatcher = dispatcher;
+	}
+
+	public VehicleType getVehicleType() {
+		return vehicleType;
 	}
 }

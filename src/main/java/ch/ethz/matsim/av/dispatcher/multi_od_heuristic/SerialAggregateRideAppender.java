@@ -1,11 +1,9 @@
 package ch.ethz.matsim.av.dispatcher.multi_od_heuristic;
 
-import ch.ethz.matsim.av.config.AVDispatcherConfig;
-import ch.ethz.matsim.av.config.AVTimingParameters;
-import ch.ethz.matsim.av.data.AVVehicle;
-import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.aggregation.AggregatedRequest;
-import ch.ethz.matsim.av.passenger.AVRequest;
-import ch.ethz.matsim.av.schedule.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
+
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.contrib.dvrp.path.VrpPath;
 import org.matsim.contrib.dvrp.path.VrpPathWithTravelData;
@@ -16,26 +14,30 @@ import org.matsim.contrib.dvrp.schedule.Task;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.TravelTime;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
+import ch.ethz.matsim.av.config.operator.TimingConfig;
+import ch.ethz.matsim.av.data.AVVehicle;
+import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.aggregation.AggregatedRequest;
+import ch.ethz.matsim.av.passenger.AVRequest;
+import ch.ethz.matsim.av.schedule.AVDriveTask;
+import ch.ethz.matsim.av.schedule.AVDropoffTask;
+import ch.ethz.matsim.av.schedule.AVPickupTask;
+import ch.ethz.matsim.av.schedule.AVStayTask;
+import ch.ethz.matsim.av.schedule.AVTask;
 
 public class SerialAggregateRideAppender implements AggregateRideAppender {
     final private LeastCostPathCalculator router;
     final private TravelTime travelTime;
-    final private AVDispatcherConfig config;
+    final private TimingConfig timing;
     final private TravelTimeEstimator travelTimeEstimator;
 
-    public SerialAggregateRideAppender(AVDispatcherConfig config, LeastCostPathCalculator router, TravelTime travelTime, TravelTimeEstimator travelTimeEstimator) {
+    public SerialAggregateRideAppender(TimingConfig timing, LeastCostPathCalculator router, TravelTime travelTime, TravelTimeEstimator travelTimeEstimator) {
         this.router = router;
         this.travelTime = travelTime;
-        this.config = config;
+        this.timing = timing;
         this.travelTimeEstimator = travelTimeEstimator;
     }
 
     public void schedule(AggregatedRequest request, AVVehicle vehicle, double now) {
-        AVTimingParameters timing = config.getParent().getTimingParameters();
-
         Schedule schedule = vehicle.getSchedule();
         AVStayTask stayTask = (AVStayTask) Schedules.getLastTask(schedule);
 
@@ -99,8 +101,6 @@ public class SerialAggregateRideAppender implements AggregateRideAppender {
             dropoffs.remove(closestRequest);
             current = closestRequest.getToLink();
         }
-
-        Link finalLink = current;
 
         Link currentLink = stayTask.getLink();
         double currentTime = startTime;

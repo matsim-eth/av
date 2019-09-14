@@ -50,9 +50,9 @@ public class AVPassengerPickupActivity extends AbstractDynActivity implements Pa
 			// operator with the same parameters
 			AVRequest firstRequest = requests.iterator().next();
 
-			this.pickupDurationPerPassenger = firstRequest.getOperator().getConfig().getTimingParameters()
+			this.pickupDurationPerPassenger = firstRequest.getOperator().getConfig().getTimingConfig()
 					.getPickupDurationPerPassenger();
-			pickupDurationPerStop = firstRequest.getOperator().getConfig().getTimingParameters()
+			pickupDurationPerStop = firstRequest.getOperator().getConfig().getTimingConfig()
 					.getPickupDurationPerStop();
 		}
 
