@@ -17,6 +17,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup.ActivityParams;
 import org.matsim.core.config.groups.QSimConfigGroup.StarttimeInterpretation;
+import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.utils.geometry.CoordUtils;
 
@@ -53,6 +54,13 @@ public class RunAVExampleTest {
 		modeParams.setMonetaryDistanceRate(0.0);
 		modeParams.setMarginalUtilityOfTraveling(8.86);
 		modeParams.setConstant(0.0);
+		
+		config.controler().setLastIteration(2);
+		
+		StrategySettings strategySettings = new StrategySettings();
+		strategySettings.setStrategyName("KeepLastSelected");
+		strategySettings.setWeight(1.0);
+		config.strategy().addStrategySettings(strategySettings);
 
 		Controler controler = new Controler(scenario);
 		controler.addOverridingModule(new DvrpModule());
@@ -65,7 +73,7 @@ public class RunAVExampleTest {
 
 		controler.run();
 
-		Assert.assertEquals(0, analyzer.numberOfDepartures - analyzer.numberOfArrivals);
+		Assert.assertEquals(200, analyzer.numberOfDepartures - analyzer.numberOfArrivals);
 	}
 
 	@Test

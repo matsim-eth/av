@@ -1,6 +1,7 @@
 package ch.ethz.matsim.av.framework;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +34,7 @@ import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.dispatcher.AVDispatchmentListener;
+import ch.ethz.matsim.av.generator.AVGenerator;
 import ch.ethz.matsim.av.passenger.AVRequestCreator;
 import ch.ethz.matsim.av.router.AVRouter;
 import ch.ethz.matsim.av.schedule.AVOptimizer;
@@ -114,6 +116,33 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 		}
 
 		return dispatchers;
+	}
+
+	@Provides
+	@Singleton
+	public Map<Id<AVOperator>, List<AVVehicle>> provideVehicles(Map<Id<AVOperator>, AVOperator> operators,
+			Map<Id<AVOperator>, AVGenerator> generators) {
+		Map<Id<AVOperator>, List<AVVehicle>> vehicles = new HashMap<>();
+
+		for (AVOperator operator : operators.values()) {
+			LinkedList<AVVehicle> operatorList = new LinkedList<>();
+
+			AVGenerator generator = generators.get(operator.getId());
+
+			while (generator.hasNext()) {
+				AVVehicle vehicle = generator.next();
+				vehicle.setOpeartor(operator);
+				operatorList.add(vehicle);
+
+				if (Double.isFinite(vehicle.getServiceEndTime())) {
+					throw new IllegalStateException("AV vehicles must have infinite service time");
+				}
+			}
+
+			vehicles.put(operator.getId(), operatorList);
+		}
+
+		return vehicles;
 	}
 
 	@Provides

@@ -19,6 +19,7 @@ import com.google.inject.Inject;
 
 import ch.ethz.matsim.av.config.operator.GeneratorConfig;
 import ch.ethz.matsim.av.config.operator.OperatorConfig;
+import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVVehicle;
 
 public class PopulationDensityGenerator implements AVGenerator {
@@ -29,17 +30,17 @@ public class PopulationDensityGenerator implements AVGenerator {
 	private final int numberOfSeats;
 	private long generatedNumberOfVehicles = 0;
 
-	private final String prefix;
+	private final Id<AVOperator> operatorId;
 
 	private List<Link> linkList = new LinkedList<>();
 	private Map<Link, Double> cumulativeDensity = new HashMap<>();
 
-	public PopulationDensityGenerator(String prefix, int numberOfVehicles, Network network, Population population,
-			ActivityFacilities facilities, int randomSeed, int numberOfSeats) {
+	public PopulationDensityGenerator(Id<AVOperator> operatorId, int numberOfVehicles, Network network,
+			Population population, ActivityFacilities facilities, int randomSeed, int numberOfSeats) {
 		this.random = new Random(randomSeed);
 		this.numberOfVehicles = numberOfVehicles;
 		this.numberOfSeats = numberOfSeats;
-		this.prefix = prefix;
+		this.operatorId = operatorId;
 
 		// Determine density
 		double sum = 0.0;
@@ -93,7 +94,7 @@ public class PopulationDensityGenerator implements AVGenerator {
 			}
 		}
 
-		Id<DvrpVehicle> id = Id.create("av_" + prefix + String.valueOf(generatedNumberOfVehicles), DvrpVehicle.class);
+		Id<DvrpVehicle> id = AVVehicleUtils.createId(operatorId, generatedNumberOfVehicles);
 		return new AVVehicle(id, selectedLink, numberOfSeats + 1, 0.0, Double.POSITIVE_INFINITY);
 	}
 
@@ -108,12 +109,11 @@ public class PopulationDensityGenerator implements AVGenerator {
 		public AVGenerator createGenerator(OperatorConfig operatorConfig, Network network) {
 			GeneratorConfig generatorConfig = operatorConfig.getGeneratorConfig();
 
-			String prefix = "av_" + operatorConfig.getId().toString() + "_";
 			int randomSeed = Integer.parseInt(generatorConfig.getParams().getOrDefault("randomSeed", "1234"));
 			int numberOfSeats = Integer.parseInt(generatorConfig.getParams().getOrDefault("numberOfSeats", "4"));
 
-			return new PopulationDensityGenerator(prefix, generatorConfig.getNumberOfVehicles(), network, population,
-					facilities, randomSeed, numberOfSeats);
+			return new PopulationDensityGenerator(operatorConfig.getId(), generatorConfig.getNumberOfVehicles(),
+					network, population, facilities, randomSeed, numberOfSeats);
 		}
 	}
 }
