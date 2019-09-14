@@ -20,6 +20,7 @@ import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.VehicleUtils;
 
 import com.google.inject.Key;
+import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -204,9 +205,19 @@ public class AVModule extends AbstractModule {
 	@Provides
 	public AVRoutingModule provideAVRoutingModule(AVOperatorChoiceStrategy choiceStrategy, AVRouteFactory routeFactory,
 			Map<Id<AVOperator>, AVInteractionFinder> interactionFinders, Map<Id<AVOperator>, WaitingTime> waitingTimes,
-			PopulationFactory populationFactory, @Named("walk") RoutingModule walkRoutingModule, AVConfigGroup config) {
+			PopulationFactory populationFactory, @Named("walk") RoutingModule walkRoutingModule, AVConfigGroup config,
+			@Named("car") Provider<RoutingModule> roadRoutingModuleProvider) {
+		Map<Id<AVOperator>, Boolean> predictRouteTravelTime = new HashMap<>();
+		boolean needsRoutingModule = false;
+
+		for (OperatorConfig operatorConfig : config.getOperatorConfigs().values()) {
+			predictRouteTravelTime.put(operatorConfig.getId(), operatorConfig.getPredictRouteTravelTime());
+			needsRoutingModule |= operatorConfig.getPredictRouteTravelTime();
+		}
+
 		return new AVRoutingModule(choiceStrategy, routeFactory, interactionFinders, waitingTimes, populationFactory,
-				walkRoutingModule, config.getUseAccessEgress());
+				walkRoutingModule, config.getUseAccessEgress(), predictRouteTravelTime,
+				needsRoutingModule ? roadRoutingModuleProvider.get() : null);
 	}
 
 	@Provides
