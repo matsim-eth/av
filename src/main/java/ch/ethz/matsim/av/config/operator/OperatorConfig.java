@@ -24,6 +24,7 @@ public class OperatorConfig extends ReflectiveConfigGroup {
 	private final PricingConfig pricingConfig = new PricingConfig();
 	private final RouterConfig routerConfig = new RouterConfig();
 	private final InteractionFinderConfig interactionFinderConfig = new InteractionFinderConfig();
+	private final WaitingTimeConfig waitingTimeConfig = new WaitingTimeConfig();
 
 	public OperatorConfig() {
 		super(GROUP_NAME);
@@ -34,6 +35,7 @@ public class OperatorConfig extends ReflectiveConfigGroup {
 		addParameterSet(pricingConfig);
 		addParameterSet(routerConfig);
 		addParameterSet(interactionFinderConfig);
+		addParameterSet(waitingTimeConfig);
 	}
 
 	@StringGetter(ID)
@@ -88,6 +90,10 @@ public class OperatorConfig extends ReflectiveConfigGroup {
 		return interactionFinderConfig;
 	}
 
+	public WaitingTimeConfig getWaitingTimeConfig() {
+		return waitingTimeConfig;
+	}
+
 	@Override
 	public ConfigGroup createParameterSet(final String type) {
 		switch (type) {
@@ -103,6 +109,8 @@ public class OperatorConfig extends ReflectiveConfigGroup {
 			return routerConfig;
 		case InteractionFinderConfig.GROUP_NAME:
 			return interactionFinderConfig;
+		case WaitingTimeConfig.GROUP_NAME:
+			return waitingTimeConfig;
 		}
 
 		throw new IllegalStateException("Unknown parameter set for operator: " + type);

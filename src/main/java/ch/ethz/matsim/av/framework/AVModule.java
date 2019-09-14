@@ -1,8 +1,6 @@
 package ch.ethz.matsim.av.framework;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -33,7 +31,6 @@ import ch.ethz.matsim.av.config.operator.InteractionFinderConfig;
 import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVOperatorFactory;
-import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
 import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
@@ -54,6 +51,8 @@ import ch.ethz.matsim.av.routing.interaction.ClosestLinkInteractionFinder;
 import ch.ethz.matsim.av.routing.interaction.LinkAttributeInteractionFinder;
 import ch.ethz.matsim.av.scoring.AVScoringFunctionFactory;
 import ch.ethz.matsim.av.scoring.AVSubpopulationScoringParameters;
+import ch.ethz.matsim.av.waiting_time.WaitingTime;
+import ch.ethz.matsim.av.waiting_time.WaitingTimeModule;
 
 public class AVModule extends AbstractModule {
 	final static public String AV_MODE = "av";
@@ -105,6 +104,8 @@ public class AVModule extends AbstractModule {
 
 		bind(AVSubpopulationScoringParameters.class);
 		bind(AVNetworkFilter.class).to(NullNetworkFilter.class);
+
+		install(new WaitingTimeModule());
 	}
 
 	private void configureDispatchmentStrategies() {
@@ -180,33 +181,6 @@ public class AVModule extends AbstractModule {
 
 	@Provides
 	@Singleton
-	public Map<Id<AVOperator>, List<AVVehicle>> provideVehicles(Map<Id<AVOperator>, AVOperator> operators,
-			Map<Id<AVOperator>, AVGenerator> generators) {
-		Map<Id<AVOperator>, List<AVVehicle>> vehicles = new HashMap<>();
-
-		for (AVOperator operator : operators.values()) {
-			LinkedList<AVVehicle> operatorList = new LinkedList<>();
-
-			AVGenerator generator = generators.get(operator.getId());
-
-			while (generator.hasNext()) {
-				AVVehicle vehicle = generator.next();
-				vehicle.setOpeartor(operator);
-				operatorList.add(vehicle);
-
-				if (Double.isFinite(vehicle.getServiceEndTime())) {
-					throw new IllegalStateException("AV vehicles must have infinite service time");
-				}
-			}
-
-			vehicles.put(operator.getId(), operatorList);
-		}
-
-		return vehicles;
-	}
-
-	@Provides
-	@Singleton
 	public Map<Id<AVOperator>, AVRouter> provideRouters(Map<Id<AVOperator>, AVOperator> operators,
 			Map<String, AVRouter.Factory> factories, Map<Id<AVOperator>, Network> networks) {
 		Map<Id<AVOperator>, AVRouter> routers = new HashMap<>();
@@ -229,9 +203,9 @@ public class AVModule extends AbstractModule {
 
 	@Provides
 	public AVRoutingModule provideAVRoutingModule(AVOperatorChoiceStrategy choiceStrategy, AVRouteFactory routeFactory,
-			Map<Id<AVOperator>, AVInteractionFinder> interactionFinders, PopulationFactory populationFactory,
-			@Named("walk") RoutingModule walkRoutingModule, AVConfigGroup config) {
-		return new AVRoutingModule(choiceStrategy, routeFactory, interactionFinders, populationFactory,
+			Map<Id<AVOperator>, AVInteractionFinder> interactionFinders, Map<Id<AVOperator>, WaitingTime> waitingTimes,
+			PopulationFactory populationFactory, @Named("walk") RoutingModule walkRoutingModule, AVConfigGroup config) {
+		return new AVRoutingModule(choiceStrategy, routeFactory, interactionFinders, waitingTimes, populationFactory,
 				walkRoutingModule, config.getUseAccessEgress());
 	}
 
