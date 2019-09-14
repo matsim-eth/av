@@ -19,10 +19,17 @@ public class AVConfigGroup extends ReflectiveConfigGroup {
 	static final public String ALLOWED_LINK_MODE = "allowedLinkMode";
 	static final public String USE_ACCESS_EGRESS = "useAccessEgress";
 
+	static final public String PASSENGER_ANALYSIS_INTERVAL = "passengerAnalysisInterval";
+	static final public String VEHICLE_ANALYSIS_INTERVAL = "vehicleAnalysisInterval";
+	static final public String ENABLE_DISTANCE_ANALYSIS = "enableDistanceAnalysis";
+
 	private long parallelRouters = 4;
 
 	private boolean useAccessEgress = false;
 	private String allowedLinkMode = null;
+	private int passengerAnalysisInterval = 0;
+	private int vehicleAnalysisInterval = 0;
+	private boolean enableDistanceAnalysis = false;
 
 	public AVConfigGroup() {
 		super(GROUP_NAME);
@@ -155,6 +162,36 @@ public class AVConfigGroup extends ReflectiveConfigGroup {
 	@StringSetter(ALLOWED_LINK_MODE)
 	public void setAllowedLinkMode(String allowedLinkMode) {
 		this.allowedLinkMode = allowedLinkMode;
+	}
+
+	@StringGetter(PASSENGER_ANALYSIS_INTERVAL)
+	public int getPassengerAnalysisInterval() {
+		return passengerAnalysisInterval;
+	}
+
+	@StringSetter(PASSENGER_ANALYSIS_INTERVAL)
+	public void setPassengerAnalysisInterval(int passengerAnalysisInterval) {
+		this.passengerAnalysisInterval = passengerAnalysisInterval;
+	}
+
+	@StringGetter(VEHICLE_ANALYSIS_INTERVAL)
+	public int getVehicleAnalysisInterval() {
+		return vehicleAnalysisInterval;
+	}
+
+	@StringSetter(VEHICLE_ANALYSIS_INTERVAL)
+	public void setVehicleAnalysisInterval(int vehicleAnalysisInterval) {
+		this.vehicleAnalysisInterval = vehicleAnalysisInterval;
+	}
+
+	@StringGetter(ENABLE_DISTANCE_ANALYSIS)
+	public boolean getEnableDistanceAnalysis() {
+		return enableDistanceAnalysis;
+	}
+
+	@StringSetter(ENABLE_DISTANCE_ANALYSIS)
+	public void setEnableDistanceAnalysis(boolean enableDistanceAnalysis) {
+		this.enableDistanceAnalysis = enableDistanceAnalysis;
 	}
 
 	@Override

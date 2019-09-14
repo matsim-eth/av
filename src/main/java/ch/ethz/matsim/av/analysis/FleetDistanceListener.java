@@ -13,49 +13,27 @@ import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
 import org.matsim.api.core.v01.events.handler.LinkLeaveEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonEntersVehicleEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonLeavesVehicleEventHandler;
-import org.matsim.api.core.v01.network.Network;
-import org.matsim.vehicles.Vehicle;
 
 import ch.ethz.matsim.av.data.AVOperator;
-import ch.ethz.matsim.av.generator.AVVehicleUtils;
+import ch.ethz.matsim.av.generator.AVUtils;
 
 public class FleetDistanceListener
 		implements PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler, LinkLeaveEventHandler {
-	private final Map<Id<AVOperator>, Network> networks;
-	private final Map<Id<Vehicle>, Integer> passengers = new HashMap<>();
+	private final LinkFinder linkFinder;
+	private final PassengerTracker passengers = new PassengerTracker();
 	private final Map<Id<AVOperator>, OperatorData> data = new HashMap<>();
 
 	static public class OperatorData {
-		public int numberOfVehicles;
-		public double vehicleDistance_m;
+		public double occupiedDistance_m;
+		public double emptyDistance_m;
 		public double passengerDistance_m;
 	}
 
-	public FleetDistanceListener(Collection<Id<AVOperator>> operatorIds, Map<Id<AVOperator>, Network> networks) {
-		this.networks = networks;
+	public FleetDistanceListener(Collection<Id<AVOperator>> operatorIds, LinkFinder linkFinder) {
+		this.linkFinder = linkFinder;
 
 		for (Id<AVOperator> operatorId : operatorIds) {
 			data.put(operatorId, new OperatorData());
-		}
-	}
-
-	private void ensurePassengers(Id<Vehicle> vehicleId) {
-		if (!passengers.containsKey(vehicleId)) {
-			passengers.put(vehicleId, 0);
-		}
-	}
-
-	private void increasePassengers(Id<Vehicle> vehicleId) {
-		ensurePassengers(vehicleId);
-		passengers.put(vehicleId, passengers.get(vehicleId) + 1);
-	}
-
-	private void decreasePassengers(Id<Vehicle> vehicleId) {
-		ensurePassengers(vehicleId);
-		int previous = passengers.put(vehicleId, passengers.get(vehicleId) - 1);
-
-		if (previous == 0) {
-			throw new IllegalStateException("Passenger count dropped below zero");
 		}
 	}
 
@@ -63,10 +41,10 @@ public class FleetDistanceListener
 	public void handleEvent(PersonEntersVehicleEvent event) {
 		if (!event.getPersonId().toString().startsWith("av:")) {
 			if (event.getVehicleId().toString().startsWith("av:")) {
-				Id<AVOperator> operatorId = AVVehicleUtils.getOperatorId(event.getVehicleId());
+				Id<AVOperator> operatorId = AVUtils.getOperatorId(event.getVehicleId());
 
 				if (data.containsKey(operatorId)) {
-					increasePassengers(event.getVehicleId());
+					passengers.addPassenger(event.getVehicleId(), event.getPersonId());
 				}
 			}
 		}
@@ -76,10 +54,10 @@ public class FleetDistanceListener
 	public void handleEvent(PersonLeavesVehicleEvent event) {
 		if (!event.getPersonId().toString().startsWith("av:")) {
 			if (event.getVehicleId().toString().startsWith("av:")) {
-				Id<AVOperator> operatorId = AVVehicleUtils.getOperatorId(event.getVehicleId());
+				Id<AVOperator> operatorId = AVUtils.getOperatorId(event.getVehicleId());
 
 				if (data.containsKey(operatorId)) {
-					decreasePassengers(event.getVehicleId());
+					passengers.removePassenger(event.getVehicleId(), event.getPersonId());
 				}
 			}
 		}
@@ -88,20 +66,20 @@ public class FleetDistanceListener
 	@Override
 	public void handleEvent(LinkLeaveEvent event) {
 		if (event.getVehicleId().toString().startsWith("av:")) {
-			Id<AVOperator> operatorId = AVVehicleUtils.getOperatorId(event.getVehicleId());
+			Id<AVOperator> operatorId = AVUtils.getOperatorId(event.getVehicleId());
 			OperatorData operator = data.get(operatorId);
 
 			if (operator != null) {
-				ensurePassengers(event.getVehicleId());
+				double linkLength = linkFinder.getDistance(event.getLinkId());
+				int numberOfPassengers = passengers.getNumberOfPassengers(event.getVehicleId());
 
-				Network network = networks.get(operatorId);
-				double linkLength = network.getLinks().get(event.getLinkId()).getLength();
-
-				if (passengers.get(event.getVehicleId()) > 0) {
-					operator.passengerDistance_m += linkLength;
+				if (numberOfPassengers > 0) {
+					operator.occupiedDistance_m += linkLength;
+				} else {
+					operator.emptyDistance_m += linkLength;
 				}
 
-				operator.vehicleDistance_m += linkLength;
+				operator.passengerDistance_m += linkLength * numberOfPassengers;
 			}
 		}
 	}
@@ -116,11 +94,7 @@ public class FleetDistanceListener
 
 	@Override
 	public void reset(int iteration) {
-		Set<Id<Vehicle>> vehicleIds = passengers.keySet();
-
-		for (Id<Vehicle> vehicleId : vehicleIds) {
-			passengers.put(vehicleId, 0);
-		}
+		passengers.clear();
 
 		Set<Id<AVOperator>> operatorIds = data.keySet();
 

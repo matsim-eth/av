@@ -18,7 +18,7 @@ import com.google.inject.Singleton;
 
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.framework.AVModule;
-import ch.ethz.matsim.av.generator.AVVehicleUtils;
+import ch.ethz.matsim.av.generator.AVUtils;
 
 @Singleton
 public class WaitingTimeListener implements PersonDepartureEventHandler, PersonEntersVehicleEventHandler, AfterMobsimListener {
@@ -41,7 +41,7 @@ public class WaitingTimeListener implements PersonDepartureEventHandler, PersonE
 	public void handleEvent(PersonEntersVehicleEvent enterEvent) {
 		if (enterEvent.getVehicleId().toString().startsWith("av:")) {
 			if (!enterEvent.getPersonId().toString().startsWith("av:")) {
-				Id<AVOperator> operatorId = AVVehicleUtils.getOperatorId(enterEvent.getVehicleId());
+				Id<AVOperator> operatorId = AVUtils.getOperatorId(enterEvent.getVehicleId());
 				WaitingTimeCollector collector = collectors.get(operatorId);
 
 				if (collector != null) {
