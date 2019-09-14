@@ -32,6 +32,10 @@ public class InteractionLinkData {
 		return index.getClosest(coord.getX(), coord.getY());
 	}
 
+	public int getNumberOfLinks() {
+		return index.size();
+	}
+
 	static public InteractionLinkData empty() {
 		return new InteractionLinkData(Collections.emptySet());
 	}

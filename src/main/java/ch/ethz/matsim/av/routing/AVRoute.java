@@ -20,6 +20,8 @@ public class AVRoute extends AbstractRoute {
 
 	private Id<AVOperator> operatorId;
 	private double waitingTime;
+	private double inVehicleTime;
+	private double price;
 
 	public AVRoute(Id<Link> startLinkId, Id<Link> endLinkId) {
 		super(startLinkId, endLinkId);
@@ -41,18 +43,40 @@ public class AVRoute extends AbstractRoute {
 		this.waitingTime = waitingTime;
 	}
 
+	public double getInVehicleTime() {
+		return inVehicleTime;
+	}
+
+	public void setInVehicleTime(double inVehicleTime) {
+		this.inVehicleTime = inVehicleTime;
+	}
+
+	public double getPrice() {
+		return price;
+	}
+
+	public void setPrice(double price) {
+		this.price = price;
+	}
+
 	private void interpretAttributes(Map<String, Object> attributes) {
 		String operatorId = (String) attributes.get("operatorId");
 		Double waitingTime = (Double) attributes.get("waitingTime");
+		Double inVehicleTime = (Double) attributes.get("inVehicleTime");
+		Double price = (Double) attributes.get("price");
 
 		this.operatorId = Id.create(operatorId, AVOperator.class);
 		this.waitingTime = waitingTime;
+		this.inVehicleTime = inVehicleTime;
+		this.price = price;
 	}
 
 	private Map<String, Object> buildAttributes() {
 		Map<String, Object> attributes = new HashMap<>();
 		attributes.put("operatorId", operatorId.toString());
 		attributes.put("waitingTime", waitingTime);
+		attributes.put("inVehicleTime", inVehicleTime);
+		attributes.put("price", price);
 		return attributes;
 	}
 

@@ -5,21 +5,19 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
 import org.matsim.contrib.dvrp.fleet.DvrpVehicleImpl;
 import org.matsim.contrib.dvrp.fleet.ImmutableDvrpVehicleSpecification;
+import org.matsim.vehicles.VehicleType;
 
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 
 public class AVVehicle extends DvrpVehicleImpl {
-	private AVOperator operator;
+	private AVOperator operator = null;
 	private AVDispatcher dispatcher;
+	private VehicleType vehicleType;
 
-	public AVVehicle(Id<DvrpVehicle> id, Link startLink, int capacity, double t0, double t1, AVOperator operator) {
-		super(ImmutableDvrpVehicleSpecification.newBuilder().id(id).capacity(capacity).startLinkId(startLink.getId())
-				.serviceBeginTime(t0).serviceEndTime(t1).build(), startLink);
-		this.operator = operator;
-	}
-
-	public AVVehicle(Id<DvrpVehicle> id, Link startLink, int capacity, double t0, double t1) {
-		this(id, startLink, capacity, t0, t1, null);
+	public AVVehicle(Id<DvrpVehicle> id, Link startLink, double t0, double t1, VehicleType vehicleType) {
+		super(ImmutableDvrpVehicleSpecification.newBuilder().id(id).capacity(vehicleType.getCapacity().getSeats())
+				.startLinkId(startLink.getId()).serviceBeginTime(t0).serviceEndTime(t1).build(), startLink);
+		this.vehicleType = vehicleType;
 	}
 
 	public AVOperator getOperator() {
@@ -30,11 +28,15 @@ public class AVVehicle extends DvrpVehicleImpl {
 		return dispatcher;
 	}
 
-	public void setOpeartor(AVOperator operator) {
+	public void setOperator(AVOperator operator) {
 		this.operator = operator;
 	}
 
 	public void setDispatcher(AVDispatcher dispatcher) {
 		this.dispatcher = dispatcher;
+	}
+
+	public VehicleType getVehicleType() {
+		return vehicleType;
 	}
 }

@@ -1,6 +1,5 @@
 package ch.ethz.matsim.av.framework;
 
-import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,41 +11,42 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.contrib.dvrp.passenger.DefaultPassengerRequestValidator;
 import org.matsim.contrib.dvrp.passenger.PassengerRequestValidator;
-import org.matsim.contrib.dvrp.router.DvrpRoutingNetworkProvider;
 import org.matsim.contrib.dvrp.run.DvrpModes;
 import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
-import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.population.routes.RouteFactories;
-import org.matsim.core.router.DijkstraFactory;
 import org.matsim.core.router.RoutingModule;
-import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
-import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.VehicleUtils;
 
 import com.google.inject.Key;
+import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
-import ch.ethz.matsim.av.config.AVConfig;
-import ch.ethz.matsim.av.config.AVConfigReader;
-import ch.ethz.matsim.av.config.AVGeneratorConfig;
-import ch.ethz.matsim.av.config.AVOperatorConfig;
+import ch.ethz.matsim.av.analysis.simulation.AnalysisOutputListener;
+import ch.ethz.matsim.av.config.AVConfigGroup;
+import ch.ethz.matsim.av.config.operator.GeneratorConfig;
+import ch.ethz.matsim.av.config.operator.InteractionFinderConfig;
+import ch.ethz.matsim.av.config.operator.OperatorConfig;
+import ch.ethz.matsim.av.config.operator.PricingConfig;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVOperatorFactory;
 import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
 import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
-import ch.ethz.matsim.av.framework.AVConfigGroup.AccessEgressType;
+import ch.ethz.matsim.av.financial.PriceCalculator;
+import ch.ethz.matsim.av.financial.StaticPriceCalculator;
 import ch.ethz.matsim.av.generator.AVGenerator;
 import ch.ethz.matsim.av.generator.PopulationDensityGenerator;
+import ch.ethz.matsim.av.network.AVNetworkFilter;
+import ch.ethz.matsim.av.network.AVNetworkProvider;
+import ch.ethz.matsim.av.network.NullNetworkFilter;
 import ch.ethz.matsim.av.replanning.AVOperatorChoiceStrategy;
 import ch.ethz.matsim.av.router.AVRouter;
 import ch.ethz.matsim.av.router.AVRouterShutdownListener;
@@ -55,10 +55,12 @@ import ch.ethz.matsim.av.routing.AVRoute;
 import ch.ethz.matsim.av.routing.AVRouteFactory;
 import ch.ethz.matsim.av.routing.AVRoutingModule;
 import ch.ethz.matsim.av.routing.interaction.AVInteractionFinder;
-import ch.ethz.matsim.av.routing.interaction.InteractionDataFinder;
-import ch.ethz.matsim.av.routing.interaction.InteractionLinkData;
-import ch.ethz.matsim.av.routing.interaction.ModeInteractionFinder;
+import ch.ethz.matsim.av.routing.interaction.ClosestLinkInteractionFinder;
+import ch.ethz.matsim.av.routing.interaction.LinkAttributeInteractionFinder;
 import ch.ethz.matsim.av.scoring.AVScoringFunctionFactory;
+import ch.ethz.matsim.av.scoring.AVSubpopulationScoringParameters;
+import ch.ethz.matsim.av.waiting_time.WaitingTime;
+import ch.ethz.matsim.av.waiting_time.WaitingTimeModule;
 
 public class AVModule extends AbstractModule {
 	final static public String AV_MODE = "av";
@@ -77,8 +79,6 @@ public class AVModule extends AbstractModule {
 
 	@Override
 	public void install() {
-		AVConfigGroup config = (AVConfigGroup) getConfig().getModules().get(AVConfigGroup.GROUP_NAME);
-
 		bind(DvrpModes.key(PassengerRequestValidator.class, AV_MODE))
 				.toInstance(new DefaultPassengerRequestValidator());
 
@@ -103,29 +103,20 @@ public class AVModule extends AbstractModule {
 		bind(AVRouteFactory.class);
 		addRoutingModuleBinding(AV_MODE).to(AVRoutingModule.class);
 
-		switch (config.getAccessEgressType()) {
-		case ATTRIBUTE:
-			bind(AVInteractionFinder.class).to(InteractionDataFinder.class);
-			bind(InteractionLinkData.class).to(Key.get(InteractionLinkData.class, Names.named("attribute")));
-			break;
-		case MODE:
-		case NONE:
-			bind(AVInteractionFinder.class).to(ModeInteractionFinder.class);
-			bind(InteractionLinkData.class).to(Key.get(InteractionLinkData.class, Names.named("empty")));
-			break;
-		default:
-			throw new IllegalStateException();
-		}
-
 		configureDispatchmentStrategies();
 		configureGeneratorStrategies();
-
-		// bind(Network.class).annotatedWith(Names.named(DvrpRoutingNetworkProvider.DVRP_ROUTING)).to(Network.class);
-		bind(Network.class).annotatedWith(Names.named(AVModule.AV_MODE))
-				.to(Key.get(Network.class, Names.named(DvrpRoutingNetworkProvider.DVRP_ROUTING)));
+		configureInteractionFinders();
 
 		addControlerListenerBinding().to(AVRouterShutdownListener.class);
-		AVUtils.registerRouterFactory(binder(), "DefaultAVRouter", DefaultAVRouter.Factory.class);
+		AVUtils.registerRouterFactory(binder(), DefaultAVRouter.TYPE, DefaultAVRouter.Factory.class);
+
+		bind(AVSubpopulationScoringParameters.class);
+		bind(AVNetworkFilter.class).to(NullNetworkFilter.class);
+
+		install(new WaitingTimeModule());
+
+		bind(PriceCalculator.class).to(StaticPriceCalculator.class);
+		addControlerListenerBinding().to(AnalysisOutputListener.class);
 	}
 
 	private void configureDispatchmentStrategies() {
@@ -133,14 +124,26 @@ public class AVModule extends AbstractModule {
 		bind(SingleHeuristicDispatcher.Factory.class);
 		bind(MultiODHeuristic.Factory.class);
 
-		AVUtils.bindDispatcherFactory(binder(), "SingleFIFO").to(SingleFIFODispatcher.Factory.class);
-		AVUtils.bindDispatcherFactory(binder(), "SingleHeuristic").to(SingleHeuristicDispatcher.Factory.class);
-		AVUtils.bindDispatcherFactory(binder(), "MultiOD").to(MultiODHeuristic.Factory.class);
+		AVUtils.bindDispatcherFactory(binder(), SingleFIFODispatcher.TYPE).to(SingleFIFODispatcher.Factory.class);
+		AVUtils.bindDispatcherFactory(binder(), SingleHeuristicDispatcher.TYPE)
+				.to(SingleHeuristicDispatcher.Factory.class);
+		AVUtils.bindDispatcherFactory(binder(), MultiODHeuristic.TYPE).to(MultiODHeuristic.Factory.class);
 	}
 
 	private void configureGeneratorStrategies() {
 		bind(PopulationDensityGenerator.Factory.class);
-		AVUtils.bindGeneratorFactory(binder(), "PopulationDensity").to(PopulationDensityGenerator.Factory.class);
+		AVUtils.bindGeneratorFactory(binder(), PopulationDensityGenerator.TYPE)
+				.to(PopulationDensityGenerator.Factory.class);
+	}
+
+	private void configureInteractionFinders() {
+		bind(ClosestLinkInteractionFinder.Factory.class);
+		bind(LinkAttributeInteractionFinder.Factory.class);
+
+		AVUtils.registerInteractionFinderFactory(binder(), ClosestLinkInteractionFinder.TYPE,
+				ClosestLinkInteractionFinder.Factory.class);
+		AVUtils.registerInteractionFinderFactory(binder(), LinkAttributeInteractionFinder.TYPE,
+				LinkAttributeInteractionFinder.Factory.class);
 	}
 
 	@Provides
@@ -151,21 +154,11 @@ public class AVModule extends AbstractModule {
 	}
 
 	@Provides
-	@Named(AVModule.AV_MODE)
-	LeastCostPathCalculator provideLeastCostPathCalculator(
-			@com.google.inject.name.Named(AVModule.AV_MODE) Network network,
-			@Named(DvrpTravelTimeModule.DVRP_ESTIMATED) TravelTime travelTime) {
-		DijkstraFactory dijkstraFactory = new DijkstraFactory();
-		return dijkstraFactory.createPathCalculator(network, new OnlyTimeDependentTravelDisutility(travelTime),
-				travelTime);
-	}
-
-	@Provides
 	@Singleton
-	Map<Id<AVOperator>, AVOperator> provideOperators(AVConfig config, AVOperatorFactory factory) {
+	Map<Id<AVOperator>, AVOperator> provideOperators(AVConfigGroup config, AVOperatorFactory factory) {
 		Map<Id<AVOperator>, AVOperator> operators = new HashMap<>();
 
-		for (AVOperatorConfig oc : config.getOperatorConfigs()) {
+		for (OperatorConfig oc : config.getOperatorConfigs().values()) {
 			operators.put(oc.getId(), factory.createOperator(oc.getId(), oc));
 		}
 
@@ -174,84 +167,21 @@ public class AVModule extends AbstractModule {
 
 	@Provides
 	@Singleton
-	AVConfig provideAVConfig(Config config, AVConfigGroup configGroup) {
-		URL configPath = configGroup.getConfigURL();
-
-		if (configPath == null) {
-			configPath = ConfigGroup.getInputFileURL(config.getContext(), configGroup.getConfigPath());
-		}
-
-		AVConfig avConfig = new AVConfig();
-		AVConfigReader reader = new AVConfigReader(avConfig);
-
-		reader.readFile(configPath.getPath());
-		return avConfig;
-	}
-
-	@Provides
-	@Singleton
-	Map<Id<AVOperator>, AVGenerator> provideGenerators(Map<String, AVGenerator.AVGeneratorFactory> factories,
-			AVConfig config) {
-		Map<Id<AVOperator>, AVGenerator> generators = new HashMap<>();
-
-		for (AVOperatorConfig oc : config.getOperatorConfigs()) {
-			AVGeneratorConfig gc = oc.getGeneratorConfig();
-			String strategy = gc.getStrategyName();
-
-			if (!factories.containsKey(strategy)) {
-				throw new IllegalArgumentException("Generator strategy '" + strategy + "' is not registered.");
-			}
-
-			AVGenerator.AVGeneratorFactory factory = factories.get(strategy);
-			AVGenerator generator = factory.createGenerator(gc);
-
-			generators.put(oc.getId(), generator);
-		}
-
-		return generators;
-	}
-
-	@Provides
-	@Singleton
-	public Map<Id<AVOperator>, List<AVVehicle>> provideVehicles(Map<Id<AVOperator>, AVOperator> operators,
-			Map<Id<AVOperator>, AVGenerator> generators) {
-		Map<Id<AVOperator>, List<AVVehicle>> vehicles = new HashMap<>();
-
-		for (AVOperator operator : operators.values()) {
-			LinkedList<AVVehicle> operatorList = new LinkedList<>();
-
-			AVGenerator generator = generators.get(operator.getId());
-
-			while (generator.hasNext()) {
-				AVVehicle vehicle = generator.next();
-				vehicle.setOpeartor(operator);
-				operatorList.add(vehicle);
-
-				if (Double.isFinite(vehicle.getServiceEndTime())) {
-					throw new IllegalStateException("AV vehicles must have infinite service time");
-				}
-			}
-
-			vehicles.put(operator.getId(), operatorList);
-		}
-
-		return vehicles;
-	}
-
-	@Provides
-	@Singleton
 	public Map<Id<AVOperator>, AVRouter> provideRouters(Map<Id<AVOperator>, AVOperator> operators,
-			Map<String, AVRouter.Factory> factories) {
+			Map<String, AVRouter.Factory> factories, Map<Id<AVOperator>, Network> networks) {
 		Map<Id<AVOperator>, AVRouter> routers = new HashMap<>();
 
 		for (AVOperator operator : operators.values()) {
-			String routerName = operator.getConfig().getRouterName();
+			String routerName = operator.getConfig().getRouterConfig().getType();
 
 			if (!factories.containsKey(routerName)) {
 				throw new IllegalStateException("Router '" + routerName + "' is not registered");
 			}
 
-			routers.put(operator.getId(), factories.get(routerName).createRouter());
+			Network network = networks.get(operator.getId());
+
+			routers.put(operator.getId(),
+					factories.get(routerName).createRouter(operator.getConfig().getRouterConfig(), network));
 		}
 
 		return routers;
@@ -259,34 +189,80 @@ public class AVModule extends AbstractModule {
 
 	@Provides
 	public AVRoutingModule provideAVRoutingModule(AVOperatorChoiceStrategy choiceStrategy, AVRouteFactory routeFactory,
-			AVInteractionFinder interactionFinder, PopulationFactory populationFactory,
-			@Named("walk") RoutingModule walkRoutingModule, AVConfigGroup config) {
-		return new AVRoutingModule(choiceStrategy, routeFactory, interactionFinder, populationFactory,
-				walkRoutingModule, !config.getAccessEgressType().equals(AccessEgressType.NONE));
-	}
+			Map<Id<AVOperator>, AVInteractionFinder> interactionFinders, Map<Id<AVOperator>, WaitingTime> waitingTimes,
+			PopulationFactory populationFactory, @Named("walk") RoutingModule walkRoutingModule, AVConfigGroup config,
+			@Named("car") Provider<RoutingModule> roadRoutingModuleProvider, PriceCalculator priceCalculator) {
+		Map<Id<AVOperator>, Boolean> predictRouteTravelTime = new HashMap<>();
+		boolean needsRoutingModule = false;
 
-	@Provides
-	public ModeInteractionFinder provideModeInteractionFinder(@Named(AV_MODE) Network network) {
-		return new ModeInteractionFinder(network);
+		for (OperatorConfig operatorConfig : config.getOperatorConfigs().values()) {
+			predictRouteTravelTime.put(operatorConfig.getId(), operatorConfig.getPredictRouteTravelTime());
+			needsRoutingModule |= operatorConfig.getPredictRouteTravelTime();
+		}
+
+		return new AVRoutingModule(choiceStrategy, routeFactory, interactionFinders, waitingTimes, populationFactory,
+				walkRoutingModule, config.getUseAccessEgress(), predictRouteTravelTime,
+				needsRoutingModule ? roadRoutingModuleProvider.get() : null, priceCalculator);
 	}
 
 	@Provides
 	@Singleton
-	@Named("attribute")
-	public InteractionLinkData provideAttributeInteractionLinkData(@Named(AV_MODE) Network network,
-			AVConfigGroup config) {
-		return InteractionLinkData.fromAttribute(config.getAccessEgressLinkFlag(), network);
+	public Map<Id<AVOperator>, Network> provideNetworks(AVConfigGroup config, Network fullNetwork,
+			AVNetworkFilter customFilter) {
+		String allowedLinkMode = config.getAllowedLinkMode();
+		Map<Id<AVOperator>, Network> networks = new HashMap<>();
+
+		for (OperatorConfig operatorConfig : config.getOperatorConfigs().values()) {
+			String allowedLinkAttribute = operatorConfig.getAllowedLinkAttribute();
+			AVNetworkProvider provider = new AVNetworkProvider(allowedLinkMode, allowedLinkAttribute, config);
+
+			Network operatorNetwork = provider.apply(operatorConfig.getId(), fullNetwork, customFilter);
+			networks.put(operatorConfig.getId(), operatorNetwork);
+		}
+
+		return networks;
 	}
 
 	@Provides
 	@Singleton
-	@Named("empty")
-	public InteractionLinkData provideEmptyInteractionLinkData() {
-		return InteractionLinkData.empty();
+	public NullNetworkFilter provideNullNetworkFilter() {
+		return new NullNetworkFilter();
 	}
 
 	@Provides
-	public InteractionDataFinder provideInteractionDataFinder(InteractionLinkData data) {
-		return new InteractionDataFinder(data);
+	@Singleton
+	public Map<Id<AVOperator>, AVInteractionFinder> provideInteractionFinders(AVConfigGroup config,
+			Map<String, AVInteractionFinder.AVInteractionFinderFactory> factories,
+			Map<Id<AVOperator>, Network> networks) {
+		Map<Id<AVOperator>, AVInteractionFinder> finders = new HashMap<>();
+
+		for (OperatorConfig operatorConfig : config.getOperatorConfigs().values()) {
+			InteractionFinderConfig interactionConfig = operatorConfig.getInteractionFinderConfig();
+			AVInteractionFinder.AVInteractionFinderFactory factory = factories.get(interactionConfig.getType());
+
+			if (factory == null) {
+				throw new IllegalStateException(
+						"AVInteractionFinder with this type does not exist: " + interactionConfig.getType());
+			}
+
+			Network network = networks.get(operatorConfig.getId());
+
+			AVInteractionFinder finder = factory.createInteractionFinder(operatorConfig, network);
+			finders.put(operatorConfig.getId(), finder);
+		}
+
+		return finders;
+	}
+
+	@Provides
+	@Singleton
+	public StaticPriceCalculator provideStaticPriceCalculator(AVConfigGroup config) {
+		Map<Id<AVOperator>, PricingConfig> pricingConfigs = new HashMap<>();
+
+		for (OperatorConfig operatorConfig : config.getOperatorConfigs().values()) {
+			pricingConfigs.put(operatorConfig.getId(), operatorConfig.getPricingConfig());
+		}
+
+		return new StaticPriceCalculator(pricingConfigs);
 	}
 }

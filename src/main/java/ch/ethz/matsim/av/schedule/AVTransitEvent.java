@@ -16,16 +16,18 @@ public class AVTransitEvent extends GenericEvent implements HasPersonId {
 	final private Id<Person> personId;
 	final private Id<AVOperator> operatorId;
 	final private double distance;
+	final private double price;
 
 	public AVTransitEvent(AVRequest request, double time) {
-		this(request.getPassengerId(), request.getOperator().getId(), request.getRoute().getDistance(), time, request);
+		this(request.getPassengerId(), request.getOperator().getId(), request.getRoute().getDistance(), Double.NaN,
+				time, request);
 	}
 
-	public AVTransitEvent(Id<Person> personId, Id<AVOperator> operatorId, double distance, double time) {
-		this(personId, operatorId, distance, time, null);
+	public AVTransitEvent(Id<Person> personId, Id<AVOperator> operatorId, double distance, double price, double time) {
+		this(personId, operatorId, distance, price, time, null);
 	}
 
-	private AVTransitEvent(Id<Person> personId, Id<AVOperator> operatorId, double distance, double time,
+	private AVTransitEvent(Id<Person> personId, Id<AVOperator> operatorId, double distance, double price, double time,
 			AVRequest request) {
 		super("AVTransit", time);
 
@@ -33,6 +35,7 @@ public class AVTransitEvent extends GenericEvent implements HasPersonId {
 		this.personId = personId;
 		this.operatorId = operatorId;
 		this.distance = distance;
+		this.price = price;
 	}
 
 	public AVRequest getRequest() {
@@ -49,6 +52,11 @@ public class AVTransitEvent extends GenericEvent implements HasPersonId {
 		attr.put("person", personId.toString());
 		attr.put("operator", operatorId.toString());
 		attr.put("distance", String.valueOf(distance));
+
+		if (!Double.isNaN(price)) {
+			attr.put("price", String.valueOf(price));
+		}
+
 		return attr;
 	}
 
@@ -63,5 +71,9 @@ public class AVTransitEvent extends GenericEvent implements HasPersonId {
 
 	public Id<AVOperator> getOperatorId() {
 		return operatorId;
+	}
+
+	public double getPrice() {
+		return price;
 	}
 }

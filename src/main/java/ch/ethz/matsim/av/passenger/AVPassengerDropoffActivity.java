@@ -14,13 +14,11 @@ public class AVPassengerDropoffActivity implements DynActivity {
 	private final DynAgent driver;
 	private final Set<AVRequest> requests;
 	private final String activityType;
-	private final StayTask dropoffTask;
 	private final double endTime;
 
 	public AVPassengerDropoffActivity(PassengerEngine passengerEngine, DynAgent driver, DvrpVehicle vehicle,
 			StayTask dropoffTask, Set<AVRequest> requests, String activityType) {
 		this.activityType = activityType;
-		this.dropoffTask = dropoffTask;
 
 		this.passengerEngine = passengerEngine;
 		this.driver = driver;
@@ -41,9 +39,9 @@ public class AVPassengerDropoffActivity implements DynActivity {
 			// directly
 			AVRequest firstRequest = requests.iterator().next();
 
-			dropoffTimePerPassenger = firstRequest.getOperator().getConfig().getTimingParameters()
+			dropoffTimePerPassenger = firstRequest.getOperator().getConfig().getTimingConfig()
 					.getDropoffDurationPerPassenger();
-			dropoffTimePerStop = firstRequest.getOperator().getConfig().getTimingParameters()
+			dropoffTimePerStop = firstRequest.getOperator().getConfig().getTimingConfig()
 					.getDropoffDurationPerStop();
 		}
 
