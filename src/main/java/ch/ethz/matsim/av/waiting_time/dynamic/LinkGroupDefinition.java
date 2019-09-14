@@ -36,7 +36,7 @@ public class LinkGroupDefinition {
 	}
 
 	public int getGroup(Id<Link> linkId) {
-		return indices.get(linkId);
+		return indices.getOrDefault(linkId, -1);
 	}
 
 	public int getMaximumIndex() {
