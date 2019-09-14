@@ -38,6 +38,8 @@ import org.matsim.core.controler.OutputDirectoryHierarchy.OverwriteFileSetting;
 import org.matsim.core.events.handler.EventHandler;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
+import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.VehicleUtils;
 
 import com.google.inject.Provides;
 
@@ -184,8 +186,12 @@ public class AVPickupDropoffTest {
 		@Override
 		public AVVehicle next() {
 			created = true;
-			return new AVVehicle(Id.create("vehicle", DvrpVehicle.class), link, capacity, 0.0,
-					Double.POSITIVE_INFINITY);
+
+			VehicleType vehicleType = VehicleUtils.getDefaultVehicleType();
+			vehicleType.getCapacity().setSeats(capacity);
+
+			return new AVVehicle(Id.create("vehicle", DvrpVehicle.class), link, 0.0, Double.POSITIVE_INFINITY,
+					vehicleType);
 		}
 	}
 

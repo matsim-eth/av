@@ -15,16 +15,12 @@ import org.matsim.core.mobsim.framework.PlanAgent;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import ch.ethz.matsim.av.data.AVData;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
 import ch.ethz.matsim.av.routing.AVRoute;
 
 @Singleton
 public class AVRequestCreator implements PassengerRequestCreator {
-	@Inject
-	AVData data;
-
 	@Inject
 	Map<Id<AVOperator>, AVOperator> operators;
 

@@ -14,6 +14,9 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
 import org.matsim.facilities.ActivityFacilities;
+import org.matsim.vehicles.VehicleType;
+import org.matsim.vehicles.VehicleUtils;
+import org.matsim.vehicles.Vehicles;
 
 import com.google.inject.Inject;
 
@@ -27,7 +30,7 @@ public class PopulationDensityGenerator implements AVGenerator {
 
 	private final Random random;
 	private final long numberOfVehicles;
-	private final int numberOfSeats;
+	private final VehicleType vehicleType;
 	private long generatedNumberOfVehicles = 0;
 
 	private final Id<AVOperator> operatorId;
@@ -36,10 +39,10 @@ public class PopulationDensityGenerator implements AVGenerator {
 	private Map<Link, Double> cumulativeDensity = new HashMap<>();
 
 	public PopulationDensityGenerator(Id<AVOperator> operatorId, int numberOfVehicles, Network network,
-			Population population, ActivityFacilities facilities, int randomSeed, int numberOfSeats) {
+			Population population, ActivityFacilities facilities, int randomSeed, VehicleType vehicleType) {
 		this.random = new Random(randomSeed);
 		this.numberOfVehicles = numberOfVehicles;
-		this.numberOfSeats = numberOfSeats;
+		this.vehicleType = vehicleType;
 		this.operatorId = operatorId;
 
 		// Determine density
@@ -95,7 +98,7 @@ public class PopulationDensityGenerator implements AVGenerator {
 		}
 
 		Id<DvrpVehicle> id = AVVehicleUtils.createId(operatorId, generatedNumberOfVehicles);
-		return new AVVehicle(id, selectedLink, numberOfSeats + 1, 0.0, Double.POSITIVE_INFINITY);
+		return new AVVehicle(id, selectedLink, 0.0, Double.POSITIVE_INFINITY, vehicleType);
 	}
 
 	static public class Factory implements AVGenerator.AVGeneratorFactory {
@@ -105,15 +108,29 @@ public class PopulationDensityGenerator implements AVGenerator {
 		@Inject
 		private ActivityFacilities facilities;
 
+		@Inject
+		private Vehicles vehicles;
+
 		@Override
 		public AVGenerator createGenerator(OperatorConfig operatorConfig, Network network) {
 			GeneratorConfig generatorConfig = operatorConfig.getGeneratorConfig();
 
+			VehicleType vehicleType = VehicleUtils.getDefaultVehicleType();
+
+			if (generatorConfig.getVehicleType() != null) {
+				vehicleType = vehicles.getVehicleTypes()
+						.get(Id.create(generatorConfig.getVehicleType(), VehicleType.class));
+
+				if (vehicleType == null) {
+					throw new IllegalStateException(String.format("VehicleType '%s' does not exist for operator '%s'",
+							vehicleType, operatorConfig.getId()));
+				}
+			}
+
 			int randomSeed = Integer.parseInt(generatorConfig.getParams().getOrDefault("randomSeed", "1234"));
-			int numberOfSeats = Integer.parseInt(generatorConfig.getParams().getOrDefault("numberOfSeats", "4"));
 
 			return new PopulationDensityGenerator(operatorConfig.getId(), generatorConfig.getNumberOfVehicles(),
-					network, population, facilities, randomSeed, numberOfSeats);
+					network, population, facilities, randomSeed, vehicleType);
 		}
 	}
 }
