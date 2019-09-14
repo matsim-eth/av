@@ -14,9 +14,9 @@ import org.matsim.contrib.dvrp.optimizer.VrpOptimizer;
 import org.matsim.contrib.dvrp.passenger.PassengerEngineQSimModule;
 import org.matsim.contrib.dvrp.passenger.PassengerRequestCreator;
 import org.matsim.contrib.dvrp.run.AbstractDvrpModeQSimModule;
+import org.matsim.contrib.dvrp.run.DvrpMode;
 import org.matsim.contrib.dvrp.run.DvrpModes;
 import org.matsim.contrib.dvrp.vrpagent.VrpAgentLogic.DynActionCreator;
-import org.matsim.contrib.dvrp.vrpagent.VrpAgentSourceQSimModule;
 import org.matsim.contrib.dvrp.vrpagent.VrpLeg;
 import org.matsim.contrib.dvrp.vrpagent.VrpLegFactory;
 import org.matsim.contrib.dynagent.run.DynActivityEngineModule;
@@ -40,6 +40,7 @@ import ch.ethz.matsim.av.router.AVRouter;
 import ch.ethz.matsim.av.schedule.AVOptimizer;
 import ch.ethz.matsim.av.schedule.AVStayTask;
 import ch.ethz.matsim.av.vrpagent.AVActionCreator;
+import ch.ethz.matsim.av.vrpagent.AVAgentSource;
 
 public class AVQSimModule extends AbstractDvrpModeQSimModule {
 	public final static String COMPONENT_NAME = "AVExtension";
@@ -57,7 +58,7 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 
 	@Override
 	protected void configureQSim() {
-		install(new VrpAgentSourceQSimModule(getMode()));
+		// install(new VrpAgentSourceQSimModule(getMode()));
 		install(new PassengerEngineQSimModule(getMode()));
 
 		bindModal(PassengerRequestCreator.class).to(AVRequestCreator.class);
@@ -72,6 +73,14 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 
 		bindModal(AVDispatchmentListener.class).to(AVDispatchmentListener.class);
 		bindModal(Fleet.class).to(AVData.class);
+
+		addModalQSimComponentBinding().to(AVAgentSource.class);
+	}
+
+	@Provides
+	AVAgentSource provideAgentSource(@DvrpMode(AVModule.AV_MODE) DynActionCreator actionCreator,
+			@DvrpMode(AVModule.AV_MODE) Fleet data, @DvrpMode(AVModule.AV_MODE) VrpOptimizer optimizer, QSim qsim) {
+		return new AVAgentSource(actionCreator, data, optimizer, qsim);
 	}
 
 	@Provides
@@ -131,7 +140,7 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 
 			while (generator.hasNext()) {
 				AVVehicle vehicle = generator.next();
-				vehicle.setOpeartor(operator);
+				vehicle.setOperator(operator);
 				operatorList.add(vehicle);
 
 				if (Double.isFinite(vehicle.getServiceEndTime())) {

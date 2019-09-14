@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- BC: Make vehicle type configurable per operator
 - BC: Add waiting time estimation functionality
 - BC: Add filters for operating areas and use distinct network for each operator
 - BC: Streamline config (no separate config file anymore, everything included in MATSim config)
