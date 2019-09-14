@@ -97,7 +97,7 @@ public class PopulationDensityGenerator implements AVGenerator {
 			}
 		}
 
-		Id<DvrpVehicle> id = AVVehicleUtils.createId(operatorId, generatedNumberOfVehicles);
+		Id<DvrpVehicle> id = AVUtils.createId(operatorId, generatedNumberOfVehicles);
 		return new AVVehicle(id, selectedLink, 0.0, Double.POSITIVE_INFINITY, vehicleType);
 	}
 

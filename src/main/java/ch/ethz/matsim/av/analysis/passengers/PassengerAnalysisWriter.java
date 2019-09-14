@@ -1,0 +1,63 @@
+package ch.ethz.matsim.av.analysis.passengers;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
+public class PassengerAnalysisWriter {
+	private final PassengerAnalysisListener listener;
+
+	public PassengerAnalysisWriter(PassengerAnalysisListener listener) {
+		this.listener = listener;
+	}
+
+	public void writeRides(File path) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path)));
+
+		writer.write(String.join(";", new String[] { //
+				"person_id", //
+				"operator_id", //
+				"vehicle_id", //
+
+				"origin_link_id", //
+				"origin_x", //
+				"origin_y", //
+
+				"destination_link_id", //
+				"destination_x", //
+				"destination_y", //
+
+				"departure_time", //
+				"arrival_time", //
+				"waiting_time", //
+
+				"distance" //
+		}) + "\n");
+
+		for (PassengerRideItem ride : listener.getRides()) {
+			writer.write(String.join(";", new String[] { //
+					String.valueOf(ride.personId), //
+					String.valueOf(ride.operatorId), //
+					String.valueOf(ride.vehicleId), //
+
+					String.valueOf(ride.originLink.getId()), //
+					String.valueOf(ride.originLink.getCoord().getX()), //
+					String.valueOf(ride.originLink.getCoord().getY()), //
+
+					String.valueOf(ride.destinationLink.getId()), //
+					String.valueOf(ride.destinationLink.getCoord().getX()), //
+					String.valueOf(ride.destinationLink.getCoord().getY()), //
+
+					String.valueOf(ride.departureTime), //
+					String.valueOf(ride.arrivalTime), //
+					String.valueOf(ride.waitingTime), //
+
+					String.valueOf(ride.distance) //
+			}) + "\n");
+		}
+
+		writer.close();
+	}
+}

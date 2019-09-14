@@ -5,8 +5,8 @@ import org.matsim.contrib.dvrp.fleet.DvrpVehicle;
 
 import ch.ethz.matsim.av.data.AVOperator;
 
-public class AVVehicleUtils {
-	private AVVehicleUtils() {
+public class AVUtils {
+	private AVUtils() {
 	}
 
 	public static Id<DvrpVehicle> createId(Id<AVOperator> operatorId, String suffix) {
