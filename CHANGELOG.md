@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- Fix: Distances should be measured through Link*Enter*Events
+
 **1.0.0**
 
 - Fix bug when using fallback value for dynamic waiting time
