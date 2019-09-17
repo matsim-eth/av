@@ -89,11 +89,6 @@ public class AVRequest implements PassengerRequest {
 	}
 
 	@Override
-	public boolean isRejected() {
-		return false;
-	}
-
-	@Override
 	public Id<Request> getId() {
 		return id;
 	}
@@ -106,10 +101,5 @@ public class AVRequest implements PassengerRequest {
 	@Override
 	public String getMode() {
 		return AVModule.AV_MODE;
-	}
-
-	@Override
-	public void setRejected(boolean rejected) {
-
 	}
 }
