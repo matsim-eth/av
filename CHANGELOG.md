@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- Copy analysis output to main output folder if present at simulation end
 - Fix: Distances should be measured through Link*Enter*Events
 
 **1.0.0**
