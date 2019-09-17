@@ -3,6 +3,7 @@ package ch.ethz.matsim.av.dynamics;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,6 +42,7 @@ import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.VehicleUtils;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provides;
 
 import ch.ethz.matsim.av.config.AVConfigGroup;
@@ -68,7 +70,7 @@ public class AVPickupDropoffTest {
 	static private Scenario createScenario(AVConfigGroup avConfig, Collection<TestRequest> requests) {
 		DvrpConfigGroup dvrpConfigGroup = new DvrpConfigGroup();
 		dvrpConfigGroup.setMobsimMode("car");
-		dvrpConfigGroup.setNetworkMode("av");
+		dvrpConfigGroup.setNetworkModes(ImmutableSet.of("av"));
 
 		Config config = ConfigUtils.createConfig(avConfig, dvrpConfigGroup);
 

@@ -8,14 +8,13 @@ import javax.inject.Inject;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.groups.PlansConfigGroup;
-import org.matsim.utils.objectattributes.ObjectAttributes;
+import org.matsim.core.population.PopulationUtils;
 
 import ch.ethz.matsim.av.config.AVConfigGroup;
 import ch.ethz.matsim.av.config.AVScoringParameterSet;
 
 public class AVSubpopulationScoringParameters {
 	private final AVConfigGroup config;
-	private final ObjectAttributes personAttributes;
 	private final String subpopulationAttributeName;
 
 	private final Map<String, AVScoringParameters> cache = new HashMap<>();
@@ -23,13 +22,11 @@ public class AVSubpopulationScoringParameters {
 	@Inject
 	AVSubpopulationScoringParameters(PlansConfigGroup plansConfigGroup, AVConfigGroup config, Population population) {
 		this.config = config;
-		this.personAttributes = population.getPersonAttributes();
 		this.subpopulationAttributeName = plansConfigGroup.getSubpopulationAttributeName();
 	}
 
 	public AVScoringParameters getScoringParameters(Person person) {
-		final String subpopulation = (String) personAttributes.getAttribute(person.getId().toString(),
-				subpopulationAttributeName);
+		final String subpopulation = (String) PopulationUtils.getPersonAttribute(person, subpopulationAttributeName);
 
 		if (!cache.containsKey(subpopulation)) {
 			AVScoringParameterSet configParameters = config.getScoringParameters(subpopulation);
