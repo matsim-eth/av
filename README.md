@@ -8,7 +8,7 @@ The AV extension is currently kept compatible with the following MATSim versions
 
 |MATSim              |AV version      |               |
 |--------------------|-----------------|---------------|
-| Weekly SNAPSHOT `12.0-2019w20`            | `1.0.0`           | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master)](https://travis-ci.org/matsim-eth/av) |
+| Weekly SNAPSHOT `12.0-2019w37`            | `1.0.0`           | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master)](https://travis-ci.org/matsim-eth/av) |
 | Release `11.0`       | `1.0.0-matsim11`  | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master-11)](https://travis-ci.org/matsim-eth/av) |
 | Release `0.10.1`     | `1.0.0-matsim10`  | [![Build Status](https://travis-ci.org/matsim-eth/av.svg?branch=master-10)](https://travis-ci.org/matsim-eth/av) |
 
