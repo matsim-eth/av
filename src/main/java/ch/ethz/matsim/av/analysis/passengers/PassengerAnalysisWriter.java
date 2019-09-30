@@ -39,8 +39,8 @@ public class PassengerAnalysisWriter {
 		for (PassengerRideItem ride : listener.getRides()) {
 			writer.write(String.join(";", new String[] { //
 					String.valueOf(ride.personId), //
-					String.valueOf(ride.operatorId), //
-					String.valueOf(ride.vehicleId), //
+					ride.operatorId == null ? "NaN" : String.valueOf(ride.operatorId), //
+					ride.vehicleId == null ? "NaN" : String.valueOf(ride.vehicleId), //
 
 					ride.originLink == null ? "null" : String.valueOf(ride.originLink.getId()), //
 					ride.originLink == null ? "NaN" : String.valueOf(ride.originLink.getCoord().getX()), //

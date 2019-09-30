@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- Fix: NullPointerException for unfinished AV trips
 - Update to MATSim 12 weekly SNAPSHOOT 2019w37
 - Copy analysis output to main output folder if present at simulation end
 - Fix: Distances should be measured through Link*Enter*Events
