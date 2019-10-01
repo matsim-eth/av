@@ -6,7 +6,7 @@
 
 	<groupId>ch.ethz.matsim</groupId>
 	<artifactId>av</artifactId>
-	<version>1.0.0-matsim11</version>
+	<version>1.0.1-matsim11</version>
 	<description>Automated vehicles for MATSim</description>
 
 	<properties>
@@ -98,7 +98,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.9.9.3</version>
+			<version>2.9.10</version>
 		</dependency>
 
 		<dependency>

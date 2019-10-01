@@ -8,6 +8,7 @@ import javax.inject.Inject;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.groups.PlansConfigGroup;
+import org.matsim.core.population.PopulationUtils;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 
 import ch.ethz.matsim.av.config.AVConfigGroup;
