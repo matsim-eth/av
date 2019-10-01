@@ -12,6 +12,7 @@ public class OperatorConfig extends ReflectiveConfigGroup {
 	static public final String ID = "id";
 	static public final String ROUTER_TYPE = "routerType";
 	static public final String ALLOWED_LINK_ATTRIBUTE = "allowedLinkAttribute";
+	static public final String CLEAN_NETWORK = "cleanNetwork";
 	static public final String PREDICT_ROUTE_TRAVEL_TIME = "predictRouteTravelTime";
 	static public final String PREDICT_ROUTE_PRICE = "predictRoutePrice";
 
@@ -19,6 +20,7 @@ public class OperatorConfig extends ReflectiveConfigGroup {
 	private Id<AVOperator> id = DEFAULT_OPERATOR_ID;
 
 	private String allowedLinkAttribute = null;
+	private boolean cleanNetwork = false;
 	private boolean predictRouteTravelTime = false;
 	private boolean predictRoutePrice = false;
 
@@ -79,7 +81,7 @@ public class OperatorConfig extends ReflectiveConfigGroup {
 	public void setPredictRouteTravelTime(boolean predictRouteTravelTime) {
 		this.predictRouteTravelTime = predictRouteTravelTime;
 	}
-	
+
 	@StringGetter(PREDICT_ROUTE_PRICE)
 	public boolean getPredictRoutePrice() {
 		return predictRoutePrice;
@@ -88,6 +90,16 @@ public class OperatorConfig extends ReflectiveConfigGroup {
 	@StringSetter(PREDICT_ROUTE_PRICE)
 	public void setPredictRoutePrice(boolean predictRoutePrice) {
 		this.predictRoutePrice = predictRoutePrice;
+	}
+
+	@StringGetter(CLEAN_NETWORK)
+	public boolean getCleanNetwork() {
+		return cleanNetwork;
+	}
+
+	@StringSetter(CLEAN_NETWORK)
+	public void setCleanNetwork(boolean cleanNetwork) {
+		this.cleanNetwork = cleanNetwork;
 	}
 
 	public DispatcherConfig getDispatcherConfig() {
