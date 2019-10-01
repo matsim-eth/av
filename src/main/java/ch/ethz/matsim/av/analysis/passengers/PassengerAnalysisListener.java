@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.events.LinkLeaveEvent;
+import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.PersonArrivalEvent;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
-import org.matsim.api.core.v01.events.handler.LinkLeaveEventHandler;
+import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonArrivalEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonDepartureEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonEntersVehicleEventHandler;
@@ -23,7 +23,7 @@ import ch.ethz.matsim.av.analysis.PassengerTracker;
 import ch.ethz.matsim.av.generator.AVUtils;
 
 public class PassengerAnalysisListener implements PersonDepartureEventHandler, PersonArrivalEventHandler,
-		LinkLeaveEventHandler, PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler {
+		LinkEnterEventHandler, PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler {
 	private final LinkFinder linkFinder;
 	private final PassengerTracker passengers = new PassengerTracker();
 
@@ -52,7 +52,7 @@ public class PassengerAnalysisListener implements PersonDepartureEventHandler, P
 	}
 
 	@Override
-	public void handleEvent(LinkLeaveEvent event) {
+	public void handleEvent(LinkEnterEvent event) {
 		if (event.getVehicleId().toString().startsWith("av:")) {
 			double distance = linkFinder.getDistance(event.getLinkId());
 

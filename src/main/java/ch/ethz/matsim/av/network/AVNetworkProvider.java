@@ -19,13 +19,15 @@ import ch.ethz.matsim.av.data.AVOperator;
 public class AVNetworkProvider {
 	private final static Logger logger = Logger.getLogger(AVNetworkProvider.class);
 
+	private final boolean cleanNetwork;
 	private final String allowedLinkMode;
 	private final String allowedLinkAttribute;
 	private final AVConfigGroup config;
 
-	public AVNetworkProvider(String allowedLinkMode, String allowedLinkAttribute, AVConfigGroup config) {
+	public AVNetworkProvider(String allowedLinkMode, String allowedLinkAttribute, boolean cleanNetwork, AVConfigGroup config) {
 		this.allowedLinkAttribute = allowedLinkAttribute;
 		this.allowedLinkMode = allowedLinkMode;
+		this.cleanNetwork = cleanNetwork;
 		this.config = config;
 	}
 
@@ -59,9 +61,12 @@ public class AVNetworkProvider {
 		int cleanedNumberOfLinks = filteredNetwork.getLinks().size();
 		int cleanedNumberOfNodes = filteredNetwork.getNodes().size();
 
-		if (numberOfLinks != cleanedNumberOfLinks || numberOfNodes != cleanedNumberOfNodes) {
+		if (cleanNetwork) {
+			logger.info(String.format("Links before/after cleaning: %d/%d", numberOfLinks, cleanedNumberOfLinks));
+			logger.info(String.format("Nodes before/after cleaning: %d/%d", numberOfNodes, cleanedNumberOfNodes));
+		} else if (numberOfLinks != cleanedNumberOfLinks || numberOfNodes != cleanedNumberOfNodes) {
 			logger.error(String.format("Links before/after cleaning: %d/%d", numberOfLinks, cleanedNumberOfLinks));
-			logger.error(String.format("Links before/after cleaning: %d/%d", numberOfNodes, cleanedNumberOfNodes));
+			logger.error(String.format("Nodes before/after cleaning: %d/%d", numberOfNodes, cleanedNumberOfNodes));
 			throw new IllegalStateException(String.format(
 					"The current network definition (mode and attribute) for operator %s is not valid!", operatorId));
 		}
