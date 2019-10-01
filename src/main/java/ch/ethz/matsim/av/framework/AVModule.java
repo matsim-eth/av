@@ -76,7 +76,7 @@ public class AVModule extends AbstractModule {
 	public void install() {
 		DvrpModes.registerDvrpMode(binder(), AV_MODE);
 		bind(DvrpModes.key(Network.class, AV_MODE)).to(Network.class);
-		
+
 		bind(DvrpModes.key(PassengerRequestValidator.class, AV_MODE))
 				.toInstance(new DefaultPassengerRequestValidator());
 
@@ -212,7 +212,9 @@ public class AVModule extends AbstractModule {
 
 		for (OperatorConfig operatorConfig : config.getOperatorConfigs().values()) {
 			String allowedLinkAttribute = operatorConfig.getAllowedLinkAttribute();
-			AVNetworkProvider provider = new AVNetworkProvider(allowedLinkMode, allowedLinkAttribute);
+			boolean cleanNetwork = operatorConfig.getCleanNetwork();
+
+			AVNetworkProvider provider = new AVNetworkProvider(allowedLinkMode, allowedLinkAttribute, cleanNetwork);
 
 			Network operatorNetwork = provider.apply(operatorConfig.getId(), fullNetwork, customFilter);
 			networks.put(operatorConfig.getId(), operatorNetwork);
