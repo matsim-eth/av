@@ -7,10 +7,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.events.LinkLeaveEvent;
+import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
-import org.matsim.api.core.v01.events.handler.LinkLeaveEventHandler;
+import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonEntersVehicleEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonLeavesVehicleEventHandler;
 
@@ -18,7 +18,7 @@ import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.generator.AVUtils;
 
 public class FleetDistanceListener
-		implements PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler, LinkLeaveEventHandler {
+		implements PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler, LinkEnterEventHandler {
 	private final LinkFinder linkFinder;
 	private final PassengerTracker passengers = new PassengerTracker();
 	private final Map<Id<AVOperator>, OperatorData> data = new HashMap<>();
@@ -64,7 +64,7 @@ public class FleetDistanceListener
 	}
 
 	@Override
-	public void handleEvent(LinkLeaveEvent event) {
+	public void handleEvent(LinkEnterEvent event) {
 		if (event.getVehicleId().toString().startsWith("av:")) {
 			Id<AVOperator> operatorId = AVUtils.getOperatorId(event.getVehicleId());
 			OperatorData operator = data.get(operatorId);

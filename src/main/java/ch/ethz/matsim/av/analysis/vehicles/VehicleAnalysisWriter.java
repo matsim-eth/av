@@ -44,9 +44,9 @@ public class VehicleAnalysisWriter {
 					String.valueOf(movement.originLink.getCoord().getX()), //
 					String.valueOf(movement.originLink.getCoord().getY()), //
 
-					String.valueOf(movement.destinationLink.getId()), //
-					String.valueOf(movement.destinationLink.getCoord().getX()), //
-					String.valueOf(movement.destinationLink.getCoord().getY()), //
+					movement.destinationLink == null ? "null" : String.valueOf(movement.destinationLink.getId()), //
+					movement.destinationLink == null ? "NaN" : String.valueOf(movement.destinationLink.getCoord().getX()), //
+					movement.destinationLink == null ? "NaN" : String.valueOf(movement.destinationLink.getCoord().getY()), //
 
 					String.valueOf(movement.departureTime), //
 					String.valueOf(movement.arrivalTime), //

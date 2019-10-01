@@ -1,8 +1,6 @@
 package ch.ethz.matsim.av.framework;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -30,19 +28,16 @@ import com.google.inject.name.Names;
 
 import ch.ethz.matsim.av.analysis.simulation.AnalysisOutputListener;
 import ch.ethz.matsim.av.config.AVConfigGroup;
-import ch.ethz.matsim.av.config.operator.GeneratorConfig;
 import ch.ethz.matsim.av.config.operator.InteractionFinderConfig;
 import ch.ethz.matsim.av.config.operator.OperatorConfig;
 import ch.ethz.matsim.av.config.operator.PricingConfig;
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.data.AVOperatorFactory;
-import ch.ethz.matsim.av.data.AVVehicle;
 import ch.ethz.matsim.av.dispatcher.multi_od_heuristic.MultiODHeuristic;
 import ch.ethz.matsim.av.dispatcher.single_fifo.SingleFIFODispatcher;
 import ch.ethz.matsim.av.dispatcher.single_heuristic.SingleHeuristicDispatcher;
 import ch.ethz.matsim.av.financial.PriceCalculator;
 import ch.ethz.matsim.av.financial.StaticPriceCalculator;
-import ch.ethz.matsim.av.generator.AVGenerator;
 import ch.ethz.matsim.av.generator.PopulationDensityGenerator;
 import ch.ethz.matsim.av.network.AVNetworkFilter;
 import ch.ethz.matsim.av.network.AVNetworkProvider;
@@ -79,6 +74,9 @@ public class AVModule extends AbstractModule {
 
 	@Override
 	public void install() {
+		DvrpModes.registerDvrpMode(binder(), AV_MODE);
+		bind(DvrpModes.key(Network.class, AV_MODE)).to(Network.class);
+
 		bind(DvrpModes.key(PassengerRequestValidator.class, AV_MODE))
 				.toInstance(new DefaultPassengerRequestValidator());
 
@@ -214,7 +212,9 @@ public class AVModule extends AbstractModule {
 
 		for (OperatorConfig operatorConfig : config.getOperatorConfigs().values()) {
 			String allowedLinkAttribute = operatorConfig.getAllowedLinkAttribute();
-			AVNetworkProvider provider = new AVNetworkProvider(allowedLinkMode, allowedLinkAttribute);
+			boolean cleanNetwork = operatorConfig.getCleanNetwork();
+
+			AVNetworkProvider provider = new AVNetworkProvider(allowedLinkMode, allowedLinkAttribute, cleanNetwork);
 
 			Network operatorNetwork = provider.apply(operatorConfig.getId(), fullNetwork, customFilter);
 			networks.put(operatorConfig.getId(), operatorNetwork);
