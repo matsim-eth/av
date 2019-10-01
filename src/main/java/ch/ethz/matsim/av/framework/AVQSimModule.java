@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.contrib.dvrp.data.Vehicle;
 import org.matsim.contrib.dvrp.passenger.PassengerEngine;
 import org.matsim.contrib.dvrp.vrpagent.VrpAgentSource;
 import org.matsim.contrib.dvrp.vrpagent.VrpLegs;
@@ -110,10 +111,10 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
 		for (AVOperator operator : operators.values()) {
 			AVGenerator generator = generators.get(operator.getId());
 			List<AVVehicle> operatorList = generator.generateVehicles();
-			
+
 			for (AVVehicle vehicle : operatorList) {
 				vehicle.setOperator(operator);
-				
+
 				if (Double.isFinite(vehicle.getServiceEndTime())) {
 					throw new IllegalStateException("AV vehicles must have infinite service time");
 				}
@@ -124,7 +125,7 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
 
 		return vehicles;
 	}
-	
+
 	@Provides
 	@Singleton
 	Map<Id<AVOperator>, AVGenerator> provideGenerators(Map<String, AVGenerator.AVGeneratorFactory> factories,
@@ -154,17 +155,16 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
 	@Singleton
 	public AVData provideData(Map<Id<AVOperator>, AVOperator> operators,
 			Map<Id<AVOperator>, List<AVVehicle>> vehicles) {
-		AVData data = new AVData();
+		Map<Id<Vehicle>, AVVehicle> returnVehicles = new HashMap<>();
 
 		for (List<AVVehicle> vehs : vehicles.values()) {
 			for (AVVehicle vehicle : vehs) {
-				data.addVehicle(vehicle);
-
 				vehicle.getSchedule().addTask(new AVStayTask(vehicle.getServiceBeginTime(), vehicle.getServiceEndTime(),
 						vehicle.getStartLink()));
+				returnVehicles.put(vehicle.getId(), vehicle);
 			}
 		}
 
-		return data;
+		return new AVData(returnVehicles);
 	}
 }

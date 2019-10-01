@@ -204,7 +204,9 @@ public class AVModule extends AbstractModule {
 
 		for (OperatorConfig operatorConfig : config.getOperatorConfigs().values()) {
 			String allowedLinkAttribute = operatorConfig.getAllowedLinkAttribute();
-			AVNetworkProvider provider = new AVNetworkProvider(allowedLinkMode, allowedLinkAttribute, config);
+			boolean cleanNetwork = operatorConfig.getCleanNetwork();
+
+			AVNetworkProvider provider = new AVNetworkProvider(allowedLinkMode, allowedLinkAttribute, cleanNetwork, config);
 
 			Network operatorNetwork = provider.apply(operatorConfig.getId(), fullNetwork, customFilter);
 			networks.put(operatorConfig.getId(), operatorNetwork);
