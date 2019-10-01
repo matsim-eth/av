@@ -1,5 +1,9 @@
 # CHANGELOG
 
+- No changes yet
+
+**1.0.1**
+
 - Add option to automatically clean AV network
 - Fix: NullPointerException for unfinished AV trips
 - Update to MATSim 12 weekly SNAPSHOOT 2019w37
