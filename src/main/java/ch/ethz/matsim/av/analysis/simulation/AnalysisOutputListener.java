@@ -2,8 +2,10 @@ package ch.ethz.matsim.av.analysis.simulation;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.core.config.groups.ControlerConfigGroup;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.events.IterationStartsEvent;
@@ -25,7 +27,12 @@ import ch.ethz.matsim.av.config.AVConfigGroup;
 
 @Singleton
 public class AnalysisOutputListener implements IterationStartsListener, IterationEndsListener, ShutdownListener {
+	private static final String PASSENGER_RIDES_FILE_NAME = "av_passenger_rides.csv";
+	private static final String VEHICLE_MOVEMENTS_FILE_NAME = "av_vehicle_movements.csv";
+	private static final String VEHICLE_ACTIVITIES_FILE_NAME = "av_vehicle_activities.csv";
+
 	private final OutputDirectoryHierarchy outputDirectory;
+	private final int lastIteration;
 
 	private final int passengerAnalysisInterval;
 	private final PassengerAnalysisListener passengerAnalysisListener;
@@ -42,8 +49,10 @@ public class AnalysisOutputListener implements IterationStartsListener, Iteratio
 	private DistanceAnalysisWriter distanceAnalysisWriter;
 
 	@Inject
-	public AnalysisOutputListener(AVConfigGroup config, OutputDirectoryHierarchy outputDirectory, Network network) {
+	public AnalysisOutputListener(AVConfigGroup config, ControlerConfigGroup controllerConfig,
+			OutputDirectoryHierarchy outputDirectory, Network network) {
 		this.outputDirectory = outputDirectory;
+		this.lastIteration = controllerConfig.getLastIteration();
 
 		this.passengerAnalysisInterval = config.getPassengerAnalysisInterval();
 		this.vehicleAnalysisInterval = config.getVehicleAnalysisInterval();
@@ -81,7 +90,7 @@ public class AnalysisOutputListener implements IterationStartsListener, Iteratio
 			if (isPassengerAnalysisActive) {
 				event.getServices().getEvents().removeHandler(passengerAnalysisListener);
 
-				String path = outputDirectory.getIterationFilename(event.getIteration(), "av_passenger_rides.csv");
+				String path = outputDirectory.getIterationFilename(event.getIteration(), PASSENGER_RIDES_FILE_NAME);
 				new PassengerAnalysisWriter(passengerAnalysisListener).writeRides(new File(path));
 			}
 
@@ -89,11 +98,11 @@ public class AnalysisOutputListener implements IterationStartsListener, Iteratio
 				event.getServices().getEvents().removeHandler(vehicleAnalysisListener);
 
 				String movementsPath = outputDirectory.getIterationFilename(event.getIteration(),
-						"av_vehicle_movements.csv");
+						VEHICLE_MOVEMENTS_FILE_NAME);
 				new VehicleAnalysisWriter(vehicleAnalysisListener).writeMovements(new File(movementsPath));
 
 				String activitiesPath = outputDirectory.getIterationFilename(event.getIteration(),
-						"av_vehicle_activities.csv");
+						VEHICLE_ACTIVITIES_FILE_NAME);
 				new VehicleAnalysisWriter(vehicleAnalysisListener).writeActivities(new File(activitiesPath));
 			}
 
@@ -108,6 +117,30 @@ public class AnalysisOutputListener implements IterationStartsListener, Iteratio
 
 	@Override
 	public void notifyShutdown(ShutdownEvent event) {
+		try {
+			File iterationPath = new File(
+					outputDirectory.getIterationFilename(lastIteration, PASSENGER_RIDES_FILE_NAME));
+			File outputPath = new File(outputDirectory.getOutputFilename(PASSENGER_RIDES_FILE_NAME));
+			Files.copy(iterationPath.toPath(), outputPath.toPath());
+		} catch (IOException e) {
+		}
+
+		try {
+			File iterationPath = new File(
+					outputDirectory.getIterationFilename(lastIteration, VEHICLE_MOVEMENTS_FILE_NAME));
+			File outputPath = new File(outputDirectory.getOutputFilename(VEHICLE_MOVEMENTS_FILE_NAME));
+			Files.copy(iterationPath.toPath(), outputPath.toPath());
+		} catch (IOException e) {
+		}
+
+		try {
+			File iterationPath = new File(
+					outputDirectory.getIterationFilename(lastIteration, VEHICLE_ACTIVITIES_FILE_NAME));
+			File outputPath = new File(outputDirectory.getOutputFilename(VEHICLE_ACTIVITIES_FILE_NAME));
+			Files.copy(iterationPath.toPath(), outputPath.toPath());
+		} catch (IOException e) {
+		}
+
 		try {
 			distanceAnalysisWriter.close();
 		} catch (IOException e) {

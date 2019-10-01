@@ -8,14 +8,14 @@ import java.util.Map;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
 import org.matsim.api.core.v01.events.ActivityStartEvent;
-import org.matsim.api.core.v01.events.LinkLeaveEvent;
+import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.PersonArrivalEvent;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
 import org.matsim.api.core.v01.events.PersonLeavesVehicleEvent;
 import org.matsim.api.core.v01.events.handler.ActivityEndEventHandler;
 import org.matsim.api.core.v01.events.handler.ActivityStartEventHandler;
-import org.matsim.api.core.v01.events.handler.LinkLeaveEventHandler;
+import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonArrivalEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonDepartureEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonEntersVehicleEventHandler;
@@ -28,7 +28,7 @@ import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.generator.AVUtils;
 
 public class VehicleAnalysisListener implements PersonDepartureEventHandler, PersonArrivalEventHandler,
-		ActivityStartEventHandler, ActivityEndEventHandler, LinkLeaveEventHandler, PersonEntersVehicleEventHandler,
+		ActivityStartEventHandler, ActivityEndEventHandler, LinkEnterEventHandler, PersonEntersVehicleEventHandler,
 		PersonLeavesVehicleEventHandler {
 	private final LinkFinder linkFinder;
 	private final PassengerTracker passengers = new PassengerTracker();
@@ -63,7 +63,7 @@ public class VehicleAnalysisListener implements PersonDepartureEventHandler, Per
 	}
 
 	@Override
-	public void handleEvent(LinkLeaveEvent event) {
+	public void handleEvent(LinkEnterEvent event) {
 		if (event.getVehicleId().toString().startsWith("av:")) {
 			VehicleMovementItem movement = currentMovements.get(event.getVehicleId());
 
