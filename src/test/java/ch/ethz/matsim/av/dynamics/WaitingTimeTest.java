@@ -197,4 +197,59 @@ public class WaitingTimeTest {
 		Assert.assertEquals(144.5, waitingTimes.get(1), 1e-3);
 		Assert.assertEquals(51.05, waitingTimes.get(2), 1e-3);
 	}
+	
+	@Test
+	public void testDynamicWaitingTimeWithoutConstantAttribute() {
+		AVConfigGroup config = createConfig();
+		OperatorConfig operatorConfig = config.getOperatorConfigs().get(OperatorConfig.DEFAULT_OPERATOR_ID);
+
+		operatorConfig.getWaitingTimeConfig().setDefaultWaitingTime(123.0);
+		operatorConfig.getWaitingTimeConfig().setEstimationLinkAttribute("avGroup");
+		operatorConfig.getWaitingTimeConfig().setEstimationAlpha(0.7);
+
+		Controler controller = createController(config);
+
+		Link link = controller.getScenario().getNetwork().getLinks().get(Id.createLinkId("8:9_9:9"));
+		link.getAttributes().putAttribute("avWaitingTime", 456.0);
+
+		int index = 0;
+		for (Link _link : controller.getScenario().getNetwork().getLinks().values()) {
+			_link.getAttributes().putAttribute("avGroup", index++);
+		}
+
+		controller.getConfig().controler().setLastIteration(2);
+
+		StrategySettings strategy = new StrategySettings();
+		strategy.setStrategyName("ReRoute");
+		strategy.setWeight(1.0);
+		controller.getConfig().strategy().addStrategySettings(strategy);
+
+		List<Double> waitingTimes = new LinkedList<>();
+
+		controller.addControlerListener(new IterationEndsListener() {
+			@Override
+			public void notifyIterationEnds(IterationEndsEvent event) {
+				Population population = event.getServices().getScenario().getPopulation();
+				Person person = population.getPersons().get(Id.createPersonId(17));
+				Plan plan = person.getSelectedPlan();
+
+				for (PlanElement element : plan.getPlanElements()) {
+					if (element instanceof Leg) {
+						Leg leg = (Leg) element;
+						AVRoute route = (AVRoute) leg.getRoute();
+
+						if (Id.createLinkId("8:9_9:9").equals(route.getStartLinkId())) {
+							waitingTimes.add(route.getWaitingTime());
+						}
+					}
+				}
+			}
+		});
+
+		controller.run();
+
+		Assert.assertEquals(123.0, waitingTimes.get(0), 1e-3);
+		Assert.assertEquals(44.6, waitingTimes.get(1), 1e-3);
+		Assert.assertEquals(21.08, waitingTimes.get(2), 1e-3);
+	}
 }

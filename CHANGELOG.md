@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- Do not require constant link waiting time attribute to be set for dynamic waiting time estimation
 - Automatically pass vehicle type to generators
 
 **1.0.1**
