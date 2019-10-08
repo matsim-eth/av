@@ -21,6 +21,7 @@ import org.matsim.contrib.dvrp.vrpagent.VrpLegFactory;
 import org.matsim.contrib.dynagent.run.DynActivityEngineModule;
 import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
+import org.matsim.vehicles.VehicleType;
 
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -154,7 +155,7 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 	@Provides
 	@Singleton
 	Map<Id<AVOperator>, AVGenerator> provideGenerators(Map<String, AVGenerator.AVGeneratorFactory> factories,
-			AVConfigGroup config, Map<Id<AVOperator>, Network> networks) {
+			AVConfigGroup config, Map<Id<AVOperator>, Network> networks, Map<Id<AVOperator>, VehicleType> vehicleTypes) {
 		Map<Id<AVOperator>, AVGenerator> generators = new HashMap<>();
 
 		for (OperatorConfig oc : config.getOperatorConfigs().values()) {
@@ -166,9 +167,10 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 			}
 
 			Network network = networks.get(oc.getId());
+			VehicleType vehicleType = vehicleTypes.get(oc.getId());
 
 			AVGenerator.AVGeneratorFactory factory = factories.get(strategy);
-			AVGenerator generator = factory.createGenerator(oc, network);
+			AVGenerator generator = factory.createGenerator(oc, network, vehicleType);
 
 			generators.put(oc.getId(), generator);
 		}

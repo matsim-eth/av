@@ -1,6 +1,7 @@
 # CHANGELOG
 
 - Add 'null' subpopulation scoring parameters by default
+- Automatically pass vehicle type to generators
 
 **1.0.1**
 
