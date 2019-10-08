@@ -1,5 +1,6 @@
 package ch.ethz.matsim.av.waiting_time.link_attribute;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,5 +37,9 @@ public class LinkWaitingTimeData {
 		}
 
 		return new LinkWaitingTimeData(waitingTimes);
+	}
+
+	static public LinkWaitingTimeData createEmpty() {
+		return new LinkWaitingTimeData(Collections.emptyMap());
 	}
 }

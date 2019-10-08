@@ -2,6 +2,12 @@
 
 - No changes yet
 
+**1.0.2**
+
+- Do not require constant link waiting time attribute to be set for dynamic waiting time estimation
+- Add 'null' subpopulation scoring parameters by default
+- Automatically pass vehicle type to generators
+
 **1.0.1**
 
 - Add option to automatically clean AV network
