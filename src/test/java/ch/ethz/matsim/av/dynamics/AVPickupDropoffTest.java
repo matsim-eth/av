@@ -3,7 +3,6 @@ package ch.ethz.matsim.av.dynamics;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -178,14 +177,14 @@ public class AVPickupDropoffTest {
 			this.link = link;
 			this.capacity = capacity;
 		}
-		
+
 		@Override
 		public List<AVVehicle> generateVehicles() {
 			VehicleType vehicleType = VehicleUtils.getDefaultVehicleType();
 			vehicleType.getCapacity().setSeats(capacity);
 
-			return Collections.singletonList(new AVVehicle(Id.create("vehicle", DvrpVehicle.class), link, 0.0, Double.POSITIVE_INFINITY,
-					vehicleType));
+			return Collections.singletonList(new AVVehicle(Id.create("vehicle", DvrpVehicle.class), link, 0.0,
+					Double.POSITIVE_INFINITY, vehicleType));
 		}
 	}
 
@@ -199,7 +198,7 @@ public class AVPickupDropoffTest {
 		}
 
 		@Override
-		public AVGenerator createGenerator(OperatorConfig operatorConfig, Network network) {
+		public AVGenerator createGenerator(OperatorConfig operatorConfig, Network network, VehicleType vehicleType) {
 			Link link = network.getLinks().get(linkId);
 			return new SingleVehicleGenerator(link, capacity);
 		}
@@ -208,10 +207,8 @@ public class AVPickupDropoffTest {
 	static private AVConfigGroup createConfig() {
 		AVConfigGroup config = new AVConfigGroup();
 
-		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
-		scoringParams.setSubpopulation(null);
+		AVScoringParameterSet scoringParams = config.getScoringParameters(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
-		config.addScoringParameters(scoringParams);
 
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getDispatcherConfig().setType(MultiODHeuristic.TYPE);
