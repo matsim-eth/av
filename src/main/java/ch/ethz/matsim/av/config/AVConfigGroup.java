@@ -33,6 +33,7 @@ public class AVConfigGroup extends ReflectiveConfigGroup {
 
 	public AVConfigGroup() {
 		super(GROUP_NAME);
+		addScoringParameters(new AVScoringParameterSet());
 	}
 
 	@Override
@@ -105,6 +106,20 @@ public class AVConfigGroup extends ReflectiveConfigGroup {
 		}
 
 		return Collections.unmodifiableMap(map);
+	}
+
+	@Override
+	public void addParameterSet(ConfigGroup set) {
+		// Makes sure that we don't have duplicate subpopulations
+		if (set instanceof AVScoringParameterSet) {
+			AVScoringParameterSet scoringParameters = (AVScoringParameterSet) set;
+
+			if (getScoringParameters().containsKey(scoringParameters.getSubpopulation())) {
+				removeScoringParameters(scoringParameters.getSubpopulation());
+			}
+		}
+
+		super.addParameterSet(set);
 	}
 
 	public void addScoringParameters(AVScoringParameterSet parameters) {

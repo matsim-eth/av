@@ -35,10 +35,8 @@ public class WaitingTimeTest {
 	static AVConfigGroup createConfig() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
 
-		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
-		scoringParams.setSubpopulation(null);
+		AVScoringParameterSet scoringParams = avConfigGroup.getScoringParameters(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
-		avConfigGroup.addScoringParameters(scoringParams);
 
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);

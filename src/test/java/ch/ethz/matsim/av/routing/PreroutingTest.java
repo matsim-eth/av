@@ -27,10 +27,8 @@ public class PreroutingTest {
 	public void testPreRouting() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
 
-		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
-		scoringParams.setSubpopulation(null);
+		AVScoringParameterSet scoringParams = avConfigGroup.getScoringParameters(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
-		avConfigGroup.addScoringParameters(scoringParams);
 
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.setPredictRouteTravelTime(true);
