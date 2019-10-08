@@ -173,7 +173,7 @@ public class AVPickupDropoffTest {
 			this.link = link;
 			this.capacity = capacity;
 		}
-		
+
 		@Override
 		public List<AVVehicle> generateVehicles() {
 			VehicleType vehicleType = VehicleUtils.getDefaultVehicleType();
@@ -193,7 +193,7 @@ public class AVPickupDropoffTest {
 		}
 
 		@Override
-		public AVGenerator createGenerator(OperatorConfig operatorConfig, Network network) {
+		public AVGenerator createGenerator(OperatorConfig operatorConfig, Network network, VehicleType vehicleType) {
 			Link link = network.getLinks().get(linkId);
 			return new SingleVehicleGenerator(link, capacity);
 		}
@@ -202,10 +202,8 @@ public class AVPickupDropoffTest {
 	static private AVConfigGroup createConfig() {
 		AVConfigGroup config = new AVConfigGroup();
 
-		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
-		scoringParams.setSubpopulation(null);
+		AVScoringParameterSet scoringParams = config.getScoringParameters(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
-		config.addScoringParameters(scoringParams);
 
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getDispatcherConfig().setType(MultiODHeuristic.TYPE);
