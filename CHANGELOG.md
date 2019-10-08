@@ -1,6 +1,6 @@
 # CHANGELOG
 
-- No changes yet
+- Automatically pass vehicle type to generators
 
 **1.0.1**
 
