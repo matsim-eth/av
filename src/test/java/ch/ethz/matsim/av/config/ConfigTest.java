@@ -11,7 +11,7 @@ import ch.ethz.matsim.av.data.AVOperator;
 
 public class ConfigTest {
 	@Test
-	public void testReadWriteRoute() {
+	public void testReadWrite() {
 		{
 			AVConfigGroup configGroup = new AVConfigGroup();
 			Config config = ConfigUtils.createConfig(configGroup);
@@ -31,6 +31,8 @@ public class ConfigTest {
 			operator2.getGeneratorConfig().setNumberOfVehicles(15);
 			operator2.getTimingConfig().setPickupDurationPerPassenger(789.0);
 			configGroup.addOperator(operator2);
+			
+			configGroup.clearScoringParameters();
 
 			AVScoringParameterSet params1 = new AVScoringParameterSet();
 			params1.setSubpopulation(null);
