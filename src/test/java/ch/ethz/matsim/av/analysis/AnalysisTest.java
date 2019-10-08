@@ -36,10 +36,8 @@ public class AnalysisTest {
 		avConfigGroup.setVehicleAnalysisInterval(2);
 		avConfigGroup.setEnableDistanceAnalysis(true);
 
-		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
-		scoringParams.setSubpopulation(null);
+		AVScoringParameterSet scoringParams = avConfigGroup.getScoringParameters(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
-		avConfigGroup.addScoringParameters(scoringParams);
 
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);
@@ -163,10 +161,8 @@ public class AnalysisTest {
 		avConfigGroup.setVehicleAnalysisInterval(2);
 		avConfigGroup.setEnableDistanceAnalysis(true);
 
-		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
-		scoringParams.setSubpopulation(null);
+		AVScoringParameterSet scoringParams = avConfigGroup.getScoringParameters(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
-		avConfigGroup.addScoringParameters(scoringParams);
 
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);

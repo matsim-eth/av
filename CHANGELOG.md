@@ -1,6 +1,6 @@
 # CHANGELOG
 
-- No changes yet
+- Add 'null' subpopulation scoring parameters by default
 
 **1.0.1**
 
