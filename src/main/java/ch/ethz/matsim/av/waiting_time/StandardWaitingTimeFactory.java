@@ -19,8 +19,13 @@ public class StandardWaitingTimeFactory implements WaitingTimeFactory {
 		WaitingTimeConfig waitingTimeConfig = operatorConfig.getWaitingTimeConfig();
 
 		if (waitingTimeConfig.getEstimationAlpha() > 0.0) {
-			LinkWaitingTimeData linkWaitingTimeData = LinkWaitingTimeData.create(network,
-					waitingTimeConfig.getConstantWaitingTimeLinkAttribute());
+			LinkWaitingTimeData linkWaitingTimeData = LinkWaitingTimeData.createEmpty();
+
+			if (waitingTimeConfig.getConstantWaitingTimeLinkAttribute() != null) {
+				linkWaitingTimeData = LinkWaitingTimeData.create(network,
+						waitingTimeConfig.getConstantWaitingTimeLinkAttribute());
+			}
+
 			LinkGroupDefinition linkGroupDefinition = LinkGroupDefinition.create(network,
 					waitingTimeConfig.getEstimationLinkAttribute());
 

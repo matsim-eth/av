@@ -35,10 +35,8 @@ public class RunAVExampleTest {
 	public void testAVExample() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
 
-		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
-		scoringParams.setSubpopulation(null);
+		AVScoringParameterSet scoringParams = avConfigGroup.getScoringParameters(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
-		avConfigGroup.addScoringParameters(scoringParams);
 
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);
@@ -77,10 +75,8 @@ public class RunAVExampleTest {
 	public void testStuckScoring() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
 
-		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
-		scoringParams.setSubpopulation(null);
+		AVScoringParameterSet scoringParams = avConfigGroup.getScoringParameters(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
-		avConfigGroup.addScoringParameters(scoringParams);
 
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getGeneratorConfig().setNumberOfVehicles(0);
@@ -105,10 +101,8 @@ public class RunAVExampleTest {
 	public void testMultiOD() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
 
-		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
-		scoringParams.setSubpopulation(null);
+		AVScoringParameterSet scoringParams = avConfigGroup.getScoringParameters(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
-		avConfigGroup.addScoringParameters(scoringParams);
 
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getDispatcherConfig().setType(MultiODHeuristic.TYPE);
@@ -141,10 +135,8 @@ public class RunAVExampleTest {
 	public void testAVExampleWithAccessEgress() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
 
-		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
-		scoringParams.setSubpopulation(null);
+		AVScoringParameterSet scoringParams = avConfigGroup.getScoringParameters(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
-		avConfigGroup.addScoringParameters(scoringParams);
 
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);
@@ -195,10 +187,8 @@ public class RunAVExampleTest {
 	public void testAVExampleWithAccessEgressAttribute() {
 		AVConfigGroup avConfigGroup = new AVConfigGroup();
 
-		AVScoringParameterSet scoringParams = new AVScoringParameterSet();
-		scoringParams.setSubpopulation(null);
+		AVScoringParameterSet scoringParams = avConfigGroup.getScoringParameters(null);
 		scoringParams.setMarginalUtilityOfWaitingTime(-0.84);
-		avConfigGroup.addScoringParameters(scoringParams);
 
 		OperatorConfig operatorConfig = new OperatorConfig();
 		operatorConfig.getGeneratorConfig().setNumberOfVehicles(100);

@@ -26,6 +26,7 @@ import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.vehicles.VehicleType;
 import org.matsim.vehicles.VehicleUtils;
+import org.matsim.vehicles.Vehicles;
 
 import com.google.inject.Key;
 import com.google.inject.Provider;
@@ -280,5 +281,31 @@ public class AVModule extends AbstractModule {
 		plugins.add(new AVQSimPlugin(config));
 
 		return plugins;
+	}
+
+	@Provides
+	@Singleton
+	public Map<Id<AVOperator>, VehicleType> provideVehicleTypes(AVConfigGroup config, Vehicles vehicles) {
+		Map<Id<AVOperator>, VehicleType> vehicleTypes = new HashMap<>();
+
+		for (OperatorConfig operatorConfig : config.getOperatorConfigs().values()) {
+			String vehicleTypeName = operatorConfig.getGeneratorConfig().getVehicleType();
+			VehicleType vehicleType = null;
+
+			if (vehicleTypeName == null) {
+				vehicleType = VehicleUtils.getDefaultVehicleType();
+			} else {
+				vehicleType = vehicles.getVehicleTypes().get(Id.create(vehicleTypeName, VehicleType.class));
+
+				if (vehicleType == null) {
+					throw new IllegalStateException(String.format("VehicleType '%s' does not exist for operator '%s'",
+							vehicleType, operatorConfig.getId()));
+				}
+			}
+
+			vehicleTypes.put(operatorConfig.getId(), vehicleType);
+		}
+
+		return vehicleTypes;
 	}
 }

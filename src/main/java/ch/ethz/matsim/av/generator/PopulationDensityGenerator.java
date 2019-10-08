@@ -15,8 +15,6 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.contrib.dvrp.data.Vehicle;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.vehicles.VehicleType;
-import org.matsim.vehicles.VehicleUtils;
-import org.matsim.vehicles.Vehicles;
 
 import com.google.inject.Inject;
 
@@ -75,12 +73,12 @@ public class PopulationDensityGenerator implements AVGenerator {
 			cumulativeDensity.put(link, cumsum);
 		}
 	}
-	
+
 	@Override
 	public List<AVVehicle> generateVehicles() {
 		List<AVVehicle> vehicles = new LinkedList<>();
 		Random random = new Random(randomSeed);
-		
+
 		int generatedNumberOfVehicles = 0;
 		while (generatedNumberOfVehicles < numberOfVehicles) {
 			generatedNumberOfVehicles++;
@@ -95,7 +93,7 @@ public class PopulationDensityGenerator implements AVGenerator {
 					break;
 				}
 			}
-			
+
 			Id<Vehicle> id = AVUtils.createId(operatorId, generatedNumberOfVehicles);
 			vehicles.add(new AVVehicle(id, selectedLink, vehicleType, 0.0, Double.POSITIVE_INFINITY));
 		}
@@ -110,25 +108,9 @@ public class PopulationDensityGenerator implements AVGenerator {
 		@Inject
 		private ActivityFacilities facilities;
 
-		@Inject
-		private Vehicles vehicles;
-
 		@Override
-		public AVGenerator createGenerator(OperatorConfig operatorConfig, Network network) {
+		public AVGenerator createGenerator(OperatorConfig operatorConfig, Network network, VehicleType vehicleType) {
 			GeneratorConfig generatorConfig = operatorConfig.getGeneratorConfig();
-
-			VehicleType vehicleType = VehicleUtils.getDefaultVehicleType();
-
-			if (generatorConfig.getVehicleType() != null) {
-				vehicleType = vehicles.getVehicleTypes()
-						.get(Id.create(generatorConfig.getVehicleType(), VehicleType.class));
-
-				if (vehicleType == null) {
-					throw new IllegalStateException(String.format("VehicleType '%s' does not exist for operator '%s'",
-							vehicleType, operatorConfig.getId()));
-				}
-			}
-
 			int randomSeed = Integer.parseInt(generatorConfig.getParams().getOrDefault("randomSeed", "1234"));
 
 			return new PopulationDensityGenerator(operatorConfig.getId(), generatorConfig.getNumberOfVehicles(),

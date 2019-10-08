@@ -129,7 +129,7 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
 	@Provides
 	@Singleton
 	Map<Id<AVOperator>, AVGenerator> provideGenerators(Map<String, AVGenerator.AVGeneratorFactory> factories,
-			AVConfigGroup config, Map<Id<AVOperator>, Network> networks) {
+			AVConfigGroup config, Map<Id<AVOperator>, Network> networks, Map<Id<AVOperator>, VehicleType> vehicleTypes) {
 		Map<Id<AVOperator>, AVGenerator> generators = new HashMap<>();
 
 		for (OperatorConfig oc : config.getOperatorConfigs().values()) {
@@ -141,9 +141,10 @@ public class AVQSimModule extends com.google.inject.AbstractModule {
 			}
 
 			Network network = networks.get(oc.getId());
+			VehicleType vehicleType = vehicleTypes.get(oc.getId());
 
 			AVGenerator.AVGeneratorFactory factory = factories.get(strategy);
-			AVGenerator generator = factory.createGenerator(oc, network);
+			AVGenerator generator = factory.createGenerator(oc, network, vehicleType);
 
 			generators.put(oc.getId(), generator);
 		}
