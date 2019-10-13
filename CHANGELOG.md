@@ -1,6 +1,6 @@
 # CHANGELOG
 
-- No changes yet
+- BC: Fix waiting time utility config option & various code improvements for configuration
 
 **1.0.2**
 
