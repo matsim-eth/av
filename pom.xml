@@ -6,7 +6,7 @@
 
 	<groupId>ch.ethz.matsim</groupId>
 	<artifactId>av</artifactId>
-	<version>1.0.2-matsim10</version>
+	<version>1.0.3-matsim10</version>
 	<description>Automated vehicles for MATSim</description>
 
 	<properties>

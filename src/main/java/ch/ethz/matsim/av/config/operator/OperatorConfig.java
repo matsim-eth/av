@@ -35,13 +35,13 @@ public class OperatorConfig extends ReflectiveConfigGroup {
 	public OperatorConfig() {
 		super(GROUP_NAME);
 
-		addParameterSet(dispatcherConfig);
-		addParameterSet(generatorConfig);
-		addParameterSet(timingConfig);
-		addParameterSet(pricingConfig);
-		addParameterSet(routerConfig);
-		addParameterSet(interactionFinderConfig);
-		addParameterSet(waitingTimeConfig);
+		super.addParameterSet(dispatcherConfig);
+		super.addParameterSet(generatorConfig);
+		super.addParameterSet(timingConfig);
+		super.addParameterSet(pricingConfig);
+		super.addParameterSet(routerConfig);
+		super.addParameterSet(interactionFinderConfig);
+		super.addParameterSet(waitingTimeConfig);
 	}
 
 	@StringGetter(ID)
@@ -150,5 +150,22 @@ public class OperatorConfig extends ReflectiveConfigGroup {
 		}
 
 		throw new IllegalStateException("Unknown parameter set for operator: " + type);
+	}
+
+	@Override
+	public void addParameterSet(ConfigGroup set) {
+		boolean isValid = false;
+
+		isValid |= set == dispatcherConfig;
+		isValid |= set == generatorConfig;
+		isValid |= set == timingConfig;
+		isValid |= set == pricingConfig;
+		isValid |= set == routerConfig;
+		isValid |= set == interactionFinderConfig;
+		isValid |= set == waitingTimeConfig;
+
+		if (!isValid) {
+			throw new IllegalStateException("Attempt to add unknown parameter set to OperatorConfig");
+		}
 	}
 }
