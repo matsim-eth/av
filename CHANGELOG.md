@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- Fix: Dispatcher/Generator/etc. groups were duplicated within one OperatorConfig
 - BC: Fix waiting time utility config option & various code improvements for configuration
 
 **1.0.2**
