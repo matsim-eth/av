@@ -12,7 +12,7 @@ public class WaitingTimeConfig extends ReflectiveConfigGroup {
 	public final static String ESTIMATION_ALPHA = "estimationAlpha";
 	public final static String ESTIMATION_LINK_ATTRIBITE = "estimationLinkAttribute";
 
-	public final static String CONSTNAT_WAITING_TIME_LINK_ATTRIBUTE = "constantWaitingTimeAttribute";
+	public final static String CONSTANT_WAITING_TIME_LINK_ATTRIBUTE = "constantWaitingTimeAttribute";
 	public final static String DEFAULT_WAITING_TIME = "defaultWaitingTime";
 
 	private double estimationStartTime = 5.0 * 3600.0;
@@ -102,12 +102,12 @@ public class WaitingTimeConfig extends ReflectiveConfigGroup {
 		this.estimationLinkAttribute = estimationLinkAttribute;
 	}
 
-	@StringGetter(CONSTNAT_WAITING_TIME_LINK_ATTRIBUTE)
+	@StringGetter(CONSTANT_WAITING_TIME_LINK_ATTRIBUTE)
 	public String getConstantWaitingTimeLinkAttribute() {
 		return constantWaitingTimeLinkAttribute;
 	}
 
-	@StringSetter(CONSTNAT_WAITING_TIME_LINK_ATTRIBUTE)
+	@StringSetter(CONSTANT_WAITING_TIME_LINK_ATTRIBUTE)
 	public void setConstantWaitingTimeLinkAttribute(String constantWaitingTimeLinkAttribute) {
 		this.constantWaitingTimeLinkAttribute = constantWaitingTimeLinkAttribute;
 	}
