@@ -1,5 +1,11 @@
 package ch.ethz.matsim.av.config;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.core.config.Config;
@@ -31,7 +37,7 @@ public class ConfigTest {
 			operator2.getGeneratorConfig().setNumberOfVehicles(15);
 			operator2.getTimingConfig().setPickupDurationPerPassenger(789.0);
 			configGroup.addOperator(operator2);
-			
+
 			configGroup.clearScoringParameters();
 
 			AVScoringParameterSet params1 = new AVScoringParameterSet();
@@ -71,5 +77,54 @@ public class ConfigTest {
 			AVScoringParameterSet params2 = configGroup.getScoringParameters("xyz");
 			Assert.assertEquals(15.0, params2.getMarginalUtilityOfWaitingTime(), 1e-2);
 		}
+	}
+
+	@Test
+	public void testDuplication() throws IOException {
+		// The way the config was set up previously loading and saving the config file
+		// would duplicate operators etc. This test makes sure this does not happen
+		// anymore.
+
+		AVConfigGroup configGroup = new AVConfigGroup();
+		Config config = ConfigUtils.createConfig(configGroup);
+
+		OperatorConfig operator1 = new OperatorConfig();
+		operator1.setId(AVOperator.createId("id_abc"));
+		operator1.getDispatcherConfig().setType("disp_abc");
+		operator1.getGeneratorConfig().setType("gen_abc");
+		operator1.getGeneratorConfig().setNumberOfVehicles(5);
+		operator1.getTimingConfig().setPickupDurationPerPassenger(123.0);
+		configGroup.addOperator(operator1);
+
+		new ConfigWriter(config).write("test_config1.xml");
+
+		Config config2 = ConfigUtils.loadConfig("test_config1.xml", new AVConfigGroup());
+		new ConfigWriter(config2).write("test_config2.xml");
+
+		Config config3 = ConfigUtils.loadConfig("test_config2.xml", new AVConfigGroup());
+		new ConfigWriter(config3).write("test_config3.xml");
+
+		BufferedReader reader = new BufferedReader(
+				new InputStreamReader(new FileInputStream(new File("test_config3.xml"))));
+
+		String line = null;
+		
+		int numberOfOperators = 0;
+		int numberOfDispatchers = 0;
+
+		while ((line = reader.readLine()) != null) {
+			if (line.contains("parameterset") && line.contains("operator")) {
+				numberOfOperators++;
+			}
+			
+			if (line.contains("parameterset") && line.contains("dispatcher")) {
+				numberOfDispatchers++;
+			}
+		}
+
+		reader.close();
+
+		Assert.assertEquals(1, numberOfOperators);
+		Assert.assertEquals(1, numberOfDispatchers);
 	}
 }
