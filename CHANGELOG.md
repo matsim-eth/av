@@ -2,6 +2,11 @@
 
 - No changes yet
 
+**1.0.3**
+
+- Fix: Dispatcher/Generator/etc. groups were duplicated within one OperatorConfig
+- BC: Fix waiting time utility config option & various code improvements for configuration
+
 **1.0.2**
 
 - Do not require constant link waiting time attribute to be set for dynamic waiting time estimation
