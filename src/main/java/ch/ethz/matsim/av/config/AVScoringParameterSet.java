@@ -7,7 +7,7 @@ public class AVScoringParameterSet extends ReflectiveConfigGroup {
 
 	static public final String SUBPOPULATION = "subpopulation";
 	static public final String STUCK_UTILITY = "stuckUtility";
-	static public final String MARGINAL_UTILITY_OF_WAITING = "marginalUtilityOfFeederWaiting";
+	static public final String MARGINAL_UTILITY_OF_WAITING = "marginalUtilityOfWaiting";
 
 	private String subpopulation = null;
 	private double stuckUtility = -1000.0;
