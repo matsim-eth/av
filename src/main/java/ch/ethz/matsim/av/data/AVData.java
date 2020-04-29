@@ -16,7 +16,7 @@ public class AVData implements Fleet {
 	}
 
 	@Override
-	public ImmutableMap<Id<DvrpVehicle>, ? extends DvrpVehicle> getVehicles() {
+	public ImmutableMap<Id<DvrpVehicle>, DvrpVehicle> getVehicles() {
 		return ImmutableMap.copyOf(vehicles);
 	}
 }

@@ -1,27 +1,15 @@
 package ch.ethz.matsim.av.schedule;
 
 import org.matsim.api.core.v01.network.Link;
-import org.matsim.contrib.dvrp.schedule.StayTaskImpl;
+import org.matsim.contrib.dvrp.schedule.StayTask;
 
-public class AVStayTask extends StayTaskImpl implements AVTask {
-    public AVStayTask(double beginTime, double endTime, Link link, String name)
-    {
-        super(beginTime, endTime, link, name);
-    }
+public class AVStayTask extends StayTask implements AVTask {
+	public AVStayTask(double beginTime, double endTime, Link link) {
+		super(AVTaskType.STAY, beginTime, endTime, link);
+	}
 
-    public AVStayTask(double beginTime, double endTime, Link link)
-    {
-        this(beginTime, endTime, link, "AVStay");
-    }
-
-    @Override
-    protected String commonToString()
-    {
-        return "[" + getAVTaskType().toString() + "]" + super.commonToString();
-    }
-
-    @Override
-    public AVTaskType getAVTaskType() {
-        return AVTaskType.STAY;
-    }
+	@Override
+	public AVTaskType getAVTaskType() {
+		return AVTaskType.STAY;
+	}
 }

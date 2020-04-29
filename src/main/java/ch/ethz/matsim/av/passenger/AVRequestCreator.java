@@ -5,12 +5,11 @@ import java.util.Map;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Route;
 import org.matsim.contrib.dvrp.optimizer.Request;
 import org.matsim.contrib.dvrp.passenger.PassengerRequest;
 import org.matsim.contrib.dvrp.passenger.PassengerRequestCreator;
-import org.matsim.core.mobsim.framework.MobsimPassengerAgent;
-import org.matsim.core.mobsim.framework.PlanAgent;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -31,29 +30,22 @@ public class AVRequestCreator implements PassengerRequestCreator {
 	Map<Id<AVOperator>, Network> networks;
 
 	@Override
-	public PassengerRequest createRequest(Id<Request> id, MobsimPassengerAgent passenger, Link pickupLink,
+	public PassengerRequest createRequest(Id<Request> id, Id<Person> passengerId, Route route, Link pickupLink,
 			Link dropoffLink, double departureTime, double submissionTime) {
-		if (!(passenger instanceof PlanAgent)) {
-			throw new RuntimeException("Need PlanAgent in order to figure out the operator");
-		}
-
 		if (pickupLink == null || dropoffLink == null) {
 			throw new IllegalStateException("Pickup or dropoff link is null: " + pickupLink + " / " + dropoffLink);
 		}
 
-		PlanAgent agent = (PlanAgent) passenger;
-		Leg leg = (Leg) agent.getCurrentPlanElement();
+		AVRoute avRoute = (AVRoute) route;
+		avRoute.setDistance(Double.NaN);
 
-		AVRoute route = (AVRoute) leg.getRoute();
-		route.setDistance(Double.NaN);
-
-		AVOperator operator = operators.get(route.getOperatorId());
+		AVOperator operator = operators.get(avRoute.getOperatorId());
 
 		if (operator == null) {
-			throw new IllegalStateException("Operator '" + route.getOperatorId().toString() + "' does not exist.");
+			throw new IllegalStateException("Operator '" + avRoute.getOperatorId().toString() + "' does not exist.");
 		}
 
-		Network network = networks.get(route.getOperatorId());
+		Network network = networks.get(avRoute.getOperatorId());
 		Link operatorPickupLink = network.getLinks().get(pickupLink.getId());
 		Link operatorDropoffLink = network.getLinks().get(dropoffLink.getId());
 
@@ -67,7 +59,7 @@ public class AVRequestCreator implements PassengerRequestCreator {
 					operator.getId(), dropoffLink.getId()));
 		}
 
-		return new AVRequest(id, passenger, operatorPickupLink, operatorDropoffLink, departureTime, submissionTime,
-				route, operator, dispatchers.get(route.getOperatorId()));
+		return new AVRequest(id, passengerId, operatorPickupLink, operatorDropoffLink, departureTime, submissionTime,
+				avRoute, operator, dispatchers.get(avRoute.getOperatorId()));
 	}
 }

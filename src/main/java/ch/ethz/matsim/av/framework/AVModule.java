@@ -11,6 +11,7 @@ import org.matsim.contrib.dvrp.passenger.DefaultPassengerRequestValidator;
 import org.matsim.contrib.dvrp.passenger.PassengerRequestValidator;
 import org.matsim.contrib.dvrp.run.DvrpModes;
 import org.matsim.contrib.dvrp.trafficmonitoring.DvrpTravelTimeModule;
+import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.population.routes.RouteFactories;
 import org.matsim.core.router.RoutingModule;
@@ -154,10 +155,16 @@ public class AVModule extends AbstractModule {
 
 	@Provides
 	@Singleton
-	Map<Id<AVOperator>, AVOperator> provideOperators(AVConfigGroup config, AVOperatorFactory factory) {
+	Map<Id<AVOperator>, AVOperator> provideOperators(AVConfigGroup config, AVOperatorFactory factory,
+			PlansCalcRouteConfigGroup routeConfig) {
 		Map<Id<AVOperator>, AVOperator> operators = new HashMap<>();
 
 		for (OperatorConfig oc : config.getOperatorConfigs().values()) {
+			if (oc.getPredictRouteTravelTime() && routeConfig.getRoutingRandomness() > 0.0) {
+				throw new IllegalStateException(
+						"Can only run AV extension with routingRandomness = 0.0 if travel times should be predicted!");
+			}
+
 			operators.put(oc.getId(), factory.createOperator(oc.getId(), oc));
 		}
 

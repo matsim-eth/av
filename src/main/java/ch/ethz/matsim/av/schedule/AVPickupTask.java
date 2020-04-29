@@ -5,16 +5,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.matsim.api.core.v01.network.Link;
-import org.matsim.contrib.dvrp.schedule.StayTaskImpl;
+import org.matsim.contrib.dvrp.schedule.StayTask;
 
 import ch.ethz.matsim.av.passenger.AVRequest;
 
-public class AVPickupTask extends StayTaskImpl implements AVTaskWithRequests, AVTask {
+public class AVPickupTask extends StayTask implements AVTaskWithRequests, AVTask {
 	final private Set<AVRequest> requests = new HashSet<>();
 	private final double earliestDepartureTime;
 
 	public AVPickupTask(double beginTime, double endTime, Link link, double earliestDepartureTime) {
-		super(beginTime, endTime, link);
+		super(AVTaskType.PICKUP, beginTime, endTime, link);
 		this.earliestDepartureTime = earliestDepartureTime;
 	}
 
@@ -41,11 +41,6 @@ public class AVPickupTask extends StayTaskImpl implements AVTaskWithRequests, AV
 	@Override
 	public Set<AVRequest> getRequests() {
 		return requests;
-	}
-
-	@Override
-	protected String commonToString() {
-		return "[" + getAVTaskType().name() + "]" + super.commonToString();
 	}
 
 	public double getEarliestDepartureTime() {

@@ -150,7 +150,7 @@ public class AVPickupDropoffTest {
 			Plan plan = populationFactory.createPlan();
 			person.addPlan(plan);
 
-			Coord startCoord = link1.getCoord();
+			Coord startCoord = link1.getToNode().getCoord();
 			startCoord = CoordUtils.plus(startCoord, new Coord(-request.delayTime, 0.0));
 
 			Activity firstActivity = populationFactory.createActivityFromLinkId("generic", link1.getId());

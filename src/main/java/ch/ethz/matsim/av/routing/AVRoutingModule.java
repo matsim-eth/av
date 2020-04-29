@@ -11,8 +11,6 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.router.RoutingModule;
-import org.matsim.core.router.StageActivityTypes;
-import org.matsim.core.router.StageActivityTypesImpl;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.facilities.Facility;
 
@@ -103,7 +101,7 @@ public class AVRoutingModule implements RoutingModule {
 
 			// If we have a non-zero access leg, the request for the AV will be issued after
 			// arrival
-			requestSendTime += ((Leg) pickupElements.get(0)).getTravelTime();
+			requestSendTime += ((Leg) pickupElements.get(0)).getTravelTime().seconds();
 		}
 
 		// Now waiting for the vehicle
@@ -131,7 +129,7 @@ public class AVRoutingModule implements RoutingModule {
 
 			Leg leg = (Leg) transitElements.get(0);
 			vehicleDistance = leg.getRoute().getDistance();
-			vehicleTravelTime = leg.getRoute().getTravelTime();
+			vehicleTravelTime = leg.getRoute().getTravelTime().seconds();
 			price = priceCalculator.calculatePrice(operatorId, vehicleDistance, vehicleTravelTime);
 		}
 
@@ -141,14 +139,22 @@ public class AVRoutingModule implements RoutingModule {
 		AVRoute route = routeFactory.createRoute(pickupFacility.getLinkId(), dropoffFacility.getLinkId());
 		route.setOperatorId(operatorId);
 		route.setDistance(vehicleDistance);
-		route.setTravelTime(totalTravelTime);
+
+		if (Double.isFinite(totalTravelTime)) {
+			route.setTravelTime(totalTravelTime);
+		}
+
 		route.setWaitingTime(vehicleWaitingTime);
 		route.setInVehicleTime(vehicleTravelTime);
 		route.setPrice(price);
 
 		Leg leg = populationFactory.createLeg(AVModule.AV_MODE);
 		leg.setDepartureTime(requestSendTime);
-		leg.setTravelTime(totalTravelTime);
+
+		if (Double.isFinite(totalTravelTime)) {
+			leg.setTravelTime(totalTravelTime);
+		}
+
 		leg.setRoute(route);
 
 		routeElements.add(leg);
@@ -156,7 +162,7 @@ public class AVRoutingModule implements RoutingModule {
 		// Now we need to egress
 		double egressDepartureTime = vehicleDepartureTime; // The last we know, if we don't route
 
-		if (Double.isNaN(totalTravelTime)) {
+		if (!Double.isNaN(totalTravelTime)) {
 			// If we have routed the leg, we know it better
 			egressDepartureTime = totalTravelTime;
 		}
@@ -173,10 +179,5 @@ public class AVRoutingModule implements RoutingModule {
 		}
 
 		return routeElements;
-	}
-
-	@Override
-	public StageActivityTypes getStageActivityTypes() {
-		return new StageActivityTypesImpl(INTERACTION_ACTIVITY_TYPE);
 	}
 }

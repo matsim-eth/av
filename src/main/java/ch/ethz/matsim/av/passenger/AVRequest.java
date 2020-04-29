@@ -5,7 +5,6 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.contrib.dvrp.optimizer.Request;
 import org.matsim.contrib.dvrp.passenger.PassengerRequest;
-import org.matsim.core.mobsim.framework.MobsimPassengerAgent;
 
 import ch.ethz.matsim.av.data.AVOperator;
 import ch.ethz.matsim.av.dispatcher.AVDispatcher;
@@ -20,7 +19,7 @@ public class AVRequest implements PassengerRequest {
 
 	final private Link pickupLink;
 	final private Link dropoffLink;
-	final private MobsimPassengerAgent passengerAgent;
+	final private Id<Person> passengerId;
 	final private AVOperator operator;
 	final private AVDispatcher dispatcher;
 	final private AVRoute route;
@@ -28,10 +27,10 @@ public class AVRequest implements PassengerRequest {
 	private AVPickupTask pickupTask;
 	private AVDropoffTask dropoffTask;
 
-	public AVRequest(Id<Request> id, MobsimPassengerAgent passengerAgent, Link pickupLink, Link dropoffLink,
-			double pickupTime, double submissionTime, AVRoute route, AVOperator operator, AVDispatcher dispatcher) {
+	public AVRequest(Id<Request> id, Id<Person> passengerId, Link pickupLink, Link dropoffLink, double pickupTime,
+			double submissionTime, AVRoute route, AVOperator operator, AVDispatcher dispatcher) {
 		this.id = id;
-		this.passengerAgent = passengerAgent;
+		this.passengerId = passengerId;
 		this.pickupLink = pickupLink;
 		this.dropoffLink = dropoffLink;
 		this.operator = operator;
@@ -52,7 +51,7 @@ public class AVRequest implements PassengerRequest {
 
 	@Override
 	public Id<Person> getPassengerId() {
-		return passengerAgent.getId();
+		return passengerId;
 	}
 
 	public AVPickupTask getPickupTask() {

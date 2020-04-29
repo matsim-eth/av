@@ -10,7 +10,7 @@ public class AVStayActivity implements DynActivity {
 	private final String activityType;
 
 	public AVStayActivity(AVStayTask stayTask) {
-		activityType = stayTask.getName();
+		activityType = stayTask.getAVTaskType().toString();
 		this.stayTask = stayTask;
 		this.now = stayTask.getBeginTime();
 	}

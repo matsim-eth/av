@@ -1,25 +1,27 @@
 package ch.ethz.matsim.av.schedule;
 
-import ch.ethz.matsim.av.passenger.AVRequest;
-import org.matsim.api.core.v01.network.Link;
-import org.matsim.contrib.dvrp.schedule.StayTaskImpl;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class AVDropoffTask extends StayTaskImpl implements AVTaskWithRequests, AVTask {
+import org.matsim.api.core.v01.network.Link;
+import org.matsim.contrib.dvrp.schedule.StayTask;
+
+import ch.ethz.matsim.av.passenger.AVRequest;
+
+public class AVDropoffTask extends StayTask implements AVTaskWithRequests, AVTask {
 	private final Set<AVRequest> requests = new HashSet<>();
-	
+
 	public AVDropoffTask(double beginTime, double endTime, Link link) {
-        super(beginTime, endTime, link);
+		super(AVTaskType.DROPOFF, beginTime, endTime, link);
 	}
 
 	public AVDropoffTask(double beginTime, double endTime, Link link, Collection<AVRequest> requests) {
-		super(beginTime, endTime, link);
+		super(AVTaskType.DROPOFF, beginTime, endTime, link);
 
 		this.requests.addAll(requests);
-		for (AVRequest request : requests) request.setDropoffTask(this);
+		for (AVRequest request : requests)
+			request.setDropoffTask(this);
 	}
 
 	@Override
@@ -29,7 +31,7 @@ public class AVDropoffTask extends StayTaskImpl implements AVTaskWithRequests, A
 
 	@Override
 	public Set<AVRequest> getRequests() {
-        return requests;
+		return requests;
 	}
 
 	@Override
@@ -37,10 +39,4 @@ public class AVDropoffTask extends StayTaskImpl implements AVTaskWithRequests, A
 		requests.add(request);
 		request.setDropoffTask(this);
 	}
-
-    @Override
-    protected String commonToString()
-    {
-        return "[" + getAVTaskType().name() + "]" + super.commonToString();
-    }
 }

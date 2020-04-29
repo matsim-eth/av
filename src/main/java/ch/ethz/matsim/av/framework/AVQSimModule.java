@@ -14,11 +14,10 @@ import org.matsim.contrib.dvrp.passenger.PassengerEngineQSimModule;
 import org.matsim.contrib.dvrp.passenger.PassengerRequestCreator;
 import org.matsim.contrib.dvrp.run.AbstractDvrpModeQSimModule;
 import org.matsim.contrib.dvrp.run.DvrpMode;
-import org.matsim.contrib.dvrp.run.DvrpModes;
+import org.matsim.contrib.dvrp.run.DvrpQSimComponents;
 import org.matsim.contrib.dvrp.vrpagent.VrpAgentLogic.DynActionCreator;
 import org.matsim.contrib.dvrp.vrpagent.VrpLeg;
 import org.matsim.contrib.dvrp.vrpagent.VrpLegFactory;
-import org.matsim.contrib.dynagent.run.DynActivityEngineModule;
 import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.core.mobsim.qsim.components.QSimComponentsConfig;
 import org.matsim.vehicles.VehicleType;
@@ -47,10 +46,7 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 	public final static String COMPONENT_NAME = "AVExtension";
 
 	public static void configureComponents(QSimComponentsConfig components) {
-		DynActivityEngineModule.configureComponents(components);
-		// components.addNamedComponent(COMPONENT_NAME);
-		// components.addNamedComponent(AVModule.AV_MODE);
-		components.addComponent(DvrpModes.mode(AVModule.AV_MODE));
+		DvrpQSimComponents.activateModes(AVModule.AV_MODE).configure(components);
 	}
 
 	public AVQSimModule() {
@@ -155,7 +151,8 @@ public class AVQSimModule extends AbstractDvrpModeQSimModule {
 	@Provides
 	@Singleton
 	Map<Id<AVOperator>, AVGenerator> provideGenerators(Map<String, AVGenerator.AVGeneratorFactory> factories,
-			AVConfigGroup config, Map<Id<AVOperator>, Network> networks, Map<Id<AVOperator>, VehicleType> vehicleTypes) {
+			AVConfigGroup config, Map<Id<AVOperator>, Network> networks,
+			Map<Id<AVOperator>, VehicleType> vehicleTypes) {
 		Map<Id<AVOperator>, AVGenerator> generators = new HashMap<>();
 
 		for (OperatorConfig oc : config.getOperatorConfigs().values()) {

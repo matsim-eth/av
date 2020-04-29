@@ -37,6 +37,8 @@ public class PreroutingTest {
 
 		Config config = ConfigUtils.createConfig(avConfigGroup, new DvrpConfigGroup());
 		Scenario scenario = TestScenarioGenerator.generateWithAVLegs(config);
+		
+		config.plansCalcRoute().setRoutingRandomness(0.0);
 
 		PlanCalcScoreConfigGroup.ModeParams modeParams = config.planCalcScore().getOrCreateModeParams(AVModule.AV_MODE);
 		modeParams.setMonetaryDistanceRate(0.0);
@@ -63,8 +65,9 @@ public class PreroutingTest {
 				if (element instanceof Leg) {
 					Leg leg = (Leg) element;
 					AVRoute route = (AVRoute) leg.getRoute();
-					
-					Assert.assertTrue(Double.isFinite(route.getTravelTime()));
+
+					Assert.assertTrue(
+							route.getTravelTime().isDefined() && Double.isFinite(route.getTravelTime().seconds()));
 					Assert.assertTrue(Double.isFinite(route.getDistance()));
 					Assert.assertTrue(Double.isFinite(route.getWaitingTime()));
 					Assert.assertTrue(Double.isFinite(route.getInVehicleTime()));

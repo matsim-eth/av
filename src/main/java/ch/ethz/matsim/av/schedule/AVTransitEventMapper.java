@@ -3,7 +3,7 @@ package ch.ethz.matsim.av.schedule;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.GenericEvent;
 import org.matsim.api.core.v01.population.Person;
-import org.matsim.core.events.EventsReaderXMLv1.CustomEventMapper;
+import org.matsim.core.events.MatsimEventsReader.CustomEventMapper;
 
 import ch.ethz.matsim.av.data.AVOperator;
 
